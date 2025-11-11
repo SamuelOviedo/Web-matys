@@ -1,0 +1,239 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- ========== HERO SECTION ========== -->
+<section class="hero-section text-white text-center d-flex align-items-center justify-content-center" 
+          style="background: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920') no-repeat center center/cover;">
+  <div class="overlay"></div>
+  <div class="container position-relative header-text">
+    <h1 class="display-2 fw-bold enc">Confecciones Matys</h1>
+    <p class="lead fw-semibold fs-3">Confeccionando con amor y gratitud</p>
+    <a class="btn btn-primary btn-lg mt-3" href="{% url 'prendas' %}">Ver Colección</a>
+  </div>
+</section>
+
+<!-- ========== SECCIÓN: QUIÉNES SOMOS ========== -->
+<section class="py-5 container section-flow">
+  <div class="row mb-4 text-center">
+    <div class="col-12">
+      <h2 class="fs-5 enc fw-bold text-primary mb-2">Nuestra Pasión</h2>
+      <h1 class="fs-1 enc fw-bold text-body">Creando Moda con Tradición</h1>
+    </div>
+  </div>
+  
+  <div class="row align-items-center g-4 ">
+    <div class="col-lg-6 ">
+      <img src="{% static 'images/portada_detalle.jpg' %}" 
+            alt="Taller de confección" 
+            class="img-fluid rounded shadow pop-img">
+    </div>
+    <div class="col-lg-6">
+      <p class="fs-5 text-body-secondary">
+        En <strong class="text-primary">Matys</strong>, transformamos telas en obras de arte. 
+        Cada prenda es confeccionada con dedicación, precisión y un profundo respeto por la elegancia.
+      </p>
+      <p class="text-body-secondary">
+        Especializados en vestidos, blusas, trajes formales y prendas a medida, 
+        llevamos años vistiendo a quienes valoran la calidad y el estilo personal.
+      </p>
+      <a href="{% url 'trayectoria' %}" class="btn btn-outline-primary mt-3">Conoce Nuestra Historia</a>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECCIÓN: NUESTRAS ESPECIALIDADES ========== -->
+<section class="py-5">
+  <div class="container section-flow">
+    <div class="row mb-5 text-center">
+      <div class="col-12">
+        <h2 class="fs-5 enc fw-bold text-primary mb-2">Lo Que Hacemos</h2>
+        <h1 class="fs-1 enc fw-bold text-body">Nuestras Especialidades</h1>
+      </div>
+    </div>
+    
+    <div class="row g-4 py-5">
+      <!-- Card 1: Moda Femenina -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-lg product-card">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="bi bi-bag-heart text-primary" style="font-size: 3rem;"></i>
+            </div>
+            <h5 class="card-title enc fw-bold">Moda Femenina</h5>
+            <p class="card-text text-body-secondary">
+              Vestidos, blusas, faldas y chalecos diseñados para realzar tu estilo único.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 2: Trajes Formales -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-lg product-card">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="bi bi-person-workspace text-primary" style="font-size: 3rem;"></i>
+            </div>
+            <h5 class="card-title enc fw-bold">Trajes Formales</h5>
+            <p class="card-text text-body-secondary">
+              Sacos, pantalones y camisas para lucir impecable en toda ocasión.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 3: Confección a Medida -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-lg product-card">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="bi bi-scissors text-primary" style="font-size: 3rem;"></i>
+            </div>
+            <h5 class="card-title enc fw-bold">A Medida</h5>
+            <p class="card-text text-body-secondary">
+              Prendas personalizadas que se ajustan perfectamente a tu cuerpo.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 4: Arreglos -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-lg product-card">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="bi bi-check-circle-fill text-primary" style="font-size: 3rem;"></i>
+            </div>
+            <h5 class="card-title enc fw-bold">Arreglos</h5>
+            <p class="card-text text-body-secondary">
+              Modificaciones y ajustes profesionales para renovar tu guardarropa.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECCIÓN: PRODUCTOS DESTACADOS ========== -->
+<section class="py-5 container">
+  <div class="row mb-5 text-center">
+    <div class="col-12">
+      <h2 class="fs-5 enc fw-bold text-primary mb-2">Colección Destacada</h2>
+      <h1 class="fs-1 enc fw-bold text-body">Nuestras Prendas Favoritas</h1>
+    </div>
+  </div>
+  
+  <div class="row g-4">
+    <!-- Prenda 1 -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow product-card h-100">
+        <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400" 
+              class="card-img-top" 
+              alt="Vestido Elegante"
+              style="height: 300px; object-fit: cover;">
+        <div class="card-body text-center">
+          <span class="badge bg-secondary mb-2">Moda Femenina</span>
+          <h5 class="card-title enc fw-bold">Vestido Elegante</h5>
+          <p class="card-text text-body-secondary">Diseño sofisticado para eventos especiales</p>
+          <a href="{% url 'detalle_prendas' %}" class="btn btn-primary mt-2">Ver Detalles</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Prenda 2 -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow product-card h-100">
+        <img src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400" 
+              class="card-img-top" 
+              alt="Traje Formal"
+              style="height: 300px; object-fit: cover;">
+        <div class="card-body text-center">
+          <span class="badge bg-secondary mb-2">Moda Masculina</span>
+          <h5 class="card-title enc fw-bold">Traje Formal</h5>
+          <p class="card-text text-body-secondary">Elegancia clásica para el caballero moderno</p>
+          <a href="{% url 'detalle_prendas' %}" class="btn btn-primary mt-2">Ver Detalles</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Prenda 3 -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow product-card h-100">
+        <img src="https://images.unsplash.com/photo-1578932750294-f5075e85f44a?w=400" 
+              class="card-img-top" 
+              alt="Blusa Ejecutiva"
+              style="height: 300px; object-fit: cover;">
+        <div class="card-body text-center">
+          <span class="badge bg-secondary mb-2">Moda Femenina</span>
+          <h5 class="card-title enc fw-bold">Blusa Ejecutiva</h5>
+          <p class="card-text text-body-secondary">Profesionalismo con un toque de estilo</p>
+          <a href="{% url 'detalle_prendas' %}" class="btn btn-primary mt-2">Ver Detalles</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row mt-4">
+    <div class="col-12 text-center">
+      <a href="{% url 'prendas' %}" class="btn btn-outline-primary btn-lg">Ver Toda la Colección</a>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECCIÓN: LLAMADO A LA ACCIÓN ========== -->
+<section class="mt-5 py-5 bg-primary text-secondary">
+  <div class="container text-center">
+    <h2 class="enc fw-bold mb-3">¿Buscas algo especial?</h2>
+    <p class="fs-5 mb-4">Contáctanos y creamos la prenda perfecta para ti</p>
+    <a href="{% url 'contacto' %}" class="btn btn-light btn-lg">Solicitar Cotización</a>
+  </div>
+</section>
+
+<!-- ========== SECCIÓN: POR QUÉ ELEGIRNOS ========== -->
+<section class="py-5 container">
+  <div class="row mb-5 text-center">
+    <div class="col-12">
+      <h2 class="fs-5 enc fw-bold text-primary mb-2">Ventajas</h2>
+      <h1 class="fs-1 enc fw-bold text-body">¿Por Qué Elegirnos?</h1>
+    </div>
+  </div>
+  
+  <div class="row g-4 text-center">
+    <div class="col-md-3 shadow-sm">
+      <div class="pop-img">
+        <i class="bi bi-award text-secondary" style="font-size: 4rem;"></i>
+        <h5 class="enc fw-bold mt-3">Calidad Garantizada</h5>
+        <p class="text-body-secondary">Materiales premium y acabados impecables</p>
+      </div>
+    </div>
+    
+    <div class="col-md-3 shadow-sm">
+      <div class="pop-img">
+        <i class="bi bi-clock-history text-secondary" style="font-size: 4rem;"></i>
+        <h5 class="enc fw-bold mt-3">Años de Experiencia</h5>
+        <p class="text-body-secondary">Tradición y conocimiento en cada costura</p>
+      </div>
+    </div>
+    
+    <div class="col-md-3 shadow-sm">
+      <div class="pop-img">
+        <i class="bi bi-heart text-secondary" style="font-size: 4rem;"></i>
+        <h5 class="enc fw-bold mt-3">Atención Personalizada</h5>
+        <p class="text-body-secondary">Nos importa tu satisfacción</p>
+      </div>
+    </div>
+    
+    <div class="col-md-3 shadow-sm">
+      <div class="pop-img">
+        <i class="bi bi-truck text-secondary" style="font-size: 4rem;"></i>
+        <h5 class="enc fw-bold mt-3">Entrega a Tiempo</h5>
+        <p class="text-body-secondary">Cumplimos con los plazos acordados</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

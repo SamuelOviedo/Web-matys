@@ -1,0 +1,161 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- portada -->
+<section class="hero-section text-white text-start d-flex align-items-center justify-content-center" style="background: url('/static/images/portada_detalle.jpg') no-repeat center center/cover;">
+    <div class="overlay"></div>
+    <div class="container position-relative header-text">
+        <h1 class="display-3 fw-bold enc text-light">Confecciones Matys</h1>
+        <p class="lead fw-bold">Confeccionando con amor y gratitud</p>
+    </div>
+</section>
+
+<div class="container my-5">
+  <div class="row g-4">
+    
+    <!-- Columna Izquierda: Imágenes -->
+    <div class="col-lg-6">
+      <!-- Imagen Principal -->
+      <div class="mb-3">
+        <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800" 
+              class="main-image" 
+              id="mainImage"
+              alt="Vestido Elegante">
+      </div>
+      
+      <!-- Miniaturas -->
+      <div class="row g-2">
+        <div class="col-3">
+          <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=200" 
+                class="thumbnail active" 
+                data-full="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800"
+                alt="Vista 1">
+        </div>
+        <div class="col-3">
+          <img src="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=200" 
+                class="thumbnail" 
+                data-full="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800"
+                alt="Vista 2">
+        </div>
+        <div class="col-3">
+          <img src="https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=200" 
+                class="thumbnail" 
+                data-full="https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=800"
+                alt="Vista 3">
+        </div>
+        <div class="col-3">
+          <img src="https://images.unsplash.com/photo-1612423284934-2850a4ea6b0f?w=200" 
+                class="thumbnail" 
+                data-full="https://images.unsplash.com/photo-1612423284934-2850a4ea6b0f?w=800"
+                alt="Vista 4">
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Información -->
+    <div class="col-lg-6">
+      <div class="mb-3">
+        <span class="badge badge-cat">Femenino</span>
+        <span class="badge badge-stock text-white ms-2">
+          <i class="bi bi-check-circle me-1"></i>Disponible
+        </span>
+      </div>
+
+      <h1 class="display-5 enc fw-bold mb-3">Vestido Elegante</h1>
+      <p class="product-price mb-4">L. 850.00</p>
+
+      <p class="text-muted mb-4">
+        Vestido elegante de corte sofisticado, perfecto para eventos especiales. 
+        Confeccionado con telas de alta calidad que garantizan comodidad y durabilidad. 
+        Diseño atemporal que realza la figura femenina con sutileza.
+      </p>
+
+      <!-- Selector de Talla -->
+      <div class="mb-4">
+        <h5 class="fw-bold mb-3">Selecciona tu talla:</h5>
+        <div class="size-selector">
+          <button class="size-btn" data-size="XS">XS</button>
+          <button class="size-btn" data-size="S">S</button>
+          <button class="size-btn active" data-size="M">M</button>
+          <button class="size-btn" data-size="L">L</button>
+          <button class="size-btn" data-size="XL">XL</button>
+        </div>
+        <p class="text-muted mt-2 small">
+          <i class="bi bi-info-circle me-1"></i>
+          ¿No estás segura de tu talla? 
+          <a href="#" class="text-primary" data-bs-toggle="modal" data-bs-target="#sizesModal">Ver guía de tallas</a>
+        </p>
+      </div>
+
+      <!-- Color -->
+      <div class="mb-4">
+        <h5 class="fw-bold mb-3">Color disponible:</h5>
+        <div class="d-flex gap-2">
+          <button class="color-btn active" style="background: #1a1a1a;" data-color="Negro" title="Negro"></button>
+          <button class="color-btn" style="background: #ffffff; border: 2px solid #ddd;" data-color="Blanco" title="Blanco"></button>
+          <button class="color-btn" style="background: #c41e3a;" data-color="Rojo Vino" title="Rojo Vino"></button>
+        </div>
+      </div>
+
+      <!-- Características -->
+      <div class="mb-4">
+        <h5 class="fw-bold mb-3">Características:</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Material: 95% Poliéster, 5% Elastano</li>
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Largo: Midi (debajo de la rodilla)</li>
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Cuidado: Lavado a mano o seco</li>
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Hecho a mano en Honduras</li>
+        </ul>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="d-flex gap-3 mb-4">
+        <button class="btn btn-primary flex-grow-1">
+          <i class="bi bi-cart-plus me-2"></i>Solicitar Cotización
+        </button>
+        <a href="https://wa.me/50499999999?text=Hola%20Matys,%20me%20interesa%20el%20Vestido%20Elegante" 
+            target="_blank"
+            class="btn btn-outline-primary">
+          <i class="bi bi-whatsapp fs-4"></i>
+        </a>
+      </div>
+
+      <!-- Envío -->
+      <div class="alert alert-info mb-0">
+        <i class="bi bi-truck me-2"></i>
+        <strong>Entrega disponible</strong> en Siguatepeque
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs de Información Adicional -->
+  <div class="mt-5 bs-light bs-body-color">
+    <ul class="nav nav-tabs" id="infoTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" 
+                id="description-tab" 
+                data-bs-toggle="tab" 
+                data-bs-target="#description"
+                type="button"
+                role="tab">
+          Descripción
+        </button>
+      </li>
+
+    <div class="tab-content mt-4 p-4 bg-light rounded-bottom " id="infoTabsContent">
+      <div class="tab-pane fade show active" id="description" role="tabpanel">
+        <h5 class="fw-bold mb-3">Descripción Detallada</h5>
+        <p>
+          Este vestido elegante ha sido diseñado pensando en la mujer moderna que busca sofisticación 
+          sin sacrificar comodidad. Cada detalle ha sido cuidadosamente considerado, desde la selección 
+          de la tela hasta el último acabado.
+        </p>
+        <p>
+          El corte midi favorece a todas las figuras, mientras que el tejido de alta calidad permite 
+          movimiento natural y comodidad durante todo el día. Perfecto para bodas, eventos corporativos 
+          o cualquier ocasión especial donde desees destacar con elegancia.
+        </p>
+      </div>
+      
+{% endblock %}
