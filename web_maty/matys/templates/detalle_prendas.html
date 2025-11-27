@@ -2,14 +2,18 @@
 {% load static %}
 
 {% block content %}
-<!-- portada -->
-<section class="hero-section text-white text-start d-flex align-items-center justify-content-center" style="background: url('/static/images/portada_detalle.jpg') no-repeat center center/cover;">
-    <div class="overlay"></div>
-    <div class="container position-relative header-text">
-        <h1 class="display-3 fw-bold enc text-light">Confecciones Matys</h1>
-        <p class="lead fw-bold">Confeccionando con amor y gratitud</p>
-    </div>
+<!-- Hero Section -->
+<section class="hero-section text-white text-center d-flex align-items-center justify-content-center" 
+          style="background: linear-gradient(135deg, rgba(0,51,102,0.85), rgba(255,215,0,0.3)), 
+                url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920') no-repeat center center/cover;">
+  <div class="overlay"></div>
+  <div class="container position-relative header-text">
+    <h1 class="display-3 fw-bold enc">Elegancia en Cada Puntada</h1>
+    <p class="lead fs-4 fw-semibold">Descubre nuestra colección exclusiva</p>
+  </div>
 </section>
+
+
 
 <div class="container my-5">
   <div class="row g-4">
@@ -19,36 +23,36 @@
       <!-- Imagen Principal -->
       <div class="mb-3">
         <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800" 
-              class="main-image" 
-              id="mainImage"
-              alt="Vestido Elegante">
+             class="main-image" 
+             id="mainImage"
+             alt="Vestido Elegante">
       </div>
       
       <!-- Miniaturas -->
       <div class="row g-2">
         <div class="col-3">
           <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=200" 
-                class="thumbnail active" 
-                data-full="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800"
-                alt="Vista 1">
+               class="thumbnail active" 
+               data-full="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800"
+               alt="Vista 1">
         </div>
         <div class="col-3">
           <img src="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=200" 
-                class="thumbnail" 
-                data-full="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800"
-                alt="Vista 2">
+               class="thumbnail" 
+               data-full="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800"
+               alt="Vista 2">
         </div>
         <div class="col-3">
           <img src="https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=200" 
-                class="thumbnail" 
-                data-full="https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=800"
-                alt="Vista 3">
+               class="thumbnail" 
+               data-full="https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=800"
+               alt="Vista 3">
         </div>
         <div class="col-3">
           <img src="https://images.unsplash.com/photo-1612423284934-2850a4ea6b0f?w=200" 
-                class="thumbnail" 
-                data-full="https://images.unsplash.com/photo-1612423284934-2850a4ea6b0f?w=800"
-                alt="Vista 4">
+               class="thumbnail" 
+               data-full="https://images.unsplash.com/photo-1612423284934-2850a4ea6b0f?w=800"
+               alt="Vista 4">
         </div>
       </div>
     </div>
@@ -84,7 +88,7 @@
         <p class="text-muted mt-2 small">
           <i class="bi bi-info-circle me-1"></i>
           ¿No estás segura de tu talla? 
-          <a href="#" class="text-primary" data-bs-toggle="modal" data-bs-target="#sizesModal">Ver guía de tallas</a>
+          <a href="#sizes-tab" class="text-primary">Ver guía de tallas</a>
         </p>
       </div>
 
@@ -110,15 +114,10 @@
       </div>
 
       <!-- Botones de Acción -->
-      <div class="d-flex gap-3 mb-4">
-        <button class="btn btn-primary flex-grow-1">
-          <i class="bi bi-cart-plus me-2"></i>Solicitar Cotización
+      <div class="d-grid gap-3 mb-4">
+        <button class="btn btn-primary btn-lg" id="btnCotizacion">
+          <i class="bi bi-whatsapp me-2"></i>Solicitar Cotización por WhatsApp
         </button>
-        <a href="https://wa.me/50499999999?text=Hola%20Matys,%20me%20interesa%20el%20Vestido%20Elegante" 
-            target="_blank"
-            class="btn btn-outline-primary">
-          <i class="bi bi-whatsapp fs-4"></i>
-        </a>
       </div>
 
       <!-- Envío -->
@@ -130,7 +129,7 @@
   </div>
 
   <!-- Tabs de Información Adicional -->
-  <div class="mt-5 bs-light bs-body-color">
+  <div class="mt-5">
     <ul class="nav nav-tabs" id="infoTabs" role="tablist">
       <li class="nav-item" role="presentation">
         <button class="nav-link active" 
@@ -142,8 +141,19 @@
           Descripción
         </button>
       </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" 
+                id="sizes-tab" 
+                data-bs-toggle="tab" 
+                data-bs-target="#sizes"
+                type="button"
+                role="tab">
+          Guía de Tallas
+        </button>
+      </li>
+    </ul>
 
-    <div class="tab-content mt-4 p-4 bg-light rounded-bottom " id="infoTabsContent">
+    <div class="tab-content mt-4 p-4 bg-body-secondary rounded-bottom" id="infoTabsContent">
       <div class="tab-pane fade show active" id="description" role="tabpanel">
         <h5 class="fw-bold mb-3">Descripción Detallada</h5>
         <p>
@@ -158,4 +168,60 @@
         </p>
       </div>
       
+      <div class="tab-pane fade" id="sizes" role="tabpanel">
+        <h5 class="fw-bold mb-3">Guía de Tallas</h5>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead>
+              <tr class="table-primary">
+                <th scope="col">Talla</th>
+                <th scope="col">Busto (cm)</th>
+                <th scope="col">Cintura (cm)</th>
+                <th scope="col">Cadera (cm)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th class="text-body" scope="row">XS</th>
+                <td class="text-body">80-84</td>
+                <td class="text-body">60-64</td>
+                <td class="text-body">86-90</td>
+              </tr>
+              <tr>
+                <th class="text-body" scope="row">S</th>
+                <td class="text-body">84-88</td>
+                <td class="text-body">64-68</td>
+                <td class="text-body">90-94</td>
+              </tr>
+              <tr>
+                <th class="text-body" scope="row">M</th>
+                <td class="text-body">88-92</td>
+                <td class="text-body">68-72</td>
+                <td class="text-body">94-98</td>
+              </tr>
+              <tr>
+                <th class="text-body" scope="row">L</th>
+                <td class="text-body">92-96</td>
+                <td class="text-body">72-76</td>
+                <td class="text-body">98-102</td>
+              </tr>
+              <tr>
+                <th class="text-body" scope="row">XL</th>
+                <td class="text-body">96-100</td>
+                <td class="text-body">76-80</td>
+                <td class="text-body">102-106</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-muted small">
+          <i class="bi bi-info-circle me-1"></i>
+          Las medidas son aproximadas. Si tienes dudas, contáctanos para asesoría personalizada.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 {% endblock %}

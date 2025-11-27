@@ -434,6 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+<<<<<<< HEAD
 });
 
 
@@ -459,3 +460,49 @@ function toggleDetails(element) {
     //     }
     // });
 }
+=======
+  
+  /* ==========================================
+     COTIZACIÓN POR WHATSAPP CON DATOS DINÁMICOS
+  ========================================== */
+  
+  const btnCotizacion = document.getElementById('btnCotizacion');
+  
+  if (btnCotizacion) {
+    btnCotizacion.addEventListener('click', function() {
+      // Obtener nombre del producto
+      const productName = document.querySelector('h1')?.textContent.trim() || 'Producto';
+      
+      // Obtener precio
+      const productPrice = document.querySelector('.product-price')?.textContent.trim() || 'Consultar';
+      
+      // Obtener talla seleccionada
+      const selectedSizeBtn = document.querySelector('.size-btn.active');
+      const selectedSize = selectedSizeBtn ? selectedSizeBtn.getAttribute('data-size') : 'No seleccionada';
+      
+      // Obtener color seleccionado
+      const selectedColorBtn = document.querySelector('.color-btn.active');
+      const selectedColor = selectedColorBtn ? selectedColorBtn.getAttribute('data-color') : 'No seleccionado';
+      
+      // Construir mensaje personalizado
+      const message = `Hola Matys, me interesa solicitar una cotización:
+
+📦 *Producto:* ${productName}
+💰 *Precio:* ${productPrice}
+📏 *Talla:* ${selectedSize}
+🎨 *Color:* ${selectedColor}
+
+¿Podrían confirmarme disponibilidad y tiempo de entrega?`;
+      
+      // Número de WhatsApp de la empresa
+      const whatsappNumber = '50498267040';
+      
+      // Crear URL de WhatsApp
+      const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+      
+      // Abrir WhatsApp en nueva pestaña
+      window.open(whatsappURL, '_blank');
+    });
+  }
+});
+>>>>>>> 264da23ac01a313cfbdd43b9ffdcd190819dedce
