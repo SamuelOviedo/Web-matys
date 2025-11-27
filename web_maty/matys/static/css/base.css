@@ -796,3 +796,101 @@ footer::before {
     font-size: 1.75rem;
   }
 }
+
+
+
+
+
+
+
+
+
+.contact-menu-container {
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    box-shadow: 0 32px 52px rgba(255, 0, 0, 0.1);
+    padding: 20px 0;
+    border-radius: 6px;
+    /* Para replicar el efecto de menú contextual flotante */
+    position: relative;
+    left: 25%;
+    width: 50%;
+    align-items: center;
+}
+
+
+
+/* Cada opción de contacto (Email, Phone, etc.) */
+.contact-option {
+    padding: 0 0;
+    cursor: pointer;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    transition: background-color 0.15s ease;
+    overflow: hidden; /* Oculta el contenido extra */
+}
+
+
+
+/* Encabezado de la opción (Icono, Nombre, Flecha) */
+.option-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+
+
+/* Estilo del icono (Email, Phone, etc.) */
+.icon {
+    font-size: 1.1rem;
+    width: 25px; /* Para alinear verticalmente */
+    text-align: center;
+    color: #f7b32d; /* Color amarillo similar al de la imagen */
+}
+
+/* Colores específicos para iconos (opcional) */
+.fa-phone {
+    color: #5cb85c;
+}
+
+.skype-icon {
+    color: #00aff0;
+}
+
+.telegram-icon {
+    color: #0088cc;
+}
+
+/* Flecha de expansión */
+.arrow {
+    font-size: 0.7rem;
+    color: #666;
+    transition: transform 0.3s ease;
+}
+
+/* Rotación de la flecha cuando la opción está activa/abierta */
+.contact-option.active .arrow {
+    transform: rotate(180deg);
+}
+
+/* Detalles de contacto (el contenido que se despliega) */
+.option-details {
+    max-height: 0; /* Inicialmente oculto */
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    background-color: #fafafa;
+}
+
+/* Estilos de los detalles cuando la opción está activa */
+.contact-option.active .option-details {
+    max-height: 100px; /* Suficientemente grande para el contenido */
+    padding: 10px 20px;
+    border-top: 1px solid #eee;
+}
+
+.option-details p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #555;
+    line-height: 1.4;
+}

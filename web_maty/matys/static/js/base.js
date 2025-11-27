@@ -435,3 +435,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+
+
+
+
+
+
+/**
+ * Función para alternar el estado (activo/inactivo) de una opción de contacto.
+ * Simula el comportamiento de un acordeón o menú desplegable.
+ */
+function toggleDetails(element) {
+    // 1. Alterna la clase 'active' en el elemento clickeado.
+    // Esto activa los estilos CSS para el despliegue y rotación de flecha.
+    element.classList.toggle('active');
+
+    // OPCIONAL: Desactiva otros elementos si solo quieres que uno esté abierto a la vez.
+    // const allOptions = document.querySelectorAll('.contact-option');
+    // allOptions.forEach(option => {
+    //     if (option !== element && option.classList.contains('active')) {
+    //         option.classList.remove('active');
+    //     }
+    // });
+}

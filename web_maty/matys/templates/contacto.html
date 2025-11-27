@@ -1,0 +1,76 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="hero-section text-white text-start d-flex align-items-center justify-content-center" style="background: url('/static/images/portada_contacto.webp') no-repeat center center/cover;">
+    <div class="overlay"></div>
+    <div class="container position-relative header-text">
+        <h1 class="display-3 fw-bold enc d-flex align-items-center justify-content-center">Contáctenos</h1>
+    </div>
+</section>
+
+<section>
+    <div class="row align-items-center">
+        
+        <div class="row d-flex justify-content-center align-items-center text-success">
+            <h2 class="enc fw-bold text-center">Puedes encontrarnos en nuestras redes sociales y conocernos mucho mejor!!</h2>
+        </div><br><br><br>
+
+        <div class="col-md-1 text-center">
+            <img src="{% static 'images/creacion1.png' %}" class="img-fluid" style="max-height: 400px; max-width: 500px;">
+        </div>
+        <div class="contact-menu-container bg-primary text-secondary">
+
+            <div class="contact-option enc fw-bold" onclick="toggleDetails(this)">
+                <div class="option-header">
+                    <i class="fas fa-phone icon"></i> <span>Telefono 👇</span>
+                    <i class="fas fa-chevron-down arrow"></i> </div>
+                <div class="option-details">
+                    <p>Llámanos al: +504 9826-7040</p>
+                </div>
+            </div>
+
+            <div class="contact-option enc fw-bold" onclick="toggleDetails(this)">
+                <div class="option-header">
+                    <i class="fab fa-skype icon skype-icon"></i> <span>YouTube 👇</span></div>
+                <div class="option-details">
+                    <p>Nuestro canal es: Maty’s</p>
+                </div>
+            </div>
+
+            <div class="contact-option enc fw-bold" onclick="toggleDetails(this)">
+                <div class="option-header">
+                    <i class="fab fa-skype icon skype-icon"></i> <span>Gmail 👇</span></div>
+                <div class="option-details">
+                    <p>Envíanos un correo a: <a href="info@matysconfecciones.com">info@matysconfecciones.com</a></p>
+                </div>
+            </div>
+
+            <div class="contact-option enc fw-bold" onclick="toggleDetails(this)">
+                <div class="option-header">
+                    <i class="fab fa-skype icon skype-icon"></i> <span>Instagram 👇</span></div>
+                <div class="option-details">
+                    <p>Encuéntranos como: Confe_ccionesmaty</p>
+                </div>
+            </div>
+
+            <div class="contact-option enc fw-bold" onclick="toggleDetails(this)">
+                <div class="option-header">
+                    <i class="fab fa-skype icon skype-icon"></i> <span>Facebook 👇</span></div>
+                <div class="option-details">
+                    <p>Encuéntranos como: Confecciones Maty</p>
+                </div>
+            </div>
+
+            <div class="contact-option enc fw-bold" onclick="toggleDetails(this)">
+                <div class="option-header">
+                    <i class="fab fa-skype icon skype-icon"></i> <span>Tiktok 👇</span></div>
+                <div class="option-details">
+                    <p>Encuéntranos como: confeccinesmaty4</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

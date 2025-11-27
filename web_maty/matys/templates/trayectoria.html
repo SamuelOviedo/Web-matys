@@ -1,0 +1,121 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="hero-section text-white text-start d-flex align-items-center justify-content-center" style="background: url('/static/images/Portada_trayectoria.webp') no-repeat center center/cover;">
+  <div class="overlay"></div>
+  <div class="container position-relative header-text">
+    <h1 class="display-3 fw-bold enc d-flex align-items-center justify-content-center">Conocenos mejor!</h1>
+    <p class="d-flex align-items-center justify-content-center">4 años creando y perfeccionando</p>
+  </div>
+</section>
+
+<div class="container">
+  <section class="pt-5 container-fluid section-flow2 position-relative">
+    <div class="row d-flex justify-content-center align-items-center text-success">
+        <h2 class="enc fw-bold text-center">Nuestra Historia</h2>
+    </div><br><br><br>
+    
+    <div class="row container-text">
+      <div class="col-md-4 text-center mb-3 mb-md-0">
+          <img class="w-100 rounded-pill" src="{% static 'images/Trayectoria1.webp' %}">
+      </div>
+
+      <div class="col-md-8">
+        <div class="card-text">
+          <p>
+              <span class="fw-bold text-success">ConfeccionesMaty</span>
+              Confeccionesmaty surge en el corazón de una niña que admira su mamá, pues en un momento crítico para la familia cuando mi papá se quedó sin trabajo, 
+              mi mamá hizo malabares con una máquina de coser para sacarnos adelante así que despertó muchas admiración de mi parte hacia la costura costó desde los ocho años. 
+              Comencé ayudándole a mi mamá a planchar hacer ruedos y disfrutaba hacerlo. Siempre supe lo que quería, 
+              así que tenía claro que quería graduarme de bachiller técnico en corte confección, hay muchas cosas que debo mejorar, 
+              pero si hay algo de lo que estoy segura es de la pasión que tengo por la confección por diseñar por transformar y 
+              de momento lo que ofrezco es mi corta experiencia y mi gran pasión.
+          </p>
+        </div>
+      </div>
+    </div>
+    <p class="card-text">
+        Ya son cuatro años de experiencia!!
+        <ul style="list-style: none; padding-left: 0;">
+          <li><i></i> 🧶 Compromiso personal.</li>
+          <li><i></i> 👗 Atención al detalle.</li>
+          <li><i></i>🧵 Apredizaje rápido y una buena adaptación.</li>
+        </ul>
+      </p>
+</section>
+
+  <section class="py-5 container-fluid section-flow1 section-flow position-relative border-bottom">
+    <div class="row mb-0"><h2 class="fs-5 enc fw-bold text-center text-success">¿Cómo nos guíamos?</h2></div>
+    <div class="container-fluid row d-flex justify-content-center align-items-stretch gap-0 flex-grow-1">
+      <div class="service-card col-12 col-sm-6 bg-transparent px-4 my-3">
+        <div class="card d-flex flex-column align-items-center bg-transparent h-100" style="border: none;">
+          <div class="card-body p-0 d-flex flex-column position-relative flex-grow-1">
+            <div class="card-title enc fw-bold text-center fs-5">Misión</div>
+            <small class="card-text">
+              "En Confeccionesmaty, nuestra misión es transformar la pasión por el diseño y la costura, 
+              inspirada en la resiliencia familiar, en prendas de valor y calidad. 
+              Nos dedicamos a ofrecer soluciones de confección detalladas y creativas, 
+              comprometiendo nuestra incipiente experiencia técnica con la inquebrantable dedicación y 
+              el deseo de superar las expectativas de nuestros clientes en cada puntada."</small>
+            <div class="mt-auto pt-5 d-flex justify-content-center">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 bg-transparent px-4 my-3">
+        <div class="card d-flex flex-column align-items-center bg-transparent h-100" style="border: none;">
+          <div class="card-body p-0 d-flex flex-column position-relative flex-grow-1">
+            <div class="card-title enc fw-bold text-center fs-5">Visión</div>
+            <small class="card-text">
+              "Ser reconocida en los próximos cinco años como un referente de calidad y 
+              creatividad en el sector de la confección, destacada por transformar la 
+              visión del cliente en diseños excepcionales y por elevar el estándar de la costura técnica. 
+              Buscamos evolucionar de la experiencia incipiente a un taller consolidado, 
+              donde la pasión por el diseño, inspirada en nuestros orígenes, 
+              se fusiona con la máxima profesionalidad."</small>
+            <div class="mt-auto pt-5 d-flex justify-content-center">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+<section class="mt-5 py-5 bg-primary text-secondary">
+  <div class="container text-center">
+    <h2 class="enc fw-bold mb-3">Algunos de nuestros mejores trabajos</h2>
+
+    <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+    
+      <div class="carousel-indicators">
+          <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+          <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+          <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+      </div>
+    
+      <div class="carousel-inner">
+        <div class="carousel-item active ">
+            <img src="/static/images/Moda1.webp" class="d-block w-auto mx-auto rounded-circle" alt="Trabajo de Confección 1">
+        </div>
+        <div class="carousel-item">
+            <img src="/static/images/moda2.webp" class="d-block w-auto mx-auto rounded-circle" alt="Trabajo de Confección 2">
+        </div>
+        <div class="carousel-item">
+            <img src="/static/images/moda3.webp" class="d-block w-auto mx-auto rounded-circle" alt="Trabajo de Confección 3">
+        </div>
+      </div>
+    
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Anterior</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Siguiente</span>
+      </button>
+    </div>
+  </div>
+</section>
+{% endblock %}  
