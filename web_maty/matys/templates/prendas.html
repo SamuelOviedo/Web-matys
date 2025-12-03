@@ -5,7 +5,7 @@
 
 <!-- Hero Section -->
 <section class="hero-section text-white text-center d-flex align-items-center justify-content-center" 
-         style="background: linear-gradient(135deg, rgba(0,51,102,0.85), rgba(255,215,0,0.3)), 
+          style="background: linear-gradient(135deg, rgba(0,51,102,0.85), rgba(255,215,0,0.3)), 
                 url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920') no-repeat center center/cover;">
   <div class="overlay"></div>
   <div class="container position-relative header-text">
@@ -28,9 +28,9 @@
     <div class="collapse collapse-horizontal ms-2" id="searchCollapse">
       <div class="search-box">
         <input type="search" 
-               class="form-control border-0" 
-               placeholder="Buscar prendas..." 
-               id="searchInput">
+                class="form-control border-0" 
+                placeholder="Buscar prendas..." 
+                id="searchInput">
       </div>
     </div>
   </div>
@@ -90,185 +90,35 @@
     <div class="tab-pane fade show active" id="todas" role="tabpanel" aria-labelledby="todas-tab">
       <div class="row g-4 products-grid">
         
-        <!-- Prenda 1 -->
-        <div class="col-md-6 col-lg-4" data-category="femenino" data-type="vestido">
+        {% for producto in productos %}
+        <!-- Prenda {{ forloop.counter }} -->
+        <div class="col-md-6 col-lg-4" data-category="{{ producto.categoria }}" data-type="{{ producto.tipo }}">
           <div class="card product-card h-100 border-0 shadow-lg">
             <div class="position-relative img-container">
-              <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400" 
+              <img src="{{ producto.imagen_principal }}" 
                     class="card-img-top" 
-                    alt="Vestido Elegante">
-            </div>
-            <div class="card-body ">
-              <span class="badge badge-cat mb-2">Femenino</span>
-              <h5 class="card-title enc fw-bold">Vestido Elegante</h5>
-              <p class="card-text text-muted small">Diseño sofisticado para eventos especiales</p>
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="h5 mb-0 fw-bold text-primary">L. 850</span>
-                <a href="{% url 'detalle_prendas' %}" class="btn btn-primary btn-sm mb-0">Ver Detalles</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Prenda 2 -->
-        <div class="col-md-6 col-lg-4" data-category="masculino" data-type="traje">
-          <div class="card product-card h-100 border-0 shadow-lg">
-            <div class="position-relative img-container">
-              <img src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400" 
-                    class="card-img-top" 
-                    alt="Traje Formal">
+                    alt="{{ producto.nombre }}">
             </div>
             <div class="card-body">
-              <span class="badge badge-cat mb-2">Masculino</span>
-              <h5 class="card-title enc fw-bold">Traje Formal</h5>
-              <p class="card-text text-muted small">Elegancia clásica para el caballero moderno</p>
+              <span class="badge badge-cat mb-2">{{ producto.get_categoria_display }}</span>
+              <h5 class="card-title enc fw-bold">{{ producto.nombre }}</h5>
+              <p class="card-text text-muted small">{{ producto.descripcion_corta|truncatewords:15 }}</p>
               <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="h5 mb-0 fw-bold text-primary">L. 1,200</span>
-                <a href="{% url 'detalle_prendas' %}" class="btn btn-primary btn-sm">Ver Detalles</a>
+                <span class="h5 mb-0 fw-bold text-primary">L. {{ producto.precio }}</span>
+                <a href="{% url 'detalle_prendas' producto.slug %}" class="btn btn-primary btn-sm mb-0">Ver Detalles</a>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- Prenda 3 -->
-        <div class="col-md-6 col-lg-4" data-category="femenino" data-type="blusa">
-          <div class="card product-card h-100 border-0 shadow-lg">
-            <div class="position-relative img-container">
-              <img src="https://images.unsplash.com/photo-1578932750294-f5075e85f44a?w=400" 
-                    class="card-img-top" 
-                    alt="Blusa Ejecutiva">
-            </div>
-            <div class="card-body">
-              <span class="badge badge-cat mb-2">Femenino</span>
-              <h5 class="card-title enc fw-bold">Blusa Ejecutiva</h5>
-              <p class="card-text text-muted small">Profesionalismo con un toque de estilo</p>
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="h5 mb-0 fw-bold text-primary">L. 450</span>
-                <a href="{% url 'detalle_prendas' %}" class="btn btn-primary btn-sm">Ver Detalles</a>
-              </div>
-            </div>
+        {% empty %}
+        <div class="col-12">
+          <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle me-2"></i>
+            No hay prendas disponibles en este momento. 
+            <a href="/admin/" class="alert-link">Agregar prendas desde el admin</a>
           </div>
         </div>
-
-        <!-- Prenda 4 -->
-        <div class="col-md-6 col-lg-4" data-category="femenino" data-type="falda">
-          <div class="card product-card h-100 border-0 shadow-lg">
-            <div class="position-relative img-container">
-              <img src="https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400" 
-                    class="card-img-top" 
-                    alt="Falda Plisada">
-            </div>
-            <div class="card-body">
-              <span class="badge badge-cat mb-2">Femenino</span>
-              <h5 class="card-title enc fw-bold">Falda Plisada</h5>
-              <p class="card-text text-muted small">Versátil y moderna para cualquier ocasión</p>
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="h5 mb-0 fw-bold text-primary">L. 380</span>
-                <a href="{% url 'detalle_prendas' %}" class="btn btn-primary btn-sm">Ver Detalles</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Prenda 5 -->
-        <div class="col-md-6 col-lg-4" data-category="masculino" data-type="saco">
-          <div class="card product-card h-100 border-0 shadow-lg">
-            <div class="position-relative img-container">
-              <img src="https://images.unsplash.com/photo-1598522325074-042db73aa4e6?w=400" 
-                    class="card-img-top" 
-                    alt="Saco Casual">
-            </div>
-            <div class="card-body">
-              <span class="badge badge-cat mb-2">Masculino</span>
-              <h5 class="card-title enc fw-bold">Saco Casual</h5>
-              <p class="card-text text-muted small">Estilo sport elegante para el día a día</p>
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="h5 mb-0 fw-bold text-primary">L. 680</span>
-                <a href="{% url 'detalle_prendas' %}" class="btn btn-primary btn-sm">Ver Detalles</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Prenda 6 -->
-        <div class="col-md-6 col-lg-4" data-category="femenino" data-type="chaleco">
-          <div class="card product-card h-100 border-0 shadow-lg">
-            <div class="position-relative img-container">
-              <img src="https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?w=400" 
-                    class="card-img-top" 
-                    alt="Chaleco Formal">
-            </div>
-            <div class="card-body">
-              <span class="badge badge-cat mb-2">Femenino</span>
-              <h5 class="card-title enc fw-bold">Chaleco Formal</h5>
-              <p class="card-text text-muted small">Sofisticado y atemporal</p>
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="h5 mb-0 fw-bold text-primary">L. 520</span>
-                <a href="{% url 'detalle_prendas' %}" class="btn btn-primary btn-sm">Ver Detalles</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Prenda 7 -->
-        <div class="col-md-6 col-lg-4" data-category="masculino" data-type="pantalon">
-          <div class="card product-card h-100 border-0 shadow-lg">
-            <div class="position-relative img-container">
-              <img src="https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400" 
-                    class="card-img-top" 
-                    alt="Pantalón Formal">
-            </div>
-            <div class="card-body">
-              <span class="badge badge-cat mb-2">Masculino</span>
-              <h5 class="card-title enc fw-bold">Pantalón Formal</h5>
-              <p class="card-text text-muted small">Corte perfecto y elegante</p>
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="h5 mb-0 fw-bold text-primary">L. 420</span>
-                <a href="{% url 'detalle_prendas' %}" class="btn btn-primary btn-sm">Ver Detalles</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Prenda 8 -->
-        <div class="col-md-6 col-lg-4" data-category="masculino" data-type="camisa">
-          <div class="card product-card h-100 border-0 shadow-lg">
-            <div class="position-relative  img-container">
-              <img src="https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400" 
-                   class="card-img-top" 
-                   alt="Camisa Formal">
-            </div>
-            <div class="card-body">
-              <span class="badge badge-cat mb-2">Masculino</span>
-              <h5 class="card-title enc fw-bold">Camisa Formal</h5>
-              <p class="card-text text-muted small">Clásica y refinada</p>
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="h5 mb-0 fw-bold text-primary">L. 350</span>
-                <a href="{% url 'detalle_prendas' %}" class="btn btn-primary btn-sm">Ver Detalles</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Prenda 9 -->
-        <div class="col-md-6 col-lg-4" data-category="masculino" data-type="sueter">
-          <div class="card product-card h-100 border-0 shadow-lg ">
-            <div class="position-relative img-container">
-              <img src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400" 
-                    class="card-img-top" 
-                    alt="Suéter Elegante">
-            </div>
-            <div class="card-body">
-              <span class="badge badge-cat mb-2">Masculino</span>
-              <h5 class="card-title enc fw-bold">Suéter Elegante</h5>
-              <p class="card-text text-muted small">Confort y estilo en uno</p>
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="h5 mb-0 fw-bold text-primary">L. 580</span>
-                <a href="{% url 'detalle_prendas' %}" class="btn btn-primary btn-sm">Ver Detalles</a>
-              </div>
-            </div>
-          </div>
-        </div>
+        {% endfor %}
 
       </div>
     </div>
@@ -277,7 +127,30 @@
     <div class="tab-pane fade" id="femenino" role="tabpanel" aria-labelledby="femenino-tab">
       <h4 class="mb-4 enc fw-bold text-primary">Moda Femenina</h4>
       <div class="row g-4 products-grid-femenino">
-        <!-- Aquí se filtrarán solo productos femeninos con JavaScript -->
+        
+        {% for producto in productos %}
+        {% if producto.categoria == 'femenino' %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card product-card h-100 border-0 shadow-lg">
+            <div class="position-relative img-container">
+              <img src="{{ producto.imagen_principal }}" 
+                    class="card-img-top" 
+                    alt="{{ producto.nombre }}">
+            </div>
+            <div class="card-body">
+              <span class="badge badge-cat mb-2">{{ producto.get_categoria_display }}</span>
+              <h5 class="card-title enc fw-bold">{{ producto.nombre }}</h5>
+              <p class="card-text text-muted small">{{ producto.descripcion_corta|truncatewords:15 }}</p>
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <span class="h5 mb-0 fw-bold text-primary">L. {{ producto.precio }}</span>
+                <a href="{% url 'detalle_prendas' producto.slug %}" class="btn btn-primary btn-sm">Ver Detalles</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+
       </div>
     </div>
 
@@ -285,7 +158,30 @@
     <div class="tab-pane fade" id="masculino" role="tabpanel" aria-labelledby="masculino-tab">
       <h4 class="mb-4 enc fw-bold text-primary">Moda Masculina</h4>
       <div class="row g-4 products-grid-masculino">
-        <!-- Aquí se filtrarán solo productos masculinos con JavaScript -->
+        
+        {% for producto in productos %}
+        {% if producto.categoria == 'masculino' %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card product-card h-100 border-0 shadow-lg">
+            <div class="position-relative img-container">
+              <img src="{{ producto.imagen_principal }}" 
+                    class="card-img-top" 
+                    alt="{{ producto.nombre }}">
+            </div>
+            <div class="card-body">
+              <span class="badge badge-cat mb-2">{{ producto.get_categoria_display }}</span>
+              <h5 class="card-title enc fw-bold">{{ producto.nombre }}</h5>
+              <p class="card-text text-muted small">{{ producto.descripcion_corta|truncatewords:15 }}</p>
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <span class="h5 mb-0 fw-bold text-primary">L. {{ producto.precio }}</span>
+                <a href="{% url 'detalle_prendas' producto.slug %}" class="btn btn-primary btn-sm">Ver Detalles</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+
       </div>
     </div>
 

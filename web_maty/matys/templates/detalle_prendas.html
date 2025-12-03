@@ -23,9 +23,9 @@
       <!-- Imagen Principal -->
       <div class="mb-3">
         <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800" 
-             class="main-image" 
-             id="mainImage"
-             alt="Vestido Elegante">
+              class="main-image" 
+              id="mainImage"
+              alt="Vestido Elegante">
       </div>
       
       <!-- Miniaturas -->
@@ -66,18 +66,16 @@
         </span>
       </div>
 
-      <h1 class="display-5 enc fw-bold mb-3">Vestido Elegante</h1>
-      <p class="product-price mb-4">L. 850.00</p>
+      <h1 class="display-5 enc fw-bold mb-3">{{ prenda.nombre }}</h1>
+      <p class="product-price mb-4">L. {{ prenda.precio }}</p>
 
       <p class="text-muted mb-4">
-        Vestido elegante de corte sofisticado, perfecto para eventos especiales. 
-        Confeccionado con telas de alta calidad que garantizan comodidad y durabilidad. 
-        Diseño atemporal que realza la figura femenina con sutileza.
+        {{ prenda.descripcion_corta }}
       </p>
 
       <!-- Selector de Talla -->
       <div class="mb-4">
-        <h5 class="fw-bold mb-3">Selecciona tu talla:</h5>
+        <h5 class="fw-bold mb-3">{{ prenda.tallas_disponibles }}</h5>
         <div class="size-selector">
           <button class="size-btn" data-size="XS">XS</button>
           <button class="size-btn" data-size="S">S</button>
@@ -94,7 +92,7 @@
 
       <!-- Color -->
       <div class="mb-4">
-        <h5 class="fw-bold mb-3">Color disponible:</h5>
+        <h5 class="fw-bold mb-3">{{ prenda.colores_disponibles }}</h5>
         <div class="d-flex gap-2">
           <button class="color-btn active" style="background: #1a1a1a;" data-color="Negro" title="Negro"></button>
           <button class="color-btn" style="background: #ffffff; border: 2px solid #ddd;" data-color="Blanco" title="Blanco"></button>
@@ -106,9 +104,9 @@
       <div class="mb-4">
         <h5 class="fw-bold mb-3">Características:</h5>
         <ul class="list-unstyled">
-          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Material: 95% Poliéster, 5% Elastano</li>
-          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Largo: Midi (debajo de la rodilla)</li>
-          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Cuidado: Lavado a mano o seco</li>
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Material: {{ prenda.material }}</li>
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Largo: Midi {{ prenda.largo }}</li>
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Cuidado: {{ prenda.cuidado }}</li>
           <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Hecho a mano en Honduras</li>
         </ul>
       </div>
@@ -155,7 +153,7 @@
 
     <div class="tab-content mt-4 p-4 bg-body-secondary rounded-bottom" id="infoTabsContent">
       <div class="tab-pane fade show active" id="description" role="tabpanel">
-        <h5 class="fw-bold mb-3">Descripción Detallada</h5>
+        <h5 class="fw-bold mb-3">{{ prenda.descripcion_larga }}</h5>
         <p>
           Este vestido elegante ha sido diseñado pensando en la mujer moderna que busca sofisticación 
           sin sacrificar comodidad. Cada detalle ha sido cuidadosamente considerado, desde la selección 
