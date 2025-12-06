@@ -795,6 +795,7 @@ footer::before {
   .product-price {
     font-size: 1.75rem;
   }
+
 }
 
 .contact-menu-container {
@@ -885,5 +886,5 @@ footer::before {
     font-size: 0.85rem;
     color: #555;
     line-height: 1.4;
-    
+
 }
