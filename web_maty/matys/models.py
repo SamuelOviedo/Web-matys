@@ -45,17 +45,18 @@ class Prenda(models.Model):
         default="XS,S,M,L,XL",
         help_text="Separar con comas"
     )
-    colores_disponibles = models.CharField(
-        max_length=200,
-        default="Negro,Blanco",
-        help_text="Formato: Negro:#1a1a1a,Blanco:#ffffff"
+
+    guia_tallas = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Guía de tallas específica para esta prenda"
     )
     
     # Imágenes
-    imagen_principal = models.CharField(max_length=500)  # URL de la imagen
-    imagen_2 = models.CharField(max_length=500, blank=True)
-    imagen_3 = models.CharField(max_length=500, blank=True)
-    imagen_4 = models.CharField(max_length=500, blank=True)
+    imagen_principal = models.ImageField(max_length=500)  # URL de la imagen
+    imagen_2 = models.ImageField(max_length=500, blank=True)
+    imagen_3 = models.ImageField(max_length=500, blank=True)
+    imagen_4 = models.ImageField(max_length=500, blank=True)
     
     # Metadata
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -66,19 +67,16 @@ class Prenda(models.Model):
         verbose_name_plural = "Prendas"
         ordering = ['-fecha_creacion']
     
+    def get_guia_tallas(self):
+        """Devuelve la guía de tallas según el tipo de prenda"""
+        from .guias_tallas import GUIAS_TALLAS, ENCABEZADOS_TALLAS
+    
+        guia = GUIAS_TALLAS.get(self.tipo, [])
+        encabezados = ENCABEZADOS_TALLAS.get(self.tipo, ['Talla', 'Medidas'])
+    
+        return {
+            'guia': guia,
+            'encabezados': encabezados
+    }
     def __str__(self):
-        return self.nombre
-    
-    def get_tallas_list(self):
-        """Devuelve lista de tallas"""
-        return self.tallas_disponibles.split(',')
-    
-    def get_colores_dict(self):
-        """Devuelve diccionario de colores {nombre: hex}"""
-        colores = {}
-        if self.colores_disponibles:
-            for item in self.colores_disponibles.split(','):
-                if ':' in item:
-                    nombre, hex_color = item.split(':')
-                    colores[nombre.strip()] = hex_color.strip()
-        return colores
+        return self.nombre    

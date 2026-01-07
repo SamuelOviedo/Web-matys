@@ -13,8 +13,6 @@
   </div>
 </section>
 
-
-
 <div class="container my-5">
   <div class="row g-4">
     
@@ -22,45 +20,63 @@
     <div class="col-lg-6">
       <!-- Imagen Principal -->
       <div class="mb-3">
-        <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800" 
-              class="main-image" 
-              id="mainImage"
-              alt="Vestido Elegante">
+        {% if prenda.imagen_principal %}
+          <img src="{{ prenda.imagen_principal.url }}" 
+               class="main-image" 
+               id="mainImage"
+               alt="{{ prenda.nombre }}">
+        {% else %}
+          <img src="https://via.placeholder.com/800x600?text=Sin+Imagen" 
+               class="main-image" 
+               id="mainImage"
+               alt="Sin imagen disponible">
+        {% endif %}
       </div>
       
       <!-- Miniaturas -->
       <div class="row g-2">
+        {% if prenda.imagen_principal %}
         <div class="col-3">
-          <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=200" 
+          <img src="{{ prenda.imagen_principal.url }}" 
                class="thumbnail active" 
-               data-full="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800"
+               data-full="{{ prenda.imagen_principal.url }}"
                alt="Vista 1">
         </div>
+        {% endif %}
+        
+        {% if prenda.imagen_2 %}
         <div class="col-3">
-          <img src="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=200" 
+          <img src="{{ prenda.imagen_2.url }}" 
                class="thumbnail" 
-               data-full="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800"
+               data-full="{{ prenda.imagen_2.url }}"
                alt="Vista 2">
         </div>
+        {% endif %}
+        
+        {% if prenda.imagen_3 %}
         <div class="col-3">
-          <img src="https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=200" 
+          <img src="{{ prenda.imagen_3.url }}" 
                class="thumbnail" 
-               data-full="https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=800"
+               data-full="{{ prenda.imagen_3.url }}"
                alt="Vista 3">
         </div>
+        {% endif %}
+        
+        {% if prenda.imagen_4 %}
         <div class="col-3">
-          <img src="https://images.unsplash.com/photo-1612423284934-2850a4ea6b0f?w=200" 
+          <img src="{{ prenda.imagen_4.url }}" 
                class="thumbnail" 
-               data-full="https://images.unsplash.com/photo-1612423284934-2850a4ea6b0f?w=800"
+               data-full="{{ prenda.imagen_4.url }}"
                alt="Vista 4">
         </div>
+        {% endif %}
       </div>
     </div>
 
     <!-- Columna Derecha: Información -->
     <div class="col-lg-6">
       <div class="mb-3">
-        <span class="badge badge-cat">Femenino</span>
+        <span class="badge badge-cat">{{ prenda.get_categoria_display }}</span>
         <span class="badge badge-stock text-white ms-2">
           <i class="bi bi-check-circle me-1"></i>Disponible
         </span>
@@ -75,13 +91,11 @@
 
       <!-- Selector de Talla -->
       <div class="mb-4">
-        <h5 class="fw-bold mb-3">{{ prenda.tallas_disponibles }}</h5>
+        <h5 class="fw-bold mb-3">Tallas Disponibles</h5>
         <div class="size-selector">
-          <button class="size-btn" data-size="XS">XS</button>
-          <button class="size-btn" data-size="S">S</button>
-          <button class="size-btn active" data-size="M">M</button>
-          <button class="size-btn" data-size="L">L</button>
-          <button class="size-btn" data-size="XL">XL</button>
+          {% for talla in prenda.get_tallas_list %}
+            <button class="size-btn {% if forloop.first %}active{% endif %}" data-size="{{ talla }}">{{ talla }}</button>
+          {% endfor %}
         </div>
         <p class="text-muted mt-2 small">
           <i class="bi bi-info-circle me-1"></i>
@@ -90,22 +104,14 @@
         </p>
       </div>
 
-      <!-- Color -->
-      <div class="mb-4">
-        <h5 class="fw-bold mb-3">{{ prenda.colores_disponibles }}</h5>
-        <div class="d-flex gap-2">
-          <button class="color-btn active" style="background: #1a1a1a;" data-color="Negro" title="Negro"></button>
-          <button class="color-btn" style="background: #ffffff; border: 2px solid #ddd;" data-color="Blanco" title="Blanco"></button>
-          <button class="color-btn" style="background: #c41e3a;" data-color="Rojo Vino" title="Rojo Vino"></button>
-        </div>
-      </div>
-
       <!-- Características -->
       <div class="mb-4">
         <h5 class="fw-bold mb-3">Características:</h5>
         <ul class="list-unstyled">
           <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Material: {{ prenda.material }}</li>
-          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Largo: Midi {{ prenda.largo }}</li>
+          {% if prenda.largo %}
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Largo: {{ prenda.largo }}</li>
+          {% endif %}
           <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Cuidado: {{ prenda.cuidado }}</li>
           <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Hecho a mano en Honduras</li>
         </ul>
@@ -153,73 +159,106 @@
 
     <div class="tab-content mt-4 p-4 bg-body-secondary rounded-bottom" id="infoTabsContent">
       <div class="tab-pane fade show active" id="description" role="tabpanel">
-        <h5 class="fw-bold mb-3">{{ prenda.descripcion_larga }}</h5>
-        <p>
-          Este vestido elegante ha sido diseñado pensando en la mujer moderna que busca sofisticación 
-          sin sacrificar comodidad. Cada detalle ha sido cuidadosamente considerado, desde la selección 
-          de la tela hasta el último acabado.
-        </p>
-        <p>
-          El corte midi favorece a todas las figuras, mientras que el tejido de alta calidad permite 
-          movimiento natural y comodidad durante todo el día. Perfecto para bodas, eventos corporativos 
-          o cualquier ocasión especial donde desees destacar con elegancia.
-        </p>
+        <h5 class="fw-bold mb-3">Descripción Detallada</h5>
+        <div>
+          {{ prenda.descripcion_larga|linebreaks }}
+        </div>
       </div>
       
-      <div class="tab-pane fade" id="sizes" role="tabpanel">
-        <h5 class="fw-bold mb-3">Guía de Tallas</h5>
-        <div class="table-responsive">
-          <table class="table table-striped table-hover">
+<div class="tab-pane fade" id="sizes" role="tabpanel">
+    <h5 class="fw-bold mb-3">Guía de Tallas - {{ prenda.get_tipo_display }}</h5>
+    
+    {% with guia_data=prenda.get_guia_tallas %}
+    {% if guia_data.guia %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
             <thead>
-              <tr class="table-primary">
-                <th scope="col">Talla</th>
-                <th scope="col">Busto (cm)</th>
-                <th scope="col">Cintura (cm)</th>
-                <th scope="col">Cadera (cm)</th>
-              </tr>
+                <tr class="table-primary">
+                    {% for encabezado in guia_data.encabezados %}
+                    <th scope="col">{{ encabezado }}</th>
+                    {% endfor %}
+                </tr>
             </thead>
             <tbody>
-              <tr>
-                <th class="text-body" scope="row">XS</th>
-                <td class="text-body">80-84</td>
-                <td class="text-body">60-64</td>
-                <td class="text-body">86-90</td>
-              </tr>
-              <tr>
-                <th class="text-body" scope="row">S</th>
-                <td class="text-body">84-88</td>
-                <td class="text-body">64-68</td>
-                <td class="text-body">90-94</td>
-              </tr>
-              <tr>
-                <th class="text-body" scope="row">M</th>
-                <td class="text-body">88-92</td>
-                <td class="text-body">68-72</td>
-                <td class="text-body">94-98</td>
-              </tr>
-              <tr>
-                <th class="text-body" scope="row">L</th>
-                <td class="text-body">92-96</td>
-                <td class="text-body">72-76</td>
-                <td class="text-body">98-102</td>
-              </tr>
-              <tr>
-                <th class="text-body" scope="row">XL</th>
-                <td class="text-body">96-100</td>
-                <td class="text-body">76-80</td>
-                <td class="text-body">102-106</td>
-              </tr>
+                {% for medida in guia_data.guia %}
+                <tr>
+                    <th class="text-body" scope="row">{{ medida.talla }}</th>
+                    {% for key, value in medida.items %}
+                        {% if key != 'talla' %}
+                        <td class="text-body">{{ value }}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
             </tbody>
-          </table>
-        </div>
-        <p class="text-muted small">
-          <i class="bi bi-info-circle me-1"></i>
-          Las medidas son aproximadas. Si tienes dudas, contáctanos para asesoría personalizada.
-        </p>
-      </div>
+        </table>
     </div>
-  </div>
+    {% else %}
+    <div class="alert alert-warning" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        No hay guía de tallas disponible para este tipo de prenda.
+    </div>
+    {% endif %}
+    {% endwith %}
+    
+    <p class="text-muted small mt-3">
+        <i class="bi bi-info-circle me-1"></i>
+        Las medidas son aproximadas. Si tienes dudas, contáctanos para asesoría personalizada.
+    </p>
 </div>
+{% endblock %}
 
+{% block extra_js %}
+<script>
+  // Cambio de imágenes al hacer click en miniaturas
+  document.querySelectorAll('.thumbnail').forEach(thumb => {
+    thumb.addEventListener('click', function() {
+      const fullImageUrl = this.getAttribute('data-full');
+      const mainImage = document.getElementById('mainImage');
+      
+      // Cambiar imagen principal
+      mainImage.src = fullImageUrl;
+      
+      // Actualizar clase active
+      document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+  
+  // Selector de tallas
+  document.querySelectorAll('.size-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+  
+  // Selector de colores
+  document.querySelectorAll('.color-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+  
+  // Botón de WhatsApp
+  document.getElementById('btnCotizacion').addEventListener('click', function() {
+    const prendaNombre = "{{ prenda.nombre }}";
+    const prendaPrecio = "{{ prenda.precio }}";
+    const talla = document.querySelector('.size-btn.active')?.getAttribute('data-size') || 'M';
+    const color = document.querySelector('.color-btn.active')?.getAttribute('data-color') || 'N/A';
+    
+    const mensaje = `Hola, me interesa la prenda:
+    
+📦 *${prendaNombre}*
+💰 Precio: L. ${prendaPrecio}
+📏 Talla: ${talla}
+🎨 Color: ${color}
 
+¿Está disponible?`;
+    
+    const whatsappUrl = `https://wa.me/50498267040?text=${encodeURIComponent(mensaje)}`;
+    window.open(whatsappUrl, '_blank');
+  });
+</script>
 {% endblock %}

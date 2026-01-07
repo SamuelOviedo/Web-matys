@@ -95,7 +95,7 @@
         <div class="col-md-6 col-lg-4" data-category="{{ producto.categoria }}" data-type="{{ producto.tipo }}">
           <div class="card product-card h-100 border-0 shadow-lg">
             <div class="position-relative img-container">
-              <img src="{{ producto.imagen_principal }}" 
+              <img src="{{ producto.imagen_principal.url }}" 
                     class="card-img-top" 
                     alt="{{ producto.nombre }}">
             </div>
@@ -133,7 +133,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="card product-card h-100 border-0 shadow-lg">
             <div class="position-relative img-container">
-              <img src="{{ producto.imagen_principal }}" 
+              <img src="{{ producto.imagen_principal.url }}" 
                     class="card-img-top" 
                     alt="{{ producto.nombre }}">
             </div>
@@ -164,7 +164,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="card product-card h-100 border-0 shadow-lg">
             <div class="position-relative img-container">
-              <img src="{{ producto.imagen_principal }}" 
+              <img src="{{ producto.imagen_principal.url }}" 
                     class="card-img-top" 
                     alt="{{ producto.nombre }}">
             </div>

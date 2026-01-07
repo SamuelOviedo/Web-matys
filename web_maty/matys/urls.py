@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+
 ## Direccionamiento para servidor de imagenes
 
 urlpatterns = [

@@ -27,10 +27,12 @@ def trayectoria(request):
 def contacto(request):
     context = {
         'title': 'Contáctanos - Confecciones Maty\'s',
-        'contacts': [
-            {'name_store': 'Atención al Cliente', 'advicer': 'María Torres'},
-            {'name_store': 'Ventas', 'advicer': 'Carlos Gómez'},
-        ]
+        'whatsapp_number': '50498267040',  
+        'whatsapp_message': 'Hola, me gustaría hacer una consulta sobre sus prendas',
+        'facebook_url': 'https://www.facebook.com/maryurihern/reels/',
+        'instagram_url': 'https://www.instagram.com/confe_ccionesmaty?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==',
+        'tiktok_url': 'https://www.tiktok.com/@confeccinesmaty4?is_from_webapp=1&sender_device=pc',
+        'youtube_url': 'https://youtube.com/@maty-2020?si=ncsHDzw-QCMJGlX1',
     }
     return render(request, 'contacto.html', context)
 

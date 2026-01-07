@@ -2,75 +2,110 @@
 {% load static %}
 
 {% block content %}
-
-<section class="hero-section text-white text-start d-flex align-items-center justify-content-center" style="background: url('/static/images/portada_contacto.webp') no-repeat center center/cover;">
+<section class="hero-section text-white text-center d-flex align-items-center justify-content-center" 
+            style="background: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920') no-repeat center center/cover;">
     <div class="overlay"></div>
     <div class="container position-relative header-text">
-        <h1 class="display-3 fw-bold enc d-flex align-items-center justify-content-center">Contáctenos</h1>
+    <h1 class="display-2 fw-bold enc">Confecciones Matys</h1>
+    <p class="lead fw-semibold fs-3">Confeccionando con amor y gratitud</p>
     </div>
 </section>
 
-<section>
-    <div class="row align-items-center">
-        
-        <div class="row d-flex justify-content-center align-items-center text-success">
-            <h2 class="enc fw-bold text-center">Puedes encontrarnos en nuestras redes sociales y conocernos mucho mejor!!</h2>
-        </div><br><br><br>
-
-        <div class="col-md-1 text-center">
-            <img src="{% static 'images/creacion1.png' %}" class="img-fluid" style="max-height: 400px; max-width: 500px;">
-        </div>
-        <div class="contact-menu-container bg-primary text-secondary">
-
-            <div class="contact-option enc fw-bold" onclick="toggleDetails(this)">
-                <div class="option-header">
-                    <i class="fas fa-phone icon"></i> <span>Telefono 👇</span>
-                    <i class="fas fa-chevron-down arrow"></i> </div>
-                <div class="option-details">
-                    <p>Llámanos al: +504 9826-7040</p>
+<div class="contact-container">
+    <!-- Encabezado -->
+    <div class="text-center mb-5">
+        <h1 class="fw-bold mb-3 enc">Contáctanos</h1>
+        <p class="lead text-muted">Estamos listos para crear tu prenda ideal</p>
+    </div>
+    
+    <!-- Botón WhatsApp Destacado -->
+    <div class="text-center mb-5 ">
+        <a href="https://wa.me/{{ whatsapp_number }}?text={{ whatsapp_message|urlencode }}" 
+            class="btn-whatsapp-hero"
+            target="_blank"
+            rel="noopener noreferrer">
+            <i class="bi bi-whatsapp me-3 fs-4"></i>Chatea con nosotros en WhatsApp
+        </a>
+        <p class="mt-3 text-muted mb-0">
+            <i class="bi bi-telephone me-2"></i>
+        </p>
+    </div>
+    
+    <!-- Formulario Simple -->
+    <div class="card shadow-lg border-0 mb-5 ">
+        <div class="card-body p-4">
+            <h4 class="mb-4 text-center enc">Envíanos tu consulta</h4>
+            <form method="post" id="contactForm">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <input type="text" 
+                            class="form-control" 
+                            name="nombre" 
+                            placeholder="Tu nombre" 
+                            required>
                 </div>
-            </div>
-
-            <div class="contact-option enc fw-bold" onclick="toggleDetails(this)">
-                <div class="option-header">
-                    <i class="fab fa-skype icon skype-icon"></i> <span>YouTube 👇</span></div>
-                <div class="option-details">
-                    <p>Nuestro canal es: Maty’s</p>
+                <div class="mb-3">
+                    <input type="email" 
+                            class="form-control" 
+                            name="email" 
+                            placeholder="Tu email" 
+                            required>
                 </div>
-            </div>
-
-            <div class="contact-option enc fw-bold" onclick="toggleDetails(this)">
-                <div class="option-header">
-                    <i class="fab fa-skype icon skype-icon"></i> <span>Gmail 👇</span></div>
-                <div class="option-details">
-                    <p>Envíanos un correo a: <a href="info@matysconfecciones.com">info@matysconfecciones.com</a></p>
+                <div class="mb-3">
+                    <input type="tel" 
+                            class="form-control" 
+                            name="telefono" 
+                            placeholder="Tu teléfono (opcional)">
                 </div>
-            </div>
-
-            <div class="contact-option enc fw-bold" onclick="toggleDetails(this)">
-                <div class="option-header">
-                    <i class="fab fa-skype icon skype-icon"></i> <span>Instagram 👇</span></div>
-                <div class="option-details">
-                    <p>Encuéntranos como: Confe_ccionesmaty</p>
+                <div class="mb-3">
+                    <textarea class="form-control" 
+                                name="mensaje" 
+                                rows="4" 
+                                placeholder="¿En qué podemos ayudarte?"
+                                required></textarea>
                 </div>
-            </div>
-
-            <div class="contact-option enc fw-bold" onclick="toggleDetails(this)">
-                <div class="option-header">
-                    <i class="fab fa-skype icon skype-icon"></i> <span>Facebook 👇</span></div>
-                <div class="option-details">
-                    <p>Encuéntranos como: Confecciones Maty</p>
-                </div>
-            </div>
-
-            <div class="contact-option enc fw-bold" onclick="toggleDetails(this)">
-                <div class="option-header">
-                    <i class="fab fa-skype icon skype-icon"></i> <span>Tiktok 👇</span></div>
-                <div class="option-details">
-                    <p>Encuéntranos como: confeccinesmaty4</p>
-                </div>
-            </div>
+                <button type="submit" class="btn btn-enviar w-100">
+                    <i class="bi bi-send me-2"></i>Enviar Mensaje
+                </button>
+            </form>
         </div>
     </div>
-</section>
+    
+    <!-- Redes Sociales -->
+    <div class="social-section text-center shadow-lg">
+        <h4 class="mb-3 enc">Encuéntranos en redes sociales</h4>
+        <p class="mb-4 opacity-75">Síguenos para ver nuestras últimas creaciones</p>
+        <div class="social-grid">
+            <a href="{{ facebook_url }}" 
+                class="social-btn facebook-btn" 
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Facebook">
+                <i class="bi bi-facebook"></i>
+            </a>
+            <a href="{{ instagram_url }}" 
+                class="social-btn instagram-btn" 
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Instagram">
+                <i class="bi bi-instagram"></i>
+            </a>
+            <a href="{{ tiktok_url }}" 
+                class="social-btn tiktok-btn" 
+                target="_blank"
+                rel="noopener noreferrer"
+                title="TikTok">
+                <i class="bi bi-tiktok"></i>
+            </a>
+            <a href="{{ youtube_url }}" 
+                class="social-btn youtube-btn" 
+                target="_blank"
+                rel="noopener noreferrer"
+                title="youtube">
+                <i class="bi bi-youtube"></i>
+            </a>
+        </div>
+        <p class="mt-4 mb-0">@confeccionesmatys</p>
+    </div>
+</div>
 {% endblock %}
