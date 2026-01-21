@@ -27,7 +27,6 @@ class Migration(migrations.Migration):
                 ('cuidado', models.CharField(default='Lavado a mano o seco', max_length=200)),
                 ('disponible', models.BooleanField(default=True)),
                 ('tallas_disponibles', models.CharField(default='XS,S,M,L,XL', help_text='Separar con comas', max_length=50)),
-                ('colores_disponibles', models.CharField(default='Negro,Blanco', help_text='Formato: Negro:#1a1a1a,Blanco:#ffffff', max_length=200)),
                 ('imagen_principal', models.CharField(max_length=500)),
                 ('imagen_2', models.CharField(blank=True, max_length=500)),
                 ('imagen_3', models.CharField(blank=True, max_length=500)),

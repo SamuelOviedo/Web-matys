@@ -471,7 +471,7 @@ function toggleDetails(element) {
   if (btnCotizacion) {
     btnCotizacion.addEventListener('click', function() {
       // Obtener nombre del producto
-      const productName = document.querySelector('h1')?.textContent.trim() || 'Producto';
+      const productName = document.querySelector('h2')?.textContent.trim() || 'prendaNombre';
       
       // Obtener precio
       const productPrice = document.querySelector('.product-price')?.textContent.trim() || 'Consultar';

@@ -51,6 +51,12 @@ class Prenda(models.Model):
         blank=True,
         help_text="Guía de tallas específica para esta prenda"
     )
+    colores_disponibles = models.CharField(
+    max_length=200,
+    default="",  # ← Valor vacío por defecto
+    blank=True,  # ← Permite dejarlo vacío
+    help_text="Formato: Negro:#1a1a1a,Blanco:#ffffff"
+)
     
     # Imágenes
     imagen_principal = models.ImageField(max_length=500)  # URL de la imagen
@@ -66,7 +72,11 @@ class Prenda(models.Model):
         verbose_name = "Prenda"
         verbose_name_plural = "Prendas"
         ordering = ['-fecha_creacion']
-    
+
+    def get_tallas_list(self):
+        """Devuelve lista de tallas"""
+        return self.tallas_disponibles.split(',')
+        
     def get_guia_tallas(self):
         """Devuelve la guía de tallas según el tipo de prenda"""
         from .guias_tallas import GUIAS_TALLAS, ENCABEZADOS_TALLAS

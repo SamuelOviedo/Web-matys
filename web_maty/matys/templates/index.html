@@ -5,7 +5,7 @@
 
 <!-- ========== HERO SECTION ========== -->
 <section class="hero-section text-white text-center d-flex align-items-center justify-content-center" 
-          style="background: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920') no-repeat center center/cover;">
+          style="background: url(' {% static 'images/principal.jpeg' %}') no-repeat center center/cover;">
   <div class="overlay"></div>
   <div class="container position-relative header-text">
     <h1 class="display-2 fw-bold enc">Confecciones Matys</h1>
@@ -25,9 +25,10 @@
   
   <div class="row align-items-center g-4 ">
     <div class="col-lg-6 ">
-      <img src="{% static 'images/portada_detalle.jpg' %}" 
+      <img src="{% static 'images/contenido1.jpeg' %}" 
             alt="Taller de confección" 
-            class="img-fluid rounded shadow pop-img">
+            class="img-fluid rounded shadow pop-img"
+            style="height: 500px; object-fit: cover; width: 100%;">
     </div>
     <div class="col-lg-6">
       <p class="fs-5 text-body-secondary">

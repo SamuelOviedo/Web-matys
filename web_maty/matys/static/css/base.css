@@ -1007,3 +1007,196 @@ footer::before {
             padding: 0.8rem 1.5rem;
         }
 }
+ /*exta trayectoria*/
+ <style>
+    /* Hero específico de trayectoria */
+    .hero-trayectoria {
+        background: linear-gradient(135deg, rgba(0,51,102,0.85), rgba(255,215,0,0.3)), 
+                    url('{% static 'images/trayectoriaV.jpg' %}') no-repeat center center/cover;
+        background-attachment: fixed;
+        min-height: 60vh;
+    }
+    
+    /* Cards de características */
+    .feature-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 8px 24px rgba(0, 51, 102, 0.1);
+        transition: all 0.3s ease;
+        height: 100%;
+        border-left: 4px solid var(--bs-primary);
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 12px 32px rgba(0, 51, 102, 0.2);
+        border-left-color: var(--bs-secondary);
+    }
+    
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Cards de Misión/Visión */
+    .mission-vision-card {
+        background: linear-gradient(135deg, rgba(0,51,102,0.05), rgba(255,215,0,0.05));
+        border-radius: 20px;
+        padding: 2.5rem;
+        height: 100%;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .mission-vision-card:hover {
+        border-color: var(--bs-primary);
+        transform: scale(1.02);
+        box-shadow: 0 10px 30px rgba(0, 51, 102, 0.15);
+    }
+    
+    .mission-vision-card .card-title {
+        color: var(--bs-primary);
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        display: inline-block;
+    }
+    
+    .mission-vision-card .card-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: var(--bs-secondary);
+    }
+    
+    /* Carrusel personalizado */
+    .carousel-trabajos {
+        padding: 3rem 0;
+    }
+    
+    .carousel-trabajos .carousel-inner {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    
+    .carousel-trabajos .carousel-item {
+        height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.1);
+    }
+    
+    .carousel-trabajos img {
+        max-height: 480px;
+        max-width: 100%;
+        object-fit: contain;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: 60px;
+        height: 60px;
+        background: var(--bs-primary);
+        border-radius: 50%;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.8;
+        transition: all 0.3s ease;
+    }
+    
+    .carousel-control-prev {
+        left: -80px;
+    }
+    
+    .carousel-control-next {
+        right: -80px;
+    }
+    
+    .carousel-control-prev:hover,
+    .carousel-control-next:hover {
+        opacity: 1;
+        transform: translateY(-50%) scale(1.1);
+    }
+    
+    .carousel-indicators button {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--bs-secondary);
+        opacity: 0.5;
+        border: 2px solid white;
+        transition: all 0.3s ease;
+    }
+    
+    .carousel-indicators button.active {
+        opacity: 1;
+        transform: scale(1.3);
+    }
+    
+    /* Historia section */
+    .historia-section {
+        padding: 5rem 0;
+    }
+    
+    .historia-image {
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 51, 102, 0.2);
+        transition: transform 0.3s ease;
+    }
+    
+    .historia-image:hover {
+        transform: scale(1.05) rotate(2deg);
+    }
+    
+    /* Timeline años */
+    .years-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--bs-primary), var(--bs-secondary));
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 2rem 0;
+        box-shadow: 0 4px 15px rgba(0, 51, 102, 0.3);
+    }
+    
+    /* Responsive */
+    @media (max-width: 992px) {
+        .carousel-control-prev {
+            left: 10px;
+        }
+        
+        .carousel-control-next {
+            right: 10px;
+        }
+        
+        .carousel-trabajos .carousel-item {
+            height: 400px;
+        }
+        
+        .feature-card {
+            margin-bottom: 1.5rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .hero-trayectoria {
+            min-height: 40vh;
+        }
+        
+        .carousel-trabajos .carousel-item {
+            height: 300px;
+        }
+        
+        .carousel-trabajos img {
+            max-height: 280px;
+        }
+    }
