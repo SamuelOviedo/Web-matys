@@ -6,8 +6,8 @@
             style="background: url(' {% static 'images/contactA.jpg' %}') no-repeat center center/cover;">
     <div class="overlay"></div>
     <div class="container position-relative header-text">
-    <h1 class="display-2 fw-bold enc">Confecciones Matys</h1>
-    <p class="lead fw-semibold fs-3">Confeccionando con amor y gratitud</p>
+        <h1 class="display-2 fw-bold enc">Confecciones Matys</h1>
+        <p class="lead fw-semibold fs-3">Confeccionando con amor y gratitud</p>
     </div>
 </section>
 
@@ -19,8 +19,8 @@
     </div>
     
     <!-- Botón WhatsApp Destacado -->
-    <div class="text-center mb-5 ">
-        <a href="https://wa.me/{{ whatsapp_number }}?text={{ whatsapp_message|urlencode }}" 
+    <div class="text-center mb-5">
+        <a href="https://wa.me/{{ whatsapp_number }}?text=Hola,%20me%20gustaría%20hacer%20una%20consulta%20sobre%20sus%20prendas" 
             class="btn-whatsapp-hero"
             target="_blank"
             rel="noopener noreferrer">
@@ -31,43 +31,121 @@
         </p>
     </div>
     
-    <!-- Formulario Simple -->
-    <div class="card shadow-lg border-0 mb-5 ">
-        <div class="card-body p-4">
-            <h4 class="mb-4 text-center enc">Envíanos tu consulta</h4>
-            <form method="post" id="contactForm">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <input type="text" 
-                            class="form-control" 
-                            name="nombre" 
-                            placeholder="Tu nombre" 
-                            required>
+    <!-- Tabs para los dos formularios -->
+    <ul class="nav nav-tabs justify-content-center mb-4" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" 
+                    id="consulta-tab" 
+                    data-bs-toggle="tab" 
+                    data-bs-target="#consulta"
+                    type="button">
+                <i class="bi bi-chat-dots me-2"></i>Consulta General
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" 
+                    id="trabajo-tab" 
+                    data-bs-toggle="tab" 
+                    data-bs-target="#trabajo"
+                    type="button">
+                <i class="bi bi-briefcase me-2"></i>Trabaja con Nosotros
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenido de los tabs -->
+    <div class="tab-content">
+        <!-- TAB 1: Consulta General -->
+        <div class="tab-pane fade show active" id="consulta" role="tabpanel">
+            <div class="card shadow-lg border-0 mb-5">
+                <div class="card-body p-4">
+                    <h4 class="mb-4 text-center enc">Envíanos tu consulta</h4>
+                    <form id="consultaForm">
+                        <div class="mb-3">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="nombreConsulta" 
+                                   placeholder="Tu nombre" 
+                                   required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" 
+                                   class="form-control" 
+                                   id="emailConsulta" 
+                                   placeholder="Tu email" 
+                                   required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="tel" 
+                                   class="form-control" 
+                                   id="telefonoConsulta" 
+                                   placeholder="Tu teléfono (opcional)">
+                        </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" 
+                                      id="mensajeConsulta" 
+                                      rows="4" 
+                                      placeholder="¿En qué podemos ayudarte?"
+                                      required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-enviar w-100">
+                            <i class="bi bi-send me-2"></i>Enviar Mensaje
+                        </button>
+                    </form>
                 </div>
-                <div class="mb-3">
-                    <input type="email" 
-                            class="form-control" 
-                            name="email" 
-                            placeholder="Tu email" 
-                            required>
+            </div>
+        </div>
+
+        <!-- TAB 2: Trabaja con Nosotros -->
+        <div class="tab-pane fade" id="trabajo" role="tabpanel">
+            <div class="card shadow-lg border-0 mb-5">
+                <div class="card-body p-4">
+                    <h4 class="mb-3 text-center enc">¡Únete a nuestro equipo!</h4>
+                    <p class="text-center text-muted mb-4">Envíanos tu información y nos pondremos en contacto contigo</p>
+                    <form id="trabajoForm">
+                        <div class="mb-3">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="nombreTrabajo" 
+                                   placeholder="Tu nombre completo" 
+                                   required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="tel" 
+                                   class="form-control" 
+                                   id="telefonoTrabajo" 
+                                   placeholder="Tu teléfono" 
+                                   required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" 
+                                   class="form-control" 
+                                   id="emailTrabajo" 
+                                   placeholder="Tu email">
+                        </div>
+                        <div class="mb-3">
+                            <select class="form-select" id="puestoInteres" required>
+                                <option value="">¿En qué área te interesa trabajar?</option>
+                                <option value="Costura">Costura</option>
+                                <option value="Diseño">Diseño</option>
+                                <option value="Corte">Corte</option>
+                                <option value="Acabados">Acabados</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" 
+                                      id="experienciaTrabajo" 
+                                      rows="3" 
+                                      placeholder="Cuéntanos brevemente sobre tu experiencia"
+                                      required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-enviar w-100">
+                            <i class="bi bi-send me-2"></i>Enviar Solicitud
+                        </button>
+                    </form>
                 </div>
-                <div class="mb-3">
-                    <input type="tel" 
-                            class="form-control" 
-                            name="telefono" 
-                            placeholder="Tu teléfono (opcional)">
-                </div>
-                <div class="mb-3">
-                    <textarea class="form-control" 
-                                name="mensaje" 
-                                rows="4" 
-                                placeholder="¿En qué podemos ayudarte?"
-                                required></textarea>
-                </div>
-                <button type="submit" class="btn btn-enviar w-100">
-                    <i class="bi bi-send me-2"></i>Enviar Mensaje
-                </button>
-            </form>
+            </div>
         </div>
     </div>
     
@@ -108,4 +186,53 @@
         <p class="mt-4 mb-0">@confeccionesmatys</p>
     </div>
 </div>
+
+<script>
+// Formulario de Consulta General
+document.getElementById('consultaForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const nombre = document.getElementById('nombreConsulta').value;
+    const email = document.getElementById('emailConsulta').value;
+    const telefono = document.getElementById('telefonoConsulta').value || 'No proporcionado';
+    const mensaje = document.getElementById('mensajeConsulta').value;
+    
+    const whatsappMsg = `Hola, mi nombre es *${nombre}*
+
+📧 Email: ${email}
+📱 Teléfono: ${telefono}
+
+💬 Consulta:
+${mensaje}`;
+    
+    const url = `https://wa.me/{{ whatsapp_number }}?text=${encodeURIComponent(whatsappMsg)}`;
+    window.open(url, '_blank');
+    this.reset();
+});
+
+// Formulario de Trabajo
+document.getElementById('trabajoForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const nombre = document.getElementById('nombreTrabajo').value;
+    const telefono = document.getElementById('telefonoTrabajo').value;
+    const email = document.getElementById('emailTrabajo').value || 'No proporcionado';
+    const puesto = document.getElementById('puestoInteres').value;
+    const experiencia = document.getElementById('experienciaTrabajo').value;
+    
+    const whatsappMsg = `*SOLICITUD DE EMPLEO*
+
+👤 Nombre: ${nombre}
+📱 Teléfono: ${telefono}
+📧 Email: ${email}
+💼 Área de interés: ${puesto}
+
+📝 Experiencia:
+${experiencia}`;
+    
+    const url = `https://wa.me/{{ whatsapp_number }}?text=${encodeURIComponent(whatsappMsg)}`;
+    window.open(url, '_blank');
+    this.reset();
+});
+</script>
 {% endblock %}

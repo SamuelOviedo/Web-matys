@@ -434,7 +434,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
-HEAD
 });
 
 
@@ -504,32 +503,3 @@ function toggleDetails(element) {
       window.open(whatsappURL, '_blank');
     });
   };
-/******* SCRIPTS DE LA PAGINA DE CONTACTO ********** */
-document.getElementById('contactForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Obtener datos del formulario
-        const nombre = this.nombre.value;
-        const email = this.email.value;
-        const telefono = this.telefono.value;
-        const mensaje = this.mensaje.value;
-        
-        // Crear mensaje para WhatsApp
-        const whatsappMessage = `Hola, soy ${nombre}.
-        
-📧 Email: ${email}
-${telefono ? '📱 Teléfono: ' + telefono : ''}
-
-💬 Mensaje:
-${mensaje}`;
-        
-        // Redirigir a WhatsApp
-        const whatsappUrl = `https://wa.me/{{ whatsapp_number }}?text=${encodeURIComponent(whatsappMessage)}`;
-        window.open(whatsappUrl, '_blank');
-        
-        // Opcional: Limpiar formulario
-        this.reset();
-        
-        // Mostrar mensaje de confirmación
-        alert('Serás redirigido a WhatsApp para enviar tu mensaje.');
-    });

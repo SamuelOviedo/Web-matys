@@ -1073,73 +1073,79 @@ footer::before {
         background: var(--bs-secondary);
     }
     
-    /* Carrusel personalizado */
-    .carousel-trabajos {
-        padding: 3rem 0;
-    }
-    
-    .carousel-trabajos .carousel-inner {
-        border-radius: 20px;
-        overflow: hidden;
-    }
-    
-    .carousel-trabajos .carousel-item {
-        height: 500px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.1);
-    }
-    
-    .carousel-trabajos img {
-        max-height: 480px;
-        max-width: 100%;
-        object-fit: contain;
-        border-radius: 15px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    }
-    
-    .carousel-control-prev,
-    .carousel-control-next {
-        width: 60px;
-        height: 60px;
-        background: var(--bs-primary);
-        border-radius: 50%;
-        top: 50%;
-        transform: translateY(-50%);
-        opacity: 0.8;
-        transition: all 0.3s ease;
-    }
-    
-    .carousel-control-prev {
-        left: -80px;
-    }
-    
-    .carousel-control-next {
-        right: -80px;
-    }
-    
-    .carousel-control-prev:hover,
-    .carousel-control-next:hover {
-        opacity: 1;
-        transform: translateY(-50%) scale(1.1);
-    }
-    
-    .carousel-indicators button {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: var(--bs-secondary);
-        opacity: 0.5;
-        border: 2px solid white;
-        transition: all 0.3s ease;
-    }
-    
-    .carousel-indicators button.active {
-        opacity: 1;
-        transform: scale(1.3);
-    }
-    
+/* Carrusel personalizado */
+.carousel-trabajos {
+    padding: 3rem 0;
+}
+
+.carousel-trabajos .carousel-inner {
+    border-radius: 20px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* ✅ NO uses display: flex aquí - interfiere con Bootstrap */
+.carousel-trabajos .carousel-item {
+    height: 500px;
+    text-align: center;
+    position: relative;
+}
+
+/* ✅ Centra las imágenes usando position absolute */
+.carousel-trabajos .carousel-item img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-height: 480px;
+    max-width: 90%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    width: 60px;
+    height: 60px;
+    background: var(--bs-primary);
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.carousel-control-prev {
+    left: -80px;
+}
+
+.carousel-control-next {
+    right: -80px;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-indicators button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--bs-secondary);
+    opacity: 0.5;
+    border: 2px solid white;
+    transition: all 0.3s ease;
+}
+
+.carousel-indicators button.active {
+    opacity: 1;
+    transform: scale(1.3);
+}
     /* Historia section */
     .historia-section {
         padding: 5rem 0;
@@ -1168,35 +1174,64 @@ footer::before {
         box-shadow: 0 4px 15px rgba(0, 51, 102, 0.3);
     }
     
-    /* Responsive */
-    @media (max-width: 992px) {
-        .carousel-control-prev {
-            left: 10px;
-        }
-        
-        .carousel-control-next {
-            right: 10px;
-        }
-        
-        .carousel-trabajos .carousel-item {
-            height: 400px;
-        }
-        
-        .feature-card {
-            margin-bottom: 1.5rem;
-        }
+/* Responsive */
+@media (max-width: 992px) {
+    .carousel-trabajos .carousel-item {
+        height: 400px;
     }
     
-    @media (max-width: 576px) {
-        .hero-trayectoria {
-            min-height: 40vh;
-        }
-        
-        .carousel-trabajos .carousel-item {
-            height: 300px;
-        }
-        
-        .carousel-trabajos img {
-            max-height: 280px;
-        }
+    .carousel-trabajos .carousel-item img {
+        max-height: 380px;
     }
+    
+    .carousel-control-prev {
+        left: 10px;
+    }
+    
+    .carousel-control-next {
+        right: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .carousel-trabajos .carousel-item {
+        height: 300px;
+    }
+    
+    .carousel-trabajos .carousel-item img {
+        max-height: 280px;
+    }
+}
+/* Responsive para tabs de contacto */
+@media (max-width: 576px) {
+    .nav-tabs {
+        flex-direction: column;
+        border-bottom: none;
+    }
+    
+    .nav-tabs .nav-link {
+        border: 1px solid var(--bs-border-color);
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+    
+    .nav-tabs .nav-link.active {
+        background: var(--bs-primary);
+        color: white;
+        border-color: var(--bs-primary);
+    }
+    
+    .contact-container {
+        padding: 60px 15px 40px;
+    }
+    
+    .btn-whatsapp-hero {
+        font-size: 0.9rem;
+        padding: 0.8rem 1.2rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem !important;
+    }
+}

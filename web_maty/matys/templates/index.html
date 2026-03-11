@@ -128,53 +128,40 @@
   </div>
   
   <div class="row g-4">
-    <!-- Prenda 1 -->
+        {% for prenda in prendas_destacadas %}
     <div class="col-md-6 col-lg-4">
       <div class="card border-0 shadow product-card h-100">
-        <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400" 
+        {% if prenda.imagen_principal %}
+        <img src="{{ prenda.imagen_principal.url }}" 
               class="card-img-top" 
-              alt="Vestido Elegante"
+              alt="{{ prenda.nombre }}"
               style="height: 300px; object-fit: cover;">
+        {% else %}
+        <img src="https://via.placeholder.com/400x300?text=Sin+Imagen" 
+              class="card-img-top" 
+              alt="Sin imagen"
+              style="height: 300px; object-fit: cover;">
+        {% endif %}
+        
         <div class="card-body text-center">
-          <span class="badge bg-secondary mb-2">Moda Femenina</span>
-          <h5 class="card-title enc fw-bold">Vestido Elegante</h5>
-          <p class="card-text text-body-secondary">Diseño sofisticado para eventos especiales</p>
-          <a href="{% url 'detalle_prendas' 'vestido-elegante' %}" class="btn btn-primary mt-2">Ver Detalles</a>
+          <span class="badge badge-cat mb-2">{{ prenda.get_categoria_display }}</span>
+          <h5 class="card-title enc fw-bold">{{ prenda.nombre }}</h5>
+          <p class="card-text text-body-secondary">{{ prenda.descripcion_corta|truncatewords:15 }}</p>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="text-primary fw-bold fs-5">L. {{ prenda.precio }}</span>
+            <a href="{% url 'detalle_prendas' prenda.slug %}" class="btn btn-primary">Ver Detalles</a>
+          </div>
         </div>
       </div>
     </div>
-    
-    <!-- Prenda 2 -->
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow product-card h-100">
-        <img src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400" 
-              class="card-img-top" 
-              alt="Traje Formal"
-              style="height: 300px; object-fit: cover;">
-        <div class="card-body text-center"> 
-          <span class="badge bg-secondary mb-2">Moda Masculina</span>
-          <h5 class="card-title enc fw-bold">Traje Formal</h5>
-          <p class="card-text text-body-secondary">Elegancia clásica para el caballero moderno</p>
-          <a href="{% url 'detalle_prendas' 'vestido-elegante' %}" class="btn btn-primary mt-2">Ver Detalles</a>
-        </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info text-center" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        Aún no hay prendas destacadas. ¡Pronto agregaremos nuevas prendas!
       </div>
     </div>
-    
-    <!-- Prenda 3 -->
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow product-card h-100">
-        <img src="https://images.unsplash.com/photo-1578932750294-f5075e85f44a?w=400" 
-              class="card-img-top" 
-              alt="Blusa Ejecutiva"
-              style="height: 300px; object-fit: cover;">
-        <div class="card-body text-center">
-          <span class="badge bg-secondary mb-2">Moda Femenina</span>
-          <h5 class="card-title enc fw-bold">Blusa Ejecutiva</h5>
-          <p class="card-text text-body-secondary">Profesionalismo con un toque de estilo</p>
-          <a href="{% url 'detalle_prendas' 'vestido-elegante' %}" class="btn btn-primary mt-2">Ver Detalles</a>
-        </div>
-      </div>
-    </div>
+    {% endfor %}
   </div>
   
   <div class="row mt-4">

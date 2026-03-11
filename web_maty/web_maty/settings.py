@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import pymysql
 pymysql.install_as_MySQLdb()
+pymysql.version_info = (2, 2, 1, "final", 0)
 
 from pathlib import Path
 
@@ -80,7 +81,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'matys',
         'USER': 'root',  # Tu usuario de MySQL
-        'PASSWORD': 'EgJ07', 
+        'PASSWORD': 'JgJd_117', 
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {
@@ -140,3 +141,4 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media files (imágenes subidas por usuarios)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+

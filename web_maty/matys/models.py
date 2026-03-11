@@ -1,9 +1,5 @@
 from django.db import models
 
-# Create your models here.
-
-from django.db import models
-
 class Prenda(models.Model):
     CATEGORIAS = [
         ('femenino', 'Femenino'),
@@ -24,7 +20,7 @@ class Prenda(models.Model):
     
     # Información básica
     nombre = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True)  # Para la URL amigable
+    slug = models.SlugField(unique=True)
     categoria = models.CharField(max_length=20, choices=CATEGORIAS)
     tipo = models.CharField(max_length=50, choices=TIPOS)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
@@ -40,26 +36,30 @@ class Prenda(models.Model):
     
     # Disponibilidad
     disponible = models.BooleanField(default=True)
+    destacada = models.BooleanField(
+        default=False,
+        verbose_name="Prenda Destacada",
+        help_text="Marcar si esta prenda debe aparecer en la página de inicio"
+    )
     tallas_disponibles = models.CharField(
         max_length=50, 
         default="XS,S,M,L,XL",
         help_text="Separar con comas"
     )
-
     guia_tallas = models.JSONField(
         default=dict,
         blank=True,
         help_text="Guía de tallas específica para esta prenda"
     )
     colores_disponibles = models.CharField(
-    max_length=200,
-    default="",  # ← Valor vacío por defecto
-    blank=True,  # ← Permite dejarlo vacío
-    help_text="Formato: Negro:#1a1a1a,Blanco:#ffffff"
-)
+        max_length=200,
+        default="",
+        blank=True,
+        help_text="Formato: Negro:#1a1a1a,Blanco:#ffffff"
+    )
     
     # Imágenes
-    imagen_principal = models.ImageField(max_length=500)  # URL de la imagen
+    imagen_principal = models.ImageField(max_length=500)
     imagen_2 = models.ImageField(max_length=500, blank=True)
     imagen_3 = models.ImageField(max_length=500, blank=True)
     imagen_4 = models.ImageField(max_length=500, blank=True)
@@ -69,24 +69,22 @@ class Prenda(models.Model):
     actualizado = models.DateTimeField(auto_now=True)
     
     class Meta:
+        # ❌ NO pongas db_table aquí
         verbose_name = "Prenda"
         verbose_name_plural = "Prendas"
-        ordering = ['-fecha_creacion']
+        ordering = ['-destacada', '-fecha_creacion']
 
     def get_tallas_list(self):
-        """Devuelve lista de tallas"""
         return self.tallas_disponibles.split(',')
         
     def get_guia_tallas(self):
-        """Devuelve la guía de tallas según el tipo de prenda"""
         from .guias_tallas import GUIAS_TALLAS, ENCABEZADOS_TALLAS
-    
         guia = GUIAS_TALLAS.get(self.tipo, [])
         encabezados = ENCABEZADOS_TALLAS.get(self.tipo, ['Talla', 'Medidas'])
-    
         return {
             'guia': guia,
             'encabezados': encabezados
-    }
+        }
+        
     def __str__(self):
-        return self.nombre    
+        return self.nombre
