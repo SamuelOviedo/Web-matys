@@ -69,7 +69,6 @@ class Prenda(models.Model):
     actualizado = models.DateTimeField(auto_now=True)
     
     class Meta:
-        # ❌ NO pongas db_table aquí
         verbose_name = "Prenda"
         verbose_name_plural = "Prendas"
         ordering = ['-destacada', '-fecha_creacion']
