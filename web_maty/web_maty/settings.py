@@ -6,7 +6,9 @@ import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parent.parent / '.env')
+# En producción (Render) no existe .env — las vars vienen del panel de control.
+# dotenv_path=None + no exception si no existe es el comportamiento por defecto.
+load_dotenv(Path(__file__).resolve().parent.parent / '.env', override=False)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
