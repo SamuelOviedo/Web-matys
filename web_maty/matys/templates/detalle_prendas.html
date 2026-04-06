@@ -1,0 +1,257 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-white text-center d-flex align-items-center justify-content-center" 
+          style="background: linear-gradient(135deg, rgba(0,51,102,0.85), rgba(255,215,0,0.3)), 
+                url(' {% static 'images/catalogoM.jpg' %}') no-repeat center center/cover;">
+  <div class="overlay"></div>
+  <div class="container position-relative header-text">
+    <h1 class="display-3 fw-bold enc">Elegancia en Cada Puntada</h1>
+    <p class="lead fs-4 fw-semibold">Descubre nuestra colección exclusiva</p>
+  </div>
+</section>
+
+<div class="container my-5">
+  <div class="row g-4">
+    
+    <!-- Columna Izquierda: Imágenes -->
+    <div class="col-lg-6">
+      <!-- Imagen Principal -->
+      <div class="mb-3">
+        {% if prenda.imagen_principal %}
+          <img src="{{ prenda.imagen_principal.url }}" 
+               class="main-image" 
+               id="mainImage"
+               alt="{{ prenda.nombre }}">
+        {% else %}
+          <img src="https://via.placeholder.com/800x600?text=Sin+Imagen" 
+               class="main-image" 
+               id="mainImage"
+               alt="Sin imagen disponible">
+        {% endif %}
+      </div>
+      
+      <!-- Miniaturas -->
+      <div class="row g-2">
+        {% if prenda.imagen_principal %}
+        <div class="col-3">
+          <img src="{{ prenda.imagen_principal.url }}" 
+               class="thumbnail active" 
+               data-full="{{ prenda.imagen_principal.url }}"
+               alt="Vista 1">
+        </div>
+        {% endif %}
+        
+        {% if prenda.imagen_2 %}
+        <div class="col-3">
+          <img src="{{ prenda.imagen_2.url }}" 
+               class="thumbnail" 
+               data-full="{{ prenda.imagen_2.url }}"
+               alt="Vista 2">
+        </div>
+        {% endif %}
+        
+        {% if prenda.imagen_3 %}
+        <div class="col-3">
+          <img src="{{ prenda.imagen_3.url }}" 
+               class="thumbnail" 
+               data-full="{{ prenda.imagen_3.url }}"
+               alt="Vista 3">
+        </div>
+        {% endif %}
+        
+        {% if prenda.imagen_4 %}
+        <div class="col-3">
+          <img src="{{ prenda.imagen_4.url }}" 
+               class="thumbnail" 
+               data-full="{{ prenda.imagen_4.url }}"
+               alt="Vista 4">
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Información -->
+    <div class="col-lg-6">
+      <div class="mb-3">
+        <span class="badge badge-cat">{{ prenda.get_categoria_display }}</span>
+        <span class="badge badge-stock text-white ms-2">
+          <i class="bi bi-check-circle me-1"></i>Disponible
+        </span>
+      </div>
+
+      <h2 class="display-5 enc fw-bold mb-3">{{ prenda.nombre }}</h2>
+      <p class="product-price mb-4">L. {{ prenda.precio }}</p>
+
+      <p class="text-muted mb-4">
+        {{ prenda.descripcion_corta }}
+      </p>
+
+      <!-- Selector de Talla -->
+      <div class="mb-4">
+        <h5 class="fw-bold mb-3">Tallas Disponibles</h5>
+        <div class="size-selector">
+          {% for talla in prenda.get_tallas_list %}
+            <button class="size-btn {% if forloop.first %}active{% endif %}" data-size="{{ talla }}">{{ talla }}</button>
+          {% endfor %}
+        </div>
+        <p class="text-muted mt-2 small">
+          <i class="bi bi-info-circle me-1"></i>
+          ¿No estás segura de tu talla? 
+          <a href="#sizes-tab" class="text-primary">Ver guía de tallas</a>
+        </p>
+      </div>
+
+      <!-- Características -->
+      <div class="mb-4">
+        <h5 class="fw-bold mb-3">Características:</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Material: {{ prenda.material }}</li>
+          {% if prenda.largo %}
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Largo: {{ prenda.largo }}</li>
+          {% endif %}
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Cuidado: {{ prenda.cuidado }}</li>
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Hecho a mano en Honduras</li>
+        </ul>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="d-grid gap-3 mb-4">
+        <button class="btn btn-primary btn-lg" id="btnCotizacion">
+          <i class="bi bi-whatsapp me-2"></i>Solicitar Cotización por WhatsApp
+        </button>
+      </div>
+
+      <!-- Envío -->
+      <div class="alert alert-info mb-0">
+        <i class="bi bi-truck me-2"></i>
+        <strong>Entrega disponible</strong> en Siguatepeque y envíos a todo Honduras
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs de Información Adicional -->
+  <div class="mt-5">
+    <ul class="nav nav-tabs" id="infoTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" 
+                id="description-tab" 
+                data-bs-toggle="tab" 
+                data-bs-target="#description"
+                type="button"
+                role="tab">
+          Descripción
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" 
+                id="sizes-tab" 
+                data-bs-toggle="tab" 
+                data-bs-target="#sizes"
+                type="button"
+                role="tab">
+          Guía de Tallas
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content mt-4 p-4 bg-body-secondary rounded-bottom" id="infoTabsContent">
+      <div class="tab-pane fade show active" id="description" role="tabpanel">
+        <h5 class="fw-bold mb-3">Descripción Detallada</h5>
+        <div>
+          {{ prenda.descripcion_larga|linebreaks }}
+        </div>
+      </div>
+      
+<div class="tab-pane fade" id="sizes" role="tabpanel">
+    <h5 class="fw-bold mb-3">Guía de Tallas - {{ prenda.get_tipo_display }}</h5>
+    
+    {% with guia_data=prenda.get_guia_tallas %}
+    {% if guia_data.guia %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr class="table-primary">
+                    {% for encabezado in guia_data.encabezados %}
+                    <th scope="col">{{ encabezado }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for medida in guia_data.guia %}
+                <tr>
+                    <th class="text-body" scope="row">{{ medida.talla }}</th>
+                    {% for key, value in medida.items %}
+                        {% if key != 'talla' %}
+                        <td class="text-body">{{ value }}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-warning" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        No hay guía de tallas disponible para este tipo de prenda.
+    </div>
+    {% endif %}
+    {% endwith %}
+    
+    <p class="text-muted small mt-3">
+        <i class="bi bi-info-circle me-1"></i>
+        Las medidas son aproximadas. Si tienes dudas, contáctanos para asesoría personalizada.
+    </p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Cambio de imágenes al hacer click en miniaturas
+  document.querySelectorAll('.thumbnail').forEach(thumb => {
+    thumb.addEventListener('click', function() {
+      const fullImageUrl = this.getAttribute('data-full');
+      const mainImage = document.getElementById('mainImage');
+      
+      // Cambiar imagen principal
+      mainImage.src = fullImageUrl;
+      
+      // Actualizar clase active
+      document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+  
+  // Selector de tallas
+  document.querySelectorAll('.size-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+  
+  
+  // Botón de WhatsApp
+  document.getElementById('btnCotizacion').addEventListener('click', function() {
+    const prendaNombre = "{{ prenda.nombre }}";
+    const prendaPrecio = "{{ prenda.precio }}";
+    const talla = document.querySelector('.size-btn.active')?.getAttribute('data-size') || 'M';
+    const color = document.querySelector('.color-btn.active')?.getAttribute('data-color') || 'N/A';
+    
+    const mensaje = `Hola, me interesa la prenda:
+    
+📦 *${prendaNombre}*
+💰 Precio: L. ${prendaPrecio}
+📏 Talla: ${talla}
+🎨 Color: ${color}
+
+¿Está disponible?`;
+    
+    const whatsappUrl = `https://wa.me/50498267040?text=${encodeURIComponent(mensaje)}`;
+    window.open(whatsappUrl, '_blank');
+  });
+</script>
+{% endblock %}

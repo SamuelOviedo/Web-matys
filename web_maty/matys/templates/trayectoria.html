@@ -1,0 +1,223 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section hero-trayectoria text-white text-center d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, rgba(0,51,102,0.85), rgba(255,215,0,0.3)), 
+        url(' {% static 'images/trayectoriaV.jpg' %}') no-repeat center center/cover;">
+  <div class="overlay"></div>
+  <div class="container position-relative header-text">
+    <h1 class="display-3 fw-bold enc">¡Conócenos Mejor!</h1>
+    <p class="lead fs-4 fw-semibold">Desde 2020 creando y perfeccionando nuestro arte</p>
+  </div>
+</section>
+
+<!-- Nuestra Historia -->
+<section class="historia-section container">
+    <div class="text-center mb-5">
+        <h2 class="fs-5 enc fw-bold text-primary mb-2">Nuestros Inicios</h2>
+        <h1 class="display-6 enc fw-bold">Nuestra Historia</h1>
+    </div>
+    
+    <div class="row align-items-center g-5">
+        <div class="col-lg-5 text-center">
+            <img class="w-100 historia-image" 
+                 src="{% static 'images/Trayectoria1.webp' %}" 
+                 alt="Historia de ConfeccionesMaty">
+        </div>
+
+        <div class="col-lg-7">
+            <p class="lead mb-4">
+                <span class="fw-bold text-primary">ConfeccionesMaty</span> 
+                surge en el corazón de una niña que admira a su mamá.
+            </p>
+            <p>
+                En un momento crítico para la familia, cuando mi papá se quedó sin trabajo, 
+                mi mamá hizo malabares con una máquina de coser para sacarnos adelante. 
+                Esto despertó una profunda admiración hacia la costura desde que tenía ocho años.
+            </p>
+            <p>
+                Comencé ayudándole a mi mamá a planchar y hacer ruedos, y disfrutaba cada momento. 
+                Siempre supe lo que quería: graduarme de bachiller técnico en corte y confección.
+            </p>
+            <p>
+                Hay muchas cosas que debo mejorar, pero si hay algo de lo que estoy segura, 
+                es de la <strong>pasión que tengo por la confección</strong>, por diseñar, por transformar. 
+                Lo que ofrezco es mi creciente experiencia y mi gran pasión.
+            </p>
+            
+            <div class="text-center mt-4">
+                <span class="years-badge">
+                    🎉 ¡Nuestro recorrido comenzó en 2020!
+                </span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Nuestros Valores -->
+<section class="py-5 bg-body-secondary">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fs-5 enc fw-bold text-primary mb-2">Lo Que Nos Define</h2>
+            <h1 class="display-6 enc fw-bold">Nuestros Valores</h1>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Card 1 -->
+            <div class="col-md-4 ">
+                <div class="feature-card text-center bg-body-secondary shadow-lg">
+                    <div class="feature-icon">🧶</div>
+                    <h4 class="enc fw-bold mb-3">Compromiso Personal</h4>
+                    <p class="text-muted">
+                        Cada prenda es un compromiso con la excelencia y la satisfacción del cliente.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Card 2 -->
+            <div class="col-md-4">
+                <div class="feature-card text-center bg-body-secondary shadow-lg">
+                    <div class="feature-icon">👗</div>
+                    <h4 class="enc fw-bold mb-3">Atención al Detalle</h4>
+                    <p class="text-muted">
+                        Cuidamos cada puntada, cada acabado, cada elemento de tus prendas.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Card 3 -->
+            <div class="col-md-4">
+                <div class="feature-card text-center bg-body-secondary shadow-lg">
+                    <div class="feature-icon">🧵</div>
+                    <h4 class="enc fw-bold mb-3">Mejora Continua</h4>
+                    <p class="text-muted">
+                        Aprendizaje constante y adaptación a las nuevas tendencias y técnicas.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Misión y Visión -->
+<section class="py-5 container">
+    <div class="text-center mb-5">
+        <h2 class="fs-5 enc fw-bold text-primary mb-2">Nuestro Camino</h2>
+        <h1 class="display-6 enc fw-bold">¿Cómo Nos Guiamos?</h1>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Misión -->
+        <div class="col-lg-6">
+            <div class="mission-vision-card">
+                <h3 class="card-title enc fw-bold">Misión</h3>
+                <p class="card-text">
+                    En <strong>Confeccionesmaty</strong>, nuestra misión es transformar la pasión 
+                    por el diseño y la costura, inspirada en la resiliencia familiar, 
+                    en prendas de valor y calidad.
+                </p>
+                <p class="card-text">
+                    Nos dedicamos a ofrecer soluciones de confección detalladas y creativas, 
+                    comprometiendo nuestra experiencia técnica con la inquebrantable dedicación 
+                    y el deseo de superar las expectativas de nuestros clientes en cada puntada.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Visión -->
+        <div class="col-lg-6">
+            <div class="mission-vision-card">
+                <h3 class="card-title enc fw-bold">Visión</h3>
+                <p class="card-text">
+                    Ser reconocida en los próximos cinco años como un <strong>referente de calidad 
+                    y creatividad</strong> en el sector de la confección, destacada por transformar 
+                    la visión del cliente en diseños excepcionales.
+                </p>
+                <p class="card-text">
+                    Buscamos evolucionar hacia un taller consolidado, donde la pasión por el diseño, 
+                    inspirada en nuestros orígenes, se fusiona con la máxima profesionalidad.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Nuestros Trabajos -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 class="enc fw-bold mb-3">Algunos de Nuestros Mejores Trabajos</h2>
+            <p class="lead">Cada prenda cuenta una historia de dedicación y pasión</p>
+        </div>
+
+<div id="carouselTrabajos" class="carousel slide carousel-trabajos" data-bs-ride="carousel">
+    
+    <!-- Indicadores -->
+    <div class="carousel-indicators">
+        {% for i in "0123456789" %}
+        <button type="button" 
+                data-bs-target="#carouselTrabajos" 
+                data-bs-slide-to="{{ forloop.counter0 }}" 
+                class="{% if forloop.first %}active{% endif %}" 
+                aria-current="{% if forloop.first %}true{% endif %}" 
+                aria-label="Trabajo {{ forloop.counter }}"></button>
+        {% endfor %}
+    </div>
+    
+    <!-- Slides -->
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img src="{% static 'images/New1.jpg' %}" class="d-block mx-auto" alt="Trabajo 1">
+        </div>
+        <div class="carousel-item">
+            <img src="{% static 'images/trabajo2.jpg' %}" class="d-block mx-auto" alt="Trabajo 2">
+        </div>
+        <div class="carousel-item">
+            <img src="{% static 'images/trabajo3.jpg' %}" class="d-block mx-auto" alt="Trabajo 3">
+        </div>
+        <div class="carousel-item">
+            <img src="{% static 'images/trabajo4.jpg' %}" class="d-block mx-auto" alt="Trabajo 4">
+        </div>
+        <div class="carousel-item">
+            <img src="{% static 'images/New2.jpg' %}" class="d-block mx-auto" alt="Trabajo 5">
+        </div>
+        <div class="carousel-item">
+            <img src="{% static 'images/trabajo6.jpg' %}" class="d-block mx-auto" alt="Trabajo 6">
+        </div>
+        <div class="carousel-item">
+            <img src="{% static 'images/New3.jpg' %}" class="d-block mx-auto" alt="Trabajo 7">
+        </div>
+        <div class="carousel-item">
+            <img src="{% static 'images/New4.jpg' %}" class="d-block mx-auto" alt="Trabajo 8">
+        </div>
+        <div class="carousel-item">
+            <img src="{% static 'images/catalogoM.jpg' %}" class="d-block mx-auto" alt="Trabajo 9">
+        </div>
+        <div class="carousel-item">
+            <img src="{% static 'images/prenda3.jpg' %}" class="d-block mx-auto" alt="Trabajo 10">
+        </div>
+    </div>
+    
+    <!-- Controles -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselTrabajos" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Anterior</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselTrabajos" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Siguiente</span>
+    </button>
+</div>
+<!-- llamada a la accion -->
+<section class="py-5 bg-secondary text-primary">
+    <div class="container text-center">
+        <h2 class="enc fw-bold mb-3">¿confeccionamos tu prenda perfecta?</h2>
+        <p class="fs-5 mb-4">Permítenos ser parte de tu estilo</p>
+        <a href="{% url 'contacto' %}" class="btn btn-primary btn-lg">
+            <i class="bi bi-whatsapp me-2"></i>Contáctanos
+        </a>
+    </div>
+</section>
+{% endblock %}
