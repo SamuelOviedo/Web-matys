@@ -1012,7 +1012,7 @@ footer::before {
     /* Hero específico de trayectoria */
     .hero-trayectoria {
         background: linear-gradient(135deg, rgba(0,51,102,0.85), rgba(255,215,0,0.3)), 
-                    url('{% static 'images/trayectoriaV.jpg' %}') no-repeat center center/cover;
+                    url('../images/trayectoriaV.jpg') no-repeat center center/cover;
         background-attachment: fixed;
         min-height: 60vh;
     }
