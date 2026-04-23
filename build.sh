@@ -13,9 +13,12 @@ from django.contrib.auth.models import User
 u = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
 p = os.environ.get('DJANGO_SUPERUSER_PASSWORD')
 e = os.environ.get('DJANGO_SUPERUSER_EMAIL', '')
-if p and not User.objects.filter(username=u).exists():
-    User.objects.create_superuser(u, e, p)
-    print(f'Superuser {u} created')
-else:
-    print(f'Superuser {u} already exists or no password set')
+if p:
+    user, created = User.objects.get_or_create(username=u)
+    user.set_password(p)
+    user.email = e
+    user.is_staff = True
+    user.is_superuser = True
+    user.save()
+    print('Superuser {} {}'.format(u, 'created' if created else 'updated'))
 PYEOF
