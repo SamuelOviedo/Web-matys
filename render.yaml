@@ -9,7 +9,7 @@ services:
     name: web-matys
     runtime: python
     buildCommand: "./build.sh"
-    startCommand: "cd web_maty && gunicorn web_maty.wsgi:application"
+    startCommand: "cd web_maty && python create_admin.py && gunicorn web_maty.wsgi:application"
     plan: free
     envVars:
       - key: SECRET_KEY
