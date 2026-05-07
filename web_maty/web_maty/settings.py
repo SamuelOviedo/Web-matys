@@ -16,11 +16,18 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-ux(a3tq6quij_y2gamr)3
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-    CSRF_TRUSTED_ORIGINS = [f'https://{RENDER_EXTERNAL_HOSTNAME}']
+ALLOWED_HOSTS = [
+    'web-matys.onrender.com',
+    'confeccionesmatys.com',
+    'www.confeccionesmatys.com',
+    'localhost',
+    '127.0.0.1',
+]
+CSRF_TRUSTED_ORIGINS = [
+    'https://web-matys.onrender.com',
+    'https://confeccionesmatys.com',
+    'https://www.confeccionesmatys.com',
+]
 
 
 INSTALLED_APPS = [

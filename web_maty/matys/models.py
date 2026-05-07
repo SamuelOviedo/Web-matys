@@ -1,4 +1,7 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from cloudinary.models import CloudinaryField
+
 
 class Prenda(models.Model):
     CATEGORIAS = [
@@ -58,12 +61,6 @@ class Prenda(models.Model):
         help_text="Formato: Negro:#1a1a1a,Blanco:#ffffff"
     )
     
-    # Imágenes
-    imagen_principal = models.ImageField(max_length=500)
-    imagen_2 = models.ImageField(max_length=500, blank=True)
-    imagen_3 = models.ImageField(max_length=500, blank=True)
-    imagen_4 = models.ImageField(max_length=500, blank=True)
-    
     # Metadata
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
@@ -72,6 +69,9 @@ class Prenda(models.Model):
         verbose_name = "Prenda"
         verbose_name_plural = "Prendas"
         ordering = ['-destacada', '-fecha_creacion']
+
+    def get_imagen_principal(self):
+        return self.imagenes.filter(orden=0).first()
 
     def get_tallas_list(self):
         return self.tallas_disponibles.split(',')
@@ -87,3 +87,29 @@ class Prenda(models.Model):
         
     def __str__(self):
         return self.nombre
+
+
+class ImagenPrenda(models.Model):
+    prenda = models.ForeignKey(Prenda, on_delete=models.CASCADE, related_name='imagenes')
+    imagen = CloudinaryField('imagen')
+    orden = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['orden']
+        verbose_name = 'Imagen'
+        verbose_name_plural = 'Imágenes'
+
+    @property
+    def es_principal(self):
+        return self.orden == 0
+
+    def clean(self):
+        if self.prenda_id:
+            qs = ImagenPrenda.objects.filter(prenda_id=self.prenda_id)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.count() >= 4:
+                raise ValidationError('Máximo 4 imágenes por prenda.')
+
+    def __str__(self):
+        return f'{self.prenda.nombre} — imagen {self.orden}'
