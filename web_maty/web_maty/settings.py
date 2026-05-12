@@ -2,12 +2,11 @@
 Django settings for web_maty project.
 """
 import os
+import cloudinary
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
 
-# En producción (Render) no existe .env — las vars vienen del panel de control.
-# dotenv_path=None + no exception si no existe es el comportamiento por defecto.
 load_dotenv(Path(__file__).resolve().parent.parent / '.env', override=False)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,14 +28,12 @@ CSRF_TRUSTED_ORIGINS = [
     'https://www.confeccionesmatys.com',
 ]
 
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage',
     'django.contrib.staticfiles',
     'cloudinary',
     'matys',
@@ -72,8 +69,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'web_maty.wsgi.application'
 
-
-# Base de datos: usa DATABASE_URL en producción, SQLite en local
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     DATABASES = {
@@ -86,7 +81,6 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -102,18 +96,17 @@ USE_TZ = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Archivos estáticos
 STATIC_URL = '/static/'
 STATICFILES_DIRS = []
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Cloudinary — siempre definido para evitar crash en AppConfig.ready()
-# En local sin .env, las claves quedan vacías y Django arranca igual.
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
-}
+# Cloudinary: configuración directa — evita AppConfig de django-cloudinary-storage
+# que hace settings.STATICFILES_STORAGE, atributo eliminado en Django 6.
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    api_key=os.environ.get('CLOUDINARY_API_KEY', ''),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET', ''),
+)
 
 STORAGES = {
     'staticfiles': {
