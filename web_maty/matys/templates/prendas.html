@@ -95,9 +95,15 @@
         <div class="col-md-6 col-lg-4" data-category="{{ producto.categoria }}" data-type="{{ producto.tipo }}">
           <div class="card product-card h-100 border-0 shadow-lg">
             <div class="position-relative img-container">
-              <img src="{{ producto.imagen_principal.url }}" 
-                    class="card-img-top" 
+              {% if producto.imagen_principal %}
+              <img src="{{ producto.imagen_principal.url }}"
+                    class="card-img-top"
                     alt="{{ producto.nombre }}">
+              {% else %}
+              <img src="https://via.placeholder.com/400x400?text=Sin+Imagen"
+                    class="card-img-top"
+                    alt="Sin imagen">
+              {% endif %}
             </div>
             <div class="card-body">
               <span class="badge badge-cat mb-2">{{ producto.get_categoria_display }}</span>
@@ -114,8 +120,13 @@
         <div class="col-12">
           <div class="alert alert-info text-center">
             <i class="bi bi-info-circle me-2"></i>
-            No hay prendas disponibles en este momento. 
-            <a href="/admin/" class="alert-link">Agregar prendas desde el admin</a>
+            No hay prendas disponibles en este momento.
+            <button type="button"
+                    class="alert-link btn btn-link p-0 border-0 align-baseline"
+                    data-bs-toggle="modal"
+                    data-bs-target="#adminLoginModal">
+              Acceso administrador
+            </button>
           </div>
         </div>
         {% endfor %}
@@ -133,9 +144,15 @@
         <div class="col-md-6 col-lg-4">
           <div class="card product-card h-100 border-0 shadow-lg">
             <div class="position-relative img-container">
-              <img src="{{ producto.imagen_principal.url }}" 
-                    class="card-img-top" 
+              {% if producto.imagen_principal %}
+              <img src="{{ producto.imagen_principal.url }}"
+                    class="card-img-top"
                     alt="{{ producto.nombre }}">
+              {% else %}
+              <img src="https://via.placeholder.com/400x400?text=Sin+Imagen"
+                    class="card-img-top"
+                    alt="Sin imagen">
+              {% endif %}
             </div>
             <div class="card-body">
               <span class="badge badge-cat mb-2">{{ producto.get_categoria_display }}</span>
@@ -164,9 +181,15 @@
         <div class="col-md-6 col-lg-4">
           <div class="card product-card h-100 border-0 shadow-lg">
             <div class="position-relative img-container">
-              <img src="{{ producto.imagen_principal.url }}" 
-                    class="card-img-top" 
+              {% if producto.imagen_principal %}
+              <img src="{{ producto.imagen_principal.url }}"
+                    class="card-img-top"
                     alt="{{ producto.nombre }}">
+              {% else %}
+              <img src="https://via.placeholder.com/400x400?text=Sin+Imagen"
+                    class="card-img-top"
+                    alt="Sin imagen">
+              {% endif %}
             </div>
             <div class="card-body">
               <span class="badge badge-cat mb-2">{{ producto.get_categoria_display }}</span>
@@ -196,5 +219,75 @@
     <a href="{% url 'contacto' %}" class="btn btn-light btn-lg">Solicitar Cotización</a>
   </div>
 </section>
+
+<!-- Modal acceso administrador -->
+<div class="modal fade" id="adminLoginModal" tabindex="-1" aria-hidden="true" aria-labelledby="adminLoginLabel">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:320px;">
+    <div class="modal-content border-0 shadow-lg" style="background:#0d2147;border-radius:14px;">
+      <div class="modal-body p-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <span class="text-white-50 small">
+            <i class="bi bi-lock-fill me-1"></i>Acceso restringido
+          </span>
+          <button type="button" class="btn-close btn-close-white opacity-50" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+
+        {% for message in messages %}
+        <div class="rounded-2 px-3 py-2 mb-3 small
+          {% if 'blocked' in message.tags %}
+            text-warning" style="background:rgba(255,193,7,0.12);"
+          {% else %}
+            text-danger" style="background:rgba(220,53,69,0.12);"
+          {% endif %}>
+          <i class="bi bi-exclamation-circle me-1"></i>{{ message }}
+        </div>
+        {% endfor %}
+
+        <form method="post" action="{% url 'admin_login' %}" autocomplete="off" novalidate>
+          {% csrf_token %}
+          <div class="mb-3">
+            <input type="text"
+                   name="username"
+                   class="form-control bg-transparent text-white border-0 border-bottom rounded-0 px-0"
+                   style="border-bottom:1px solid rgba(255,255,255,0.2)!important;box-shadow:none;"
+                   placeholder="Usuario"
+                   maxlength="150"
+                   minlength="3"
+                   autocomplete="off"
+                   spellcheck="false"
+                   required>
+          </div>
+          <div class="mb-4">
+            <input type="password"
+                   name="password"
+                   class="form-control bg-transparent text-white border-0 border-bottom rounded-0 px-0"
+                   style="border-bottom:1px solid rgba(255,255,255,0.2)!important;box-shadow:none;"
+                   placeholder="Contraseña"
+                   maxlength="128"
+                   minlength="3"
+                   autocomplete="new-password"
+                   required>
+          </div>
+          <button type="submit"
+                  class="btn w-100 fw-semibold"
+                  style="background:#ffd700;color:#0d2147;">
+            Ingresar
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if show_admin_modal %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var el = document.getElementById('adminLoginModal');
+    if (el) { new bootstrap.Modal(el).show(); }
+  });
+</script>
+{% endif %}
 
 {% endblock %}

@@ -70,8 +70,20 @@ class Prenda(models.Model):
         verbose_name_plural = "Prendas"
         ordering = ['-destacada', '-fecha_creacion']
 
-    def get_imagen_principal(self):
-        return self.imagenes.filter(orden=0).first()
+    @property
+    def imagen_principal(self):
+        """
+        Retorna el CloudinaryField de la imagen con orden=0.
+        Retorna None si la prenda no tiene imágenes cargadas.
+        Uso en templates: {{ prenda.imagen_principal.url }}
+        """
+        img = self.imagenes.filter(orden=0).first()
+        return img.imagen if img else None
+
+    @property
+    def total_imagenes(self):
+        """Cantidad de fotos cargadas para esta prenda (0–4)."""
+        return self.imagenes.count()
 
     def get_tallas_list(self):
         return self.tallas_disponibles.split(',')
@@ -91,8 +103,14 @@ class Prenda(models.Model):
 
 class ImagenPrenda(models.Model):
     prenda = models.ForeignKey(Prenda, on_delete=models.CASCADE, related_name='imagenes')
-    imagen = CloudinaryField('imagen')
-    orden = models.IntegerField(default=0)
+    imagen = CloudinaryField(
+        'imagen',
+        help_text='Subí la foto de la prenda. Formatos aceptados: JPG, PNG, WEBP.',
+    )
+    orden = models.IntegerField(
+        default=0,
+        help_text='Posición en la galería. La imagen con orden 0 es la foto principal que aparece en el catálogo.',
+    )
 
     class Meta:
         ordering = ['orden']
@@ -109,7 +127,10 @@ class ImagenPrenda(models.Model):
             if self.pk:
                 qs = qs.exclude(pk=self.pk)
             if qs.count() >= 4:
-                raise ValidationError('Máximo 4 imágenes por prenda.')
+                raise ValidationError(
+                    'No se pueden agregar más de 4 fotos por prenda. '
+                    'Eliminá una foto existente antes de subir otra.'
+                )
 
     def __str__(self):
         return f'{self.prenda.nombre} — imagen {self.orden}'

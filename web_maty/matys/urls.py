@@ -10,4 +10,5 @@ urlpatterns = [
     path('detalle_prendas/<slug:slug>/', views.detalle_prendas, name='detalle_prendas'),
     path('trayectoria/', views.trayectoria, name='trayectoria'),
     path('contacto/', views.contacto, name='contacto'),
-    ]
+    path('acceso/', views.admin_login, name='admin_login'),
+]

@@ -18,59 +18,34 @@
     
     <!-- Columna Izquierda: Imágenes -->
     <div class="col-lg-6">
+      {% with imagenes=prenda.imagenes.all %}
       <!-- Imagen Principal -->
       <div class="mb-3">
-        {% if prenda.imagen_principal %}
-          <img src="{{ prenda.imagen_principal.url }}" 
-               class="main-image" 
+        {% if imagenes %}
+          <img src="{{ imagenes.0.imagen.url }}"
+               class="main-image"
                id="mainImage"
                alt="{{ prenda.nombre }}">
         {% else %}
-          <img src="https://via.placeholder.com/800x600?text=Sin+Imagen" 
-               class="main-image" 
+          <img src="https://via.placeholder.com/800x600?text=Sin+Imagen"
+               class="main-image"
                id="mainImage"
                alt="Sin imagen disponible">
         {% endif %}
       </div>
-      
+
       <!-- Miniaturas -->
       <div class="row g-2">
-        {% if prenda.imagen_principal %}
+        {% for img in imagenes %}
         <div class="col-3">
-          <img src="{{ prenda.imagen_principal.url }}" 
-               class="thumbnail active" 
-               data-full="{{ prenda.imagen_principal.url }}"
-               alt="Vista 1">
+          <img src="{{ img.imagen.url }}"
+               class="thumbnail {% if forloop.first %}active{% endif %}"
+               data-full="{{ img.imagen.url }}"
+               alt="Vista {{ forloop.counter }}">
         </div>
-        {% endif %}
-        
-        {% if prenda.imagen_2 %}
-        <div class="col-3">
-          <img src="{{ prenda.imagen_2.url }}" 
-               class="thumbnail" 
-               data-full="{{ prenda.imagen_2.url }}"
-               alt="Vista 2">
-        </div>
-        {% endif %}
-        
-        {% if prenda.imagen_3 %}
-        <div class="col-3">
-          <img src="{{ prenda.imagen_3.url }}" 
-               class="thumbnail" 
-               data-full="{{ prenda.imagen_3.url }}"
-               alt="Vista 3">
-        </div>
-        {% endif %}
-        
-        {% if prenda.imagen_4 %}
-        <div class="col-3">
-          <img src="{{ prenda.imagen_4.url }}" 
-               class="thumbnail" 
-               data-full="{{ prenda.imagen_4.url }}"
-               alt="Vista 4">
-        </div>
-        {% endif %}
+        {% endfor %}
       </div>
+      {% endwith %}
     </div>
 
     <!-- Columna Derecha: Información -->
