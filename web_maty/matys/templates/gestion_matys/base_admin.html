@@ -347,6 +347,29 @@
     /* ── Page section wrapper ──────────────────────────────────── */
     .page-section { padding: 0 24px 24px; }
 
+    /* ── Form controls (modal / inspector) ────────────────────── */
+    .form-label-admin {
+      display: block;
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .10em;
+      color: var(--mute); margin-bottom: 5px;
+    }
+    .input-admin {
+      width: 100%; height: 36px;
+      background: #fff; border: 1px solid var(--line);
+      border-radius: 6px; padding: 0 10px;
+      font-size: 13px; color: var(--ink); font-family: 'Inter', sans-serif;
+      outline: none; transition: box-shadow .15s;
+      appearance: none;
+    }
+    textarea.input-admin { height: auto; padding: 8px 10px; }
+    select.input-admin { cursor: pointer; }
+    .input-admin::placeholder { color: var(--mute); }
+    .input-admin:focus {
+      border-color: var(--line-2);
+      box-shadow: 0 0 0 3px rgba(255,214,10,.30);
+    }
+
     /* ── Placeholder full card ─────────────────────────────────── */
     .placeholder-card {
       background: #fff; border: 1px solid var(--line);

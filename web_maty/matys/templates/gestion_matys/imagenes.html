@@ -5,48 +5,379 @@
 
 {% block content %}
 
+<style>
+  /* ── Image overlay (reveal-on-hover) ─────────────────────── */
+  .img-wrap { position: relative; overflow: hidden; }
+  .img-overlay {
+    position: absolute; inset: 0;
+    background: rgba(11,18,36,.58);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity .15s;
+    z-index: 2;
+  }
+  .image-card:hover .img-overlay { opacity: 1; }
+  .overlay-edit-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 36px; padding: 0 16px; border-radius: 6px;
+    background: #fff; color: var(--navy);
+    font-size: 13px; font-weight: 600; border: none; cursor: pointer;
+    transition: background .12s;
+  }
+  .overlay-edit-btn:hover { background: var(--paper); }
+
+  /* ── Toast ─────────────────────────────────────────────────── */
+  #editToast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    padding: 12px 18px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0,0,0,.18);
+    transform: translateY(12px); opacity: 0;
+    transition: transform .22s, opacity .22s; pointer-events: none;
+  }
+  #editToast.show { transform: translateY(0); opacity: 1; }
+</style>
+
+<!-- ── Page header ────────────────────────────────────────────── -->
 <div class="page-header d-flex flex-wrap align-items-start justify-content-between gap-3">
   <div>
     <div class="page-eyebrow">Tienda</div>
     <h1 class="page-title">Imágenes</h1>
-    <p class="page-lede">Imágenes subidas a Cloudinary asociadas a prendas del catálogo.</p>
+    <p class="page-lede">Imágenes subidas a Cloudinary. Hacé hover sobre una foto para editar la prenda.</p>
   </div>
-  <div class="page-actions" style="padding-top:32px;">
-    <span class="chip chip-neutral" style="height:28px; font-size:12px;">
+  <div class="page-actions" style="padding-top:34px;">
+    <span class="chip chip-neutral" style="height:28px;font-size:12px;">
       {{ total_imagenes }} imagen{{ total_imagenes|pluralize:"es" }}
     </span>
   </div>
 </div>
 
+<!-- ── Image grid ─────────────────────────────────────────────── -->
 {% if imagenes %}
 <div class="image-grid">
-  {% for img in imagenes %}
+  {% for item in imagenes %}
   <div class="image-card">
-    <img src="{{ img.imagen.url }}" alt="{{ img.prenda.nombre }}">
+
+    <!-- Image + overlay -->
+    <div class="img-wrap">
+      <div class="img-overlay">
+        <button class="overlay-edit-btn"
+                onclick="openEditModal({{ item.img.prenda.pk }})">
+          <i class="bi bi-pencil"></i> Editar prenda
+        </button>
+      </div>
+      {% if item.url %}
+        <img src="{{ item.url }}"
+             alt="{{ item.img.prenda.nombre }}"
+             style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:var(--paper);">
+      {% else %}
+        <div style="width:100%;aspect-ratio:4/3;background:var(--paper);display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-image" style="font-size:2rem;color:var(--line-2);"></i>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Card body -->
     <div class="image-card-body">
-      <div class="image-card-name">{{ img.prenda.nombre }}</div>
-      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-        <span class="chip chip-neutral">{{ img.prenda.get_categoria_display }}</span>
-        {% if img.orden == 0 %}
-        <span class="chip chip-accent" title="Imagen principal">● Principal</span>
+      <div class="image-card-name">{{ item.img.prenda.nombre }}</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;">
+        <span class="chip chip-neutral">{{ item.img.prenda.get_categoria_display }}</span>
+        {% if item.img.orden == 0 %}
+          <span class="chip chip-accent">● Principal</span>
         {% else %}
-        <span class="chip chip-muted" style="font-size:10px;">Vista {{ img.orden }}</span>
+          <span class="chip chip-muted" style="font-size:10px;">Vista {{ item.img.orden }}</span>
+        {% endif %}
+        {% if not item.img.prenda.disponible %}
+          <span class="chip chip-muted">Oculta</span>
         {% endif %}
       </div>
     </div>
+
   </div>
   {% endfor %}
 </div>
+
 {% else %}
 <div class="page-section">
   <div class="placeholder-card">
-    <i class="bi bi-images" style="font-size:2.5rem; color:var(--line-2); display:block; margin-bottom:14px;"></i>
-    <div style="font-size:14px; font-weight:600; color:var(--mute);">Sin imágenes subidas</div>
-    <div style="font-size:13px; color:var(--mute); margin-top:4px;">
+    <i class="bi bi-images" style="font-size:2.5rem;color:var(--line-2);display:block;margin-bottom:14px;"></i>
+    <div style="font-size:14px;font-weight:600;color:var(--mute);">Sin imágenes subidas</div>
+    <div style="font-size:13px;color:var(--mute);margin-top:4px;">
       Agregá imágenes desde el admin de Django al editar una prenda.
     </div>
   </div>
 </div>
 {% endif %}
 
+
+<!-- ── Edit modal ─────────────────────────────────────────────── -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+    <div class="modal-content" style="border:1px solid var(--line);border-radius:10px;background:#fff;">
+
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);">
+        <h5 style="font-family:'Playfair Display',serif;color:var(--navy);font-size:18px;margin:0;">
+          Editar prenda
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <!-- Body -->
+      <div style="padding:20px;max-height:70vh;overflow-y:auto;">
+        <form id="editForm" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" id="editPrendaId" name="prenda_id">
+
+          <!-- Nombre -->
+          <div style="margin-bottom:14px;">
+            <label class="form-label-admin" for="editNombre">Nombre</label>
+            <input type="text" id="editNombre" name="nombre" class="input-admin"
+                   placeholder="Nombre de la prenda" required>
+          </div>
+
+          <!-- Precio -->
+          <div style="margin-bottom:14px;">
+            <label class="form-label-admin" for="editPrecio">Precio (L.)</label>
+            <input type="number" id="editPrecio" name="precio" class="input-admin"
+                   placeholder="0.00" step="0.01" min="0" required>
+          </div>
+
+          <!-- Descripción corta -->
+          <div style="margin-bottom:14px;">
+            <label class="form-label-admin" for="editDescripcion">Descripción corta</label>
+            <textarea id="editDescripcion" name="descripcion_corta" class="input-admin"
+                      rows="2" style="height:auto;resize:none;"
+                      placeholder="Descripción breve de la prenda"></textarea>
+          </div>
+
+          <!-- Categoría + Tipo -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+            <div>
+              <label class="form-label-admin" for="editCategoria">Categoría</label>
+              <select id="editCategoria" name="categoria" class="input-admin">
+                <option value="femenino">Femenino</option>
+                <option value="masculino">Masculino</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label-admin" for="editTipo">Tipo</label>
+              <select id="editTipo" name="tipo" class="input-admin"></select>
+            </div>
+          </div>
+
+          <!-- Disponible -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;
+                      padding:10px 12px;background:var(--paper);border-radius:6px;
+                      border:1px solid var(--line);">
+            <input type="checkbox" id="editDisponible" name="disponible"
+                   style="width:16px;height:16px;accent-color:var(--navy);cursor:pointer;flex-shrink:0;">
+            <label for="editDisponible"
+                   style="font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;margin:0;line-height:1.3;">
+              Disponible en el catálogo
+              <span style="display:block;font-size:11.5px;color:var(--mute);font-weight:400;">
+                Si está desmarcado, la prenda no aparece en el sitio público.
+              </span>
+            </label>
+          </div>
+
+          <!-- Imagen principal -->
+          <div style="margin-bottom:14px;">
+            <label class="form-label-admin">Imagen principal</label>
+
+            <!-- Preview imagen actual -->
+            <div id="currentImgWrap" style="display:none;margin-bottom:8px;">
+              <div style="font-size:11.5px;color:var(--mute);margin-bottom:4px;">Imagen actual:</div>
+              <img id="currentImagePreview" src="" alt="Imagen actual"
+                   style="width:100%;border-radius:6px;aspect-ratio:4/3;object-fit:cover;border:1px solid var(--line);">
+            </div>
+
+            <!-- Preview nueva imagen -->
+            <img id="newImagePreview" src="" alt="Nueva imagen"
+                 style="width:100%;border-radius:6px;aspect-ratio:4/3;object-fit:cover;
+                        border:2px solid var(--yellow);margin-bottom:8px;display:none;">
+
+            <input type="file" id="editImagen" name="imagen" class="input-admin"
+                   accept="image/jpeg,image/png,image/webp"
+                   style="height:auto;padding:6px 10px;cursor:pointer;">
+            <div style="font-size:11.5px;color:var(--mute);margin-top:4px;">
+              Dejar vacío para mantener la imagen actual. Formatos: JPG, PNG, WEBP.
+            </div>
+          </div>
+
+          <!-- Error -->
+          <div id="editError"
+               style="color:#A4322B;font-size:12.5px;background:#FBE7E5;
+                      border-radius:6px;padding:8px 12px;display:none;"></div>
+        </form>
+      </div>
+
+      <!-- Footer -->
+      <div style="display:flex;justify-content:flex-end;gap:8px;
+                  padding:14px 20px;border-top:1px solid var(--line);">
+        <button type="button" class="btn-admin btn-admin-secondary" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <button type="button" id="editSubmitBtn" class="btn-admin btn-admin-primary">
+          <i class="bi bi-check-lg"></i> Guardar cambios
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ───────────────────────────────────────────────────── -->
+<div id="editToast"></div>
+
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* ── Tipo options per categoria ──────────────────────────────── */
+const TIPOS_MAP = {
+  femenino: [
+    ['vestido','Vestido'],['blusa','Blusa'],['falda','Falda'],
+    ['chaleco','Chaleco'],['pantalon','Pantalón'],['saco','Saco'],
+    ['sueter','Suéter'],['traje','Traje']
+  ],
+  masculino: [
+    ['camisa','Camisa'],['pantalon','Pantalón'],['chaleco','Chaleco'],
+    ['saco','Saco'],['traje','Traje']
+  ]
+};
+
+/* ── CSRF helper ─────────────────────────────────────────────── */
+function getCsrfToken() {
+  const m = document.cookie.match(/csrftoken=([^;]+)/);
+  return m ? m[1] : '';
+}
+
+/* ── Toast ───────────────────────────────────────────────────── */
+function showToast(msg, isError = false) {
+  const t = document.getElementById('editToast');
+  t.textContent = msg;
+  t.style.background = isError ? '#FBE7E5' : '#E5F3EA';
+  t.style.color      = isError ? '#A4322B'  : '#1F6B3A';
+  t.style.border     = isError ? '1px solid #f5c6c6' : '1px solid #b7dfca';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* ── Update tipo select ──────────────────────────────────────── */
+function updateTipoOptions(categoria, selectedTipo) {
+  const sel = document.getElementById('editTipo');
+  sel.innerHTML = (TIPOS_MAP[categoria] || [])
+    .map(([v, l]) => `<option value="${v}"${v === selectedTipo ? ' selected' : ''}>${l}</option>`)
+    .join('');
+}
+
+/* ── Open edit modal ─────────────────────────────────────────── */
+async function openEditModal(prendaId) {
+  // Reset error + new image preview
+  const errEl = document.getElementById('editError');
+  errEl.style.display = 'none';
+  errEl.textContent = '';
+  document.getElementById('editImagen').value = '';
+  document.getElementById('newImagePreview').style.display = 'none';
+
+  try {
+    const res = await fetch(`/gestion-matys/prendas/${prendaId}/editar/`);
+    if (!res.ok) throw new Error('Error de red');
+    const d = await res.json();
+
+    document.getElementById('editPrendaId').value  = d.id;
+    document.getElementById('editNombre').value     = d.nombre;
+    document.getElementById('editPrecio').value     = d.precio;
+    document.getElementById('editDescripcion').value = d.descripcion_corta;
+    document.getElementById('editCategoria').value  = d.categoria;
+    document.getElementById('editDisponible').checked = d.disponible;
+    updateTipoOptions(d.categoria, d.tipo);
+
+    const wrap    = document.getElementById('currentImgWrap');
+    const preview = document.getElementById('currentImagePreview');
+    if (d.imagen_url) {
+      preview.src = d.imagen_url;
+      wrap.style.display = 'block';
+    } else {
+      wrap.style.display = 'none';
+    }
+
+    const btn = document.getElementById('editSubmitBtn');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar cambios';
+
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+  } catch (err) {
+    showToast('No se pudieron cargar los datos. Intentá nuevamente.', true);
+  }
+}
+
+/* ── DOM ready ───────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* Categoria change → refresh tipo options */
+  document.getElementById('editCategoria').addEventListener('change', function () {
+    updateTipoOptions(this.value, '');
+  });
+
+  /* File input → new image preview */
+  document.getElementById('editImagen').addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const p = document.getElementById('newImagePreview');
+      p.src = e.target.result;
+      p.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  /* Submit button → POST via fetch */
+  document.getElementById('editSubmitBtn').addEventListener('click', async () => {
+    const form    = document.getElementById('editForm');
+    const errEl   = document.getElementById('editError');
+    const btn     = document.getElementById('editSubmitBtn');
+    const prendaId = document.getElementById('editPrendaId').value;
+
+    errEl.style.display = 'none';
+    errEl.textContent   = '';
+
+    const formData = new FormData(form);
+    // Checkbox unchecked won't appear in FormData — set explicitly
+    formData.set('disponible', document.getElementById('editDisponible').checked ? 'true' : 'false');
+
+    btn.disabled = true;
+    btn.textContent = 'Guardando…';
+
+    try {
+      const res = await fetch(`/gestion-matys/prendas/${prendaId}/editar/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrfToken() },
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+        showToast('Prenda actualizada correctamente.');
+        setTimeout(() => location.reload(), 900);
+      } else {
+        errEl.textContent   = data.error || 'Error al guardar. Intentá nuevamente.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar cambios';
+      }
+    } catch (err) {
+      errEl.textContent   = 'Error de conexión. Verificá tu internet e intentá nuevamente.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar cambios';
+    }
+  });
+
+});
+</script>
 {% endblock %}

@@ -1,5 +1,8 @@
 import time
+import cloudinary
+import cloudinary.uploader
 from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.http import require_POST
@@ -137,13 +140,89 @@ def gestion_categorias(request):
 def gestion_imagenes(request):
     if not _staff_required(request):
         return redirect('gestion_login')
-    imagenes = ImagenPrenda.objects.select_related('prenda').order_by('prenda__nombre', 'orden')
+    imagenes_qs = ImagenPrenda.objects.select_related('prenda').order_by('prenda__nombre', 'orden')
+    # Precompute URLs using build_url (same pattern as admin.py) to avoid
+    # CloudinaryField.url silently failing when config isn't resolved at template render.
+    imagenes = []
+    for img in imagenes_qs:
+        try:
+            url = cloudinary.CloudinaryImage(str(img.imagen)).build_url(secure=True)
+        except Exception:
+            url = ''
+        imagenes.append({'img': img, 'url': url})
     context = {
         'active_nav': 'imagenes',
         'imagenes': imagenes,
-        'total_imagenes': imagenes.count(),
+        'total_imagenes': len(imagenes),
     }
     return render(request, 'gestion_matys/imagenes.html', context)
+
+
+def gestion_editar_prenda(request, prenda_id):
+    if not _staff_required(request):
+        return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
+
+    prenda = get_object_or_404(Prenda, pk=prenda_id)
+
+    if request.method == 'GET':
+        img_principal = prenda.imagenes.filter(orden=0).first()
+        img_url = ''
+        if img_principal:
+            try:
+                img_url = cloudinary.CloudinaryImage(str(img_principal.imagen)).build_url(secure=True)
+            except Exception:
+                img_url = ''
+        return JsonResponse({
+            'id': prenda.pk,
+            'nombre': prenda.nombre,
+            'precio': str(prenda.precio),
+            'descripcion_corta': prenda.descripcion_corta,
+            'categoria': prenda.categoria,
+            'tipo': prenda.tipo,
+            'disponible': prenda.disponible,
+            'imagen_url': img_url,
+        })
+
+    if request.method == 'POST':
+        try:
+            nombre = request.POST.get('nombre', '').strip()
+            precio = request.POST.get('precio', '').strip()
+            descripcion_corta = request.POST.get('descripcion_corta', '').strip()
+            categoria = request.POST.get('categoria', '').strip()
+            tipo = request.POST.get('tipo', '').strip()
+            disponible = request.POST.get('disponible') == 'true'
+
+            if not nombre:
+                return JsonResponse({'success': False, 'error': 'El nombre es requerido.'})
+            if not precio:
+                return JsonResponse({'success': False, 'error': 'El precio es requerido.'})
+
+            valid_categorias = [c[0] for c in Prenda.CATEGORIAS]
+            valid_tipos = [t[0] for t in Prenda.TIPOS]
+            if categoria not in valid_categorias:
+                return JsonResponse({'success': False, 'error': 'Categoría inválida.'})
+            if tipo not in valid_tipos:
+                return JsonResponse({'success': False, 'error': 'Tipo inválido.'})
+
+            prenda.nombre = nombre
+            prenda.precio = precio
+            prenda.descripcion_corta = descripcion_corta
+            prenda.categoria = categoria
+            prenda.tipo = tipo
+            prenda.disponible = disponible
+            prenda.save()
+
+            if 'imagen' in request.FILES:
+                result = cloudinary.uploader.upload(request.FILES['imagen'])
+                img_obj, _ = ImagenPrenda.objects.get_or_create(prenda=prenda, orden=0)
+                img_obj.imagen = result['public_id']
+                img_obj.save()
+
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Método no permitido.'}, status=405)
 
 
 def gestion_inicio(request):
