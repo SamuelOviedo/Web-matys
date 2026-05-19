@@ -14,4 +14,7 @@ urlpatterns = [
     path('gestion-matys/', views.gestion_dashboard, name='gestion_dashboard'),
     path('gestion-matys/login/', views.gestion_login, name='gestion_login'),
     path('gestion-matys/logout/', views.gestion_logout, name='gestion_logout'),
+    path('gestion-matys/categorias/', views.gestion_categorias, name='gestion_categorias'),
+    path('gestion-matys/imagenes/', views.gestion_imagenes, name='gestion_imagenes'),
+    path('gestion-matys/inicio/', views.gestion_inicio, name='gestion_inicio'),
 ]

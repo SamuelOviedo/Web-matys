@@ -1,0 +1,52 @@
+{% extends 'gestion_matys/base_admin.html' %}
+
+{% block title %}Imágenes — Panel Matys{% endblock %}
+{% block breadcrumb %}Imágenes{% endblock %}
+
+{% block content %}
+
+<div class="page-header d-flex flex-wrap align-items-start justify-content-between gap-3">
+  <div>
+    <div class="page-eyebrow">Tienda</div>
+    <h1 class="page-title">Imágenes</h1>
+    <p class="page-lede">Imágenes subidas a Cloudinary asociadas a prendas del catálogo.</p>
+  </div>
+  <div class="page-actions" style="padding-top:32px;">
+    <span class="chip chip-neutral" style="height:28px; font-size:12px;">
+      {{ total_imagenes }} imagen{{ total_imagenes|pluralize:"es" }}
+    </span>
+  </div>
+</div>
+
+{% if imagenes %}
+<div class="image-grid">
+  {% for img in imagenes %}
+  <div class="image-card">
+    <img src="{{ img.imagen.url }}" alt="{{ img.prenda.nombre }}">
+    <div class="image-card-body">
+      <div class="image-card-name">{{ img.prenda.nombre }}</div>
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+        <span class="chip chip-neutral">{{ img.prenda.get_categoria_display }}</span>
+        {% if img.orden == 0 %}
+        <span class="chip chip-accent" title="Imagen principal">● Principal</span>
+        {% else %}
+        <span class="chip chip-muted" style="font-size:10px;">Vista {{ img.orden }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="page-section">
+  <div class="placeholder-card">
+    <i class="bi bi-images" style="font-size:2.5rem; color:var(--line-2); display:block; margin-bottom:14px;"></i>
+    <div style="font-size:14px; font-weight:600; color:var(--mute);">Sin imágenes subidas</div>
+    <div style="font-size:13px; color:var(--mute); margin-top:4px;">
+      Agregá imágenes desde el admin de Django al editar una prenda.
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
