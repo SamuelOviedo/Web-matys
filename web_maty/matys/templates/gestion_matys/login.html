@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso — Panel Matys</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <style>
+    body {
+      min-height: 100vh;
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 380px;
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    }
+    .login-card .brand {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #fbbf24;
+      text-transform: uppercase;
+    }
+    .login-card .subtitle {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+    .form-control {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #f1f5f9;
+      border-radius: 8px;
+      padding: 0.65rem 1rem;
+    }
+    .form-control:focus {
+      background: #0f172a;
+      border-color: #fbbf24;
+      color: #f1f5f9;
+      box-shadow: 0 0 0 3px rgba(251,191,36,0.15);
+    }
+    .form-control::placeholder { color: #475569; }
+    .form-label { color: #94a3b8; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+    .btn-acceso {
+      background: #fbbf24;
+      color: #0f172a;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      padding: 0.7rem;
+      font-size: 0.95rem;
+      letter-spacing: 0.03em;
+      transition: background 0.2s;
+    }
+    .btn-acceso:hover { background: #f59e0b; color: #0f172a; }
+    .error-box {
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #fca5a5;
+      border-radius: 8px;
+      padding: 0.65rem 1rem;
+      font-size: 0.85rem;
+    }
+    .back-link { color: #475569; font-size: 0.8rem; text-decoration: none; }
+    .back-link:hover { color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="mb-4">
+      <div class="brand">Panel Matys</div>
+      <div class="subtitle">Acceso restringido — solo administradores</div>
+    </div>
+
+    {% if error %}
+    <div class="error-box mb-4">
+      <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'gestion_login' %}" autocomplete="off" novalidate>
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="username" class="form-label">Usuario</label>
+        <input type="text"
+               id="username"
+               name="username"
+               class="form-control"
+               placeholder="nombre de usuario"
+               autocomplete="off"
+               spellcheck="false"
+               required>
+      </div>
+      <div class="mb-4">
+        <label for="password" class="form-label">Contraseña</label>
+        <input type="password"
+               id="password"
+               name="password"
+               class="form-control"
+               placeholder="••••••••"
+               required>
+      </div>
+      <button type="submit" class="btn btn-acceso w-100">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Ingresar
+      </button>
+    </form>
+
+    <div class="text-center mt-4">
+      <a href="/" class="back-link">
+        <i class="bi bi-arrow-left me-1"></i>Volver al sitio
+      </a>
+    </div>
+  </div>
+</body>
+</html>

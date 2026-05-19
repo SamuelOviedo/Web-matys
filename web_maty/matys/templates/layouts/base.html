@@ -168,5 +168,31 @@
     
     <!-- JavaScript Personalizado -->
     <script src="{% static 'js/base.js' %}"></script>
+
+    <!-- 3 taps rápidos en el logo → panel de gestión -->
+    <script>
+    (function () {
+      var logoLink = document.querySelector('a.navbar-brand');
+      if (!logoLink) return;
+
+      logoLink.addEventListener('click', function (e) {
+        var now = Date.now();
+        var raw = sessionStorage.getItem('_mg');
+        var state = raw ? JSON.parse(raw) : { c: 0, t: 0 };
+
+        if (now - state.t > 1500) state = { c: 0, t: 0 };
+
+        state.c += 1;
+        state.t = now;
+        sessionStorage.setItem('_mg', JSON.stringify(state));
+
+        if (state.c >= 3) {
+          e.preventDefault();
+          sessionStorage.removeItem('_mg');
+          window.location.href = '/gestion-matys/';
+        }
+      });
+    })();
+    </script>
   </body>
 </html>

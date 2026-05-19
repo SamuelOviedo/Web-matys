@@ -1,6 +1,6 @@
 import time
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from .models import Prenda
@@ -87,6 +87,34 @@ def contacto(request):
         'youtube_url': 'https://youtube.com/@maty-2020?si=ncsHDzw-QCMJGlX1',
     }
     return render(request, 'contacto.html', context)
+
+def gestion_login(request):
+    if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
+        return redirect('gestion_dashboard')
+
+    error = None
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
+        user = authenticate(request, username=username, password=password)
+        if user is not None and (user.is_staff or user.is_superuser):
+            login(request, user)
+            return redirect('gestion_dashboard')
+        error = 'Credenciales incorrectas.'
+
+    return render(request, 'gestion_matys/login.html', {'error': error})
+
+
+def gestion_dashboard(request):
+    if not request.user.is_authenticated or not (request.user.is_staff or request.user.is_superuser):
+        return redirect('gestion_login')
+    return render(request, 'gestion_matys/dashboard.html')
+
+
+def gestion_logout(request):
+    logout(request)
+    return redirect('inicio')
+
 
 def detalle_prendas(request, slug):
     prenda = get_object_or_404(Prenda.objects.prefetch_related('imagenes'), slug=slug, disponible=True)
