@@ -136,22 +136,30 @@
 
     <!-- TAB: Femenino -->
     <div class="tab-pane fade" id="femenino" role="tabpanel" aria-labelledby="femenino-tab">
-      <h4 class="mb-4 enc fw-bold text-primary">Moda Femenina</h4>
+      <h4 class="mb-3 enc fw-bold text-primary">Moda Femenina</h4>
+
+      {% if tipos_femenino %}
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <button class="btn btn-primary btn-sm tipo-filter-btn" data-tipo="all">Todos</button>
+        {% for tipo in tipos_femenino %}
+        <button class="btn btn-outline-primary btn-sm tipo-filter-btn"
+                data-tipo="{{ tipo.slug }}">{{ tipo.nombre }}</button>
+        {% endfor %}
+      </div>
+      {% endif %}
+
       <div class="row g-4 products-grid-femenino">
-        
         {% for producto in productos %}
         {% if producto.categoria == 'femenino' %}
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-4" data-tipo="{{ producto.tipo }}">
           <div class="card product-card h-100 border-0 shadow-lg">
             <div class="position-relative img-container">
               {% if producto.imagen_principal %}
               <img src="{{ producto.imagen_principal.url }}"
-                    class="card-img-top"
-                    alt="{{ producto.nombre }}">
+                    class="card-img-top" alt="{{ producto.nombre }}">
               {% else %}
               <img src="https://via.placeholder.com/400x400?text=Sin+Imagen"
-                    class="card-img-top"
-                    alt="Sin imagen">
+                    class="card-img-top" alt="Sin imagen">
               {% endif %}
             </div>
             <div class="card-body">
@@ -167,28 +175,35 @@
         </div>
         {% endif %}
         {% endfor %}
-
       </div>
     </div>
 
     <!-- TAB: Masculino -->
     <div class="tab-pane fade" id="masculino" role="tabpanel" aria-labelledby="masculino-tab">
-      <h4 class="mb-4 enc fw-bold text-primary">Moda Masculina</h4>
+      <h4 class="mb-3 enc fw-bold text-primary">Moda Masculina</h4>
+
+      {% if tipos_masculino %}
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <button class="btn btn-primary btn-sm tipo-filter-btn" data-tipo="all">Todos</button>
+        {% for tipo in tipos_masculino %}
+        <button class="btn btn-outline-primary btn-sm tipo-filter-btn"
+                data-tipo="{{ tipo.slug }}">{{ tipo.nombre }}</button>
+        {% endfor %}
+      </div>
+      {% endif %}
+
       <div class="row g-4 products-grid-masculino">
-        
         {% for producto in productos %}
         {% if producto.categoria == 'masculino' %}
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-4" data-tipo="{{ producto.tipo }}">
           <div class="card product-card h-100 border-0 shadow-lg">
             <div class="position-relative img-container">
               {% if producto.imagen_principal %}
               <img src="{{ producto.imagen_principal.url }}"
-                    class="card-img-top"
-                    alt="{{ producto.nombre }}">
+                    class="card-img-top" alt="{{ producto.nombre }}">
               {% else %}
               <img src="https://via.placeholder.com/400x400?text=Sin+Imagen"
-                    class="card-img-top"
-                    alt="Sin imagen">
+                    class="card-img-top" alt="Sin imagen">
               {% endif %}
             </div>
             <div class="card-body">
@@ -204,7 +219,6 @@
         </div>
         {% endif %}
         {% endfor %}
-
       </div>
     </div>
 
@@ -289,5 +303,25 @@
   });
 </script>
 {% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.tipo-filter-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var pane = this.closest('.tab-pane');
+      pane.querySelectorAll('.tipo-filter-btn').forEach(function (b) {
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-outline-primary');
+      });
+      this.classList.remove('btn-outline-primary');
+      this.classList.add('btn-primary');
+      var tipo = this.dataset.tipo;
+      pane.querySelectorAll('[data-tipo]').forEach(function (card) {
+        card.style.display = (tipo === 'all' || card.dataset.tipo === tipo) ? '' : 'none';
+      });
+    });
+  });
+});
+</script>
 
 {% endblock %}

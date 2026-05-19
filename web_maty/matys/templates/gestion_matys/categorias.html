@@ -5,10 +5,30 @@
 
 {% block content %}
 
+<style>
+  .tipo-edit-input {
+    flex: 1; height: 32px; padding: 4px 8px; font-size: 13px;
+    border: 1px solid var(--line); border-radius: 5px;
+    outline: none; color: var(--ink); background: #fff;
+    min-width: 0;
+  }
+  .tipo-edit-input:focus { border-color: var(--navy); }
+
+  #catToast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    padding: 12px 18px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0,0,0,.18);
+    transform: translateY(12px); opacity: 0;
+    transition: transform .22s, opacity .22s; pointer-events: none;
+  }
+  #catToast.show { transform: translateY(0); opacity: 1; }
+</style>
+
 <div class="page-header">
   <div class="page-eyebrow">Catálogo</div>
   <h1 class="page-title">Categorías &amp; Tipos</h1>
-  <p class="page-lede">Tipos de prendas organizados por categoría. Las acciones de edición estarán disponibles próximamente.</p>
+  <p class="page-lede">Tipos de prendas organizados por categoría.</p>
 </div>
 
 <div class="page-section">
@@ -20,37 +40,55 @@
         <div class="admin-card-title">
           <i class="bi bi-flower1 me-2" style="color:var(--navy);"></i>Femenino
         </div>
-        <span class="chip chip-success">● Activo</span>
+        <span class="chip chip-neutral">{{ tipos_femenino.count }} tipos</span>
       </div>
 
-      <!-- Column header -->
       <div class="surface-col-header" style="padding:0 16px;">
         <span class="col-label" style="flex:1;">Tipo de prenda</span>
         <span class="col-label" style="width:70px; text-align:right;">Acciones</span>
       </div>
 
-      <!-- Rows -->
       {% for tipo in tipos_femenino %}
-      <div class="data-row">
-        <span class="row-name">{{ tipo }}</span>
-        <div class="row-actions">
-          <button class="row-icon-btn"
-                  data-bs-toggle="modal" data-bs-target="#proximamenteModal"
+      <div class="data-row" id="tipo-row-{{ tipo.pk }}">
+        <span class="row-name" id="tipo-name-{{ tipo.pk }}">{{ tipo.nombre }}</span>
+        <div class="row-actions" id="tipo-actions-{{ tipo.pk }}">
+          <button class="row-icon-btn edit-btn"
+                  data-id="{{ tipo.pk }}" data-nombre="{{ tipo.nombre }}"
                   title="Editar">
             <i class="bi bi-pencil"></i>
           </button>
-          <button class="row-icon-btn danger"
-                  data-bs-toggle="modal" data-bs-target="#proximamenteModal"
+          <button class="row-icon-btn danger delete-btn"
+                  data-id="{{ tipo.pk }}" data-nombre="{{ tipo.nombre }}"
                   title="Eliminar">
             <i class="bi bi-trash"></i>
           </button>
         </div>
       </div>
+      {% empty %}
+      <div class="data-row" style="color:var(--mute);font-size:13px;">
+        Sin tipos registrados.
+      </div>
       {% endfor %}
 
-      <!-- Add row -->
-      <div class="data-row" style="cursor:pointer; color:var(--mute);"
-           data-bs-toggle="modal" data-bs-target="#proximamenteModal">
+      <!-- Inline add row -->
+      <div class="data-row" id="add-row-femenino"
+           style="display:none; gap:8px; align-items:center;">
+        <input type="text" id="add-input-femenino" class="tipo-edit-input"
+               placeholder="Nombre del tipo…"
+               onkeydown="if(event.key==='Enter')submitAddTipo('femenino');else if(event.key==='Escape')cancelAdd('femenino');">
+        <div class="row-actions">
+          <button class="row-icon-btn" onclick="submitAddTipo('femenino')" title="Guardar">
+            <i class="bi bi-check-lg"></i>
+          </button>
+          <button class="row-icon-btn" onclick="cancelAdd('femenino')" title="Cancelar">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="data-row add-trigger" id="add-trigger-femenino"
+           data-categoria="femenino"
+           style="cursor:pointer; color:var(--mute);">
         <i class="bi bi-plus" style="font-size:16px; margin-right:8px;"></i>
         <span style="font-size:13px;">Agregar tipo</span>
       </div>
@@ -62,7 +100,7 @@
         <div class="admin-card-title">
           <i class="bi bi-person-fill me-2" style="color:var(--navy);"></i>Masculino
         </div>
-        <span class="chip chip-success">● Activo</span>
+        <span class="chip chip-neutral">{{ tipos_masculino.count }} tipos</span>
       </div>
 
       <div class="surface-col-header" style="padding:0 16px;">
@@ -71,25 +109,46 @@
       </div>
 
       {% for tipo in tipos_masculino %}
-      <div class="data-row">
-        <span class="row-name">{{ tipo }}</span>
-        <div class="row-actions">
-          <button class="row-icon-btn"
-                  data-bs-toggle="modal" data-bs-target="#proximamenteModal"
+      <div class="data-row" id="tipo-row-{{ tipo.pk }}">
+        <span class="row-name" id="tipo-name-{{ tipo.pk }}">{{ tipo.nombre }}</span>
+        <div class="row-actions" id="tipo-actions-{{ tipo.pk }}">
+          <button class="row-icon-btn edit-btn"
+                  data-id="{{ tipo.pk }}" data-nombre="{{ tipo.nombre }}"
                   title="Editar">
             <i class="bi bi-pencil"></i>
           </button>
-          <button class="row-icon-btn danger"
-                  data-bs-toggle="modal" data-bs-target="#proximamenteModal"
+          <button class="row-icon-btn danger delete-btn"
+                  data-id="{{ tipo.pk }}" data-nombre="{{ tipo.nombre }}"
                   title="Eliminar">
             <i class="bi bi-trash"></i>
           </button>
         </div>
       </div>
+      {% empty %}
+      <div class="data-row" style="color:var(--mute);font-size:13px;">
+        Sin tipos registrados.
+      </div>
       {% endfor %}
 
-      <div class="data-row" style="cursor:pointer; color:var(--mute);"
-           data-bs-toggle="modal" data-bs-target="#proximamenteModal">
+      <!-- Inline add row -->
+      <div class="data-row" id="add-row-masculino"
+           style="display:none; gap:8px; align-items:center;">
+        <input type="text" id="add-input-masculino" class="tipo-edit-input"
+               placeholder="Nombre del tipo…"
+               onkeydown="if(event.key==='Enter')submitAddTipo('masculino');else if(event.key==='Escape')cancelAdd('masculino');">
+        <div class="row-actions">
+          <button class="row-icon-btn" onclick="submitAddTipo('masculino')" title="Guardar">
+            <i class="bi bi-check-lg"></i>
+          </button>
+          <button class="row-icon-btn" onclick="cancelAdd('masculino')" title="Cancelar">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="data-row add-trigger" id="add-trigger-masculino"
+           data-categoria="masculino"
+           style="cursor:pointer; color:var(--mute);">
         <i class="bi bi-plus" style="font-size:16px; margin-right:8px;"></i>
         <span style="font-size:13px;">Agregar tipo</span>
       </div>
@@ -98,22 +157,149 @@
   </div>
 </div>
 
-<!-- Modal: próximamente -->
-<div class="modal fade" id="proximamenteModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" style="max-width:360px;">
-    <div class="modal-content" style="border:1px solid var(--line); border-radius:10px; background:#fff;">
-      <div class="modal-body text-center" style="padding:40px 28px;">
-        <i class="bi bi-tools" style="font-size:2rem; color:var(--yellow); display:block; margin-bottom:14px;"></i>
-        <h5 style="font-family:'Playfair Display',serif; color:var(--navy); margin-bottom:8px;">Próximamente</h5>
-        <p style="font-size:13px; color:var(--mute); margin-bottom:20px;">Esta funcionalidad estará disponible en una próxima versión del panel.</p>
-        <button type="button"
-                class="btn-admin btn-admin-primary"
-                data-bs-dismiss="modal">
-          Entendido
-        </button>
+<!-- ── Confirm delete modal ─────────────────────────────────── -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:380px;">
+    <div class="modal-content" style="border:1px solid var(--line);border-radius:10px;background:#fff;">
+      <div class="modal-body" style="padding:28px 24px 20px;">
+        <h5 style="font-family:'Playfair Display',serif;color:var(--navy);font-size:17px;margin-bottom:8px;">
+          Eliminar tipo
+        </h5>
+        <p id="confirmDeleteMsg" style="font-size:13px;color:var(--ink);margin-bottom:20px;"></p>
+        <div style="display:flex;justify-content:flex-end;gap:8px;">
+          <button type="button" class="btn-admin btn-admin-secondary" data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <button type="button" id="confirmDeleteBtn"
+                  class="btn-admin btn-admin-primary"
+                  style="background:#A4322B;border-color:#A4322B;">
+            Eliminar
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
+<div id="catToast"></div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+const CSRF = (() => { const m = document.cookie.match(/csrftoken=([^;]+)/); return m ? m[1] : ''; })();
+
+/* ── Toast ─────────────────────────────────────────────────── */
+function showCatToast(msg, isError = false) {
+  const t = document.getElementById('catToast');
+  t.textContent = msg;
+  t.style.background = isError ? '#FBE7E5' : '#E5F3EA';
+  t.style.color      = isError ? '#A4322B'  : '#1F6B3A';
+  t.style.border     = isError ? '1px solid #f5c6c6' : '1px solid #b7dfca';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+/* ── POST helper ───────────────────────────────────────────── */
+async function catPost(data) {
+  const fd = new FormData();
+  for (const [k, v] of Object.entries(data)) fd.append(k, v);
+  const res = await fetch('/gestion-matys/categorias/', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF },
+    body: fd,
+  });
+  return res.json();
+}
+
+/* ── Edit ──────────────────────────────────────────────────── */
+function editTipo(id, nombre) {
+  const nameEl    = document.getElementById(`tipo-name-${id}`);
+  const actionsEl = document.getElementById(`tipo-actions-${id}`);
+  const safe = nombre.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  nameEl.innerHTML =
+    `<input type="text" id="tipo-input-${id}" class="tipo-edit-input" value="${safe}"` +
+    ` onkeydown="if(event.key==='Enter')saveTipo('${id}');else if(event.key==='Escape')cancelEdit('${id}');">`;
+  actionsEl.innerHTML =
+    `<button class="row-icon-btn" onclick="saveTipo('${id}')" title="Guardar"><i class="bi bi-check-lg"></i></button>` +
+    `<button class="row-icon-btn" onclick="cancelEdit('${id}')" title="Cancelar"><i class="bi bi-x-lg"></i></button>`;
+  document.getElementById(`tipo-input-${id}`).focus();
+}
+
+async function saveTipo(id) {
+  const input = document.getElementById(`tipo-input-${id}`);
+  const nombre = input ? input.value.trim() : '';
+  if (!nombre) { showCatToast('El nombre no puede estar vacío.', true); return; }
+  try {
+    const data = await catPost({ action: 'editar', id, nombre });
+    if (data.success) { showCatToast('Tipo actualizado.'); setTimeout(() => location.reload(), 700); }
+    else showCatToast(data.error || 'Error al guardar.', true);
+  } catch { showCatToast('Error de conexión.', true); }
+}
+
+function cancelEdit(id) {
+  /* Re-read original nombre from the DOM before any changes — fall back to reload */
+  location.reload();
+}
+
+/* ── Delete ────────────────────────────────────────────────── */
+let _pendingDeleteId = null;
+
+function confirmDeleteTipo(id, nombre) {
+  _pendingDeleteId = id;
+  document.getElementById('confirmDeleteMsg').textContent =
+    `¿Eliminar el tipo "${nombre}"? Esta acción no se puede deshacer.`;
+  new bootstrap.Modal(document.getElementById('confirmDeleteModal')).show();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+    if (!_pendingDeleteId) return;
+    bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
+    try {
+      const data = await catPost({ action: 'eliminar', id: _pendingDeleteId });
+      if (data.success) { showCatToast('Tipo eliminado.'); setTimeout(() => location.reload(), 700); }
+      else showCatToast(data.error || 'No se pudo eliminar.', true);
+    } catch { showCatToast('Error de conexión.', true); }
+    _pendingDeleteId = null;
+  });
+
+  /* Event delegation for edit/delete/add-trigger buttons */
+  document.addEventListener('click', e => {
+    const edit = e.target.closest('.edit-btn');
+    if (edit) { editTipo(edit.dataset.id, edit.dataset.nombre); return; }
+
+    const del = e.target.closest('.delete-btn');
+    if (del) { confirmDeleteTipo(del.dataset.id, del.dataset.nombre); return; }
+
+    const add = e.target.closest('.add-trigger');
+    if (add) { showAddRow(add.dataset.categoria); return; }
+  });
+});
+
+/* ── Add ───────────────────────────────────────────────────── */
+function showAddRow(categoria) {
+  document.getElementById(`add-trigger-${categoria}`).style.display = 'none';
+  const row = document.getElementById(`add-row-${categoria}`);
+  row.style.display = '';
+  document.getElementById(`add-input-${categoria}`).focus();
+}
+
+function cancelAdd(categoria) {
+  document.getElementById(`add-row-${categoria}`).style.display = 'none';
+  document.getElementById(`add-trigger-${categoria}`).style.display = '';
+  document.getElementById(`add-input-${categoria}`).value = '';
+}
+
+async function submitAddTipo(categoria) {
+  const nombre = document.getElementById(`add-input-${categoria}`).value.trim();
+  if (!nombre) { showCatToast('El nombre no puede estar vacío.', true); return; }
+  try {
+    const data = await catPost({ action: 'agregar', nombre, categoria });
+    if (data.success) { showCatToast('Tipo agregado.'); setTimeout(() => location.reload(), 700); }
+    else showCatToast(data.error || 'Error al agregar.', true);
+  } catch { showCatToast('Error de conexión.', true); }
+}
+</script>
 {% endblock %}

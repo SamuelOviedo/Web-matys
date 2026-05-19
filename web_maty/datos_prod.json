@@ -1,0 +1,586 @@
+[
+{
+  "model": "matys.prenda",
+  "pk": 2,
+  "fields": {
+    "nombre": "Vestido Casual Estampado",
+    "slug": "vestido-casual-estampado",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1000.00",
+    "descripcion_corta": "Vestido clásico estampado",
+    "descripcion_larga": "Vestido tallado hasta la cintura. Escote cuadrado ajustable en busto, falda, corte, medio, campana manga, corta bombacha",
+    "material": "Vivian",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": true,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T16:27:17.131Z",
+    "actualizado": "2026-05-12T16:56:03.482Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 3,
+  "fields": {
+    "nombre": "Vestido Casual Escotado",
+    "slug": "vestido-casual-escotado",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "900.00",
+    "descripcion_corta": "Vestido Clásico escotado",
+    "descripcion_larga": "Vestido de hombros descubiertos, ajustado con elástico en cintura y hombros con revuelvo en falda disponible en la talla y el color que prefieras.",
+    "material": "Algodón egipcio",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T16:33:21.902Z",
+    "actualizado": "2026-05-12T16:33:21.902Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 4,
+  "fields": {
+    "nombre": "Vestido Casual con Escote",
+    "slug": "vestido-casual-con-escote",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1100.00",
+    "descripcion_corta": "Vestido con escote cuadrado",
+    "descripcion_larga": "Vestido escote cuadrado, mangas con abertura en la parte inferior, falda, corte circular, disponible en la talla y color que prefieras.",
+    "material": "Vivian",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T16:36:32.204Z",
+    "actualizado": "2026-05-12T16:36:32.204Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 5,
+  "fields": {
+    "nombre": "Vestido Casual",
+    "slug": "vestido-casual",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1100.00",
+    "descripcion_corta": "Vestido clásico",
+    "descripcion_larga": "Vestido sin mangas, escote cuadrado en tallado hasta la cintura, falda corte circular, disponible en la talla y el color que prefieras.",
+    "material": "Podesua",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T16:38:58.467Z",
+    "actualizado": "2026-05-12T16:38:58.467Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 6,
+  "fields": {
+    "nombre": "Vestido Clásico",
+    "slug": "vestido-clasico",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1300.00",
+    "descripcion_corta": "Clásico traslapado",
+    "descripcion_larga": "Vestido traslapado, ajustable en cintura, corte en falda, medio campana con revuelvo en ruedo media manga fruncida, confeccionado en chifón, estampado disponible en la talla y color que prefieras. (no todos los estampados son exactamente iguales)",
+    "material": "Chifón",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T16:50:02.767Z",
+    "actualizado": "2026-05-12T16:50:02.767Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 7,
+  "fields": {
+    "nombre": "Vestido con Revuelo",
+    "slug": "vestido-con-revuelo",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1000.00",
+    "descripcion_corta": "Clásico semiformal",
+    "descripcion_larga": "Vestido en tallado hasta la cintura con escote cuadrado manga bombacha falda, corte media, campana con revuelvo en ruedo",
+    "material": "Lino, Katrina, Volcano, Frenchie",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T16:54:22.050Z",
+    "actualizado": "2026-05-12T16:54:22.050Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 8,
+  "fields": {
+    "nombre": "Vestido con Abertura",
+    "slug": "vestido-con-abertura",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1200.00",
+    "descripcion_corta": "Moderno con abertura",
+    "descripcion_larga": "Vestido tallado hasta la cintura, escote corazón, falda, corte media, campana con abertura en pierna manga media bombacha.",
+    "material": "Vivian, Laurel, Janeth",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T16:59:54.744Z",
+    "actualizado": "2026-05-12T16:59:54.744Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 9,
+  "fields": {
+    "nombre": "Vestido Forrado",
+    "slug": "vestido-forrado",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1499.98",
+    "descripcion_corta": "Vestido con forro",
+    "descripcion_larga": "Vestido tallado hasta la cintura, falda corte en tres tiempos, forro falda hasta la rodilla manga bombacha.",
+    "material": "JL, Estampado escarchado",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T17:02:54.556Z",
+    "actualizado": "2026-05-12T17:02:54.556Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 10,
+  "fields": {
+    "nombre": "Vestido de Mangas con Revuelo",
+    "slug": "vestido-de-mangas-con-revuelo",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1000.00",
+    "descripcion_corta": "Clásico con mangas",
+    "descripcion_larga": "Vestido entallado hasta la cintura, falda, corte medio, campana manga larga escote cuadrado",
+    "material": "Escuba, Janeth, Frenchie",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T17:06:09.391Z",
+    "actualizado": "2026-05-12T17:06:09.392Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 11,
+  "fields": {
+    "nombre": "Vestido de Corte Campana",
+    "slug": "vestido-de-corte-campana",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1400.00",
+    "descripcion_corta": "Vestido clásico semiformal",
+    "descripcion_larga": "Vestido tallado hasta la cintura, manga transparente en blonda, estrecho, falda, corte medio campana hasta la pantorrilla",
+    "material": "Janeth, Blonda",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T17:08:47.607Z",
+    "actualizado": "2026-05-12T17:08:47.607Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 12,
+  "fields": {
+    "nombre": "Vestido Tallado",
+    "slug": "vestido-tallado",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1000.00",
+    "descripcion_corta": "Corte entallado",
+    "descripcion_larga": "Vestido tallado hasta la cintura, escote cuadrado, falda, corte medio, campana con detalle fruncido en ruedo manga doble revuelo",
+    "material": "Vivian, algodón egipcio",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T17:11:29.508Z",
+    "actualizado": "2026-05-12T17:11:29.508Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 13,
+  "fields": {
+    "nombre": "Vestido Clásico con Revuelo",
+    "slug": "vestido-clasico-con-revuelo",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "800.00",
+    "descripcion_corta": "Tallado",
+    "descripcion_larga": "Vestido tallado al cuerpo con revuelo, campana en ruedo de la espalda, con manga bombacha.",
+    "material": "Escuba",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T17:13:04.548Z",
+    "actualizado": "2026-05-12T17:13:04.548Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 14,
+  "fields": {
+    "nombre": "Vestido con Escote Corazón",
+    "slug": "vestido-con-escote-corazon",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1400.00",
+    "descripcion_corta": "Entallado hasta la cintura",
+    "descripcion_larga": "Vestido tallado hasta la cintura con escote corazón, detalle de mangas, en corte, campana, lo que termina en pieza que termina en la pinza de busto, blusa, corte, asimétrico, falda, campana compa, paletones, que van desde las pinzas de busto hacia atrás, disponible en la talla y color que prefieras",
+    "material": "Lino Capriz",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T17:15:59.663Z",
+    "actualizado": "2026-05-12T17:15:59.663Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 15,
+  "fields": {
+    "nombre": "Vestido Escotado",
+    "slug": "vestido-escotado",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1000.00",
+    "descripcion_corta": "Vestido moderno",
+    "descripcion_larga": "Vestido de hombros descubiertos, talla hasta la cintura, detalle en hombros en forma de moño, falda, corte media campana disponible en la talla y color que prefieras.",
+    "material": "Janeth",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T17:18:44.419Z",
+    "actualizado": "2026-05-12T17:18:44.419Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 16,
+  "fields": {
+    "nombre": "Vestido Traslapado",
+    "slug": "vestido-traslapado",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1400.00",
+    "descripcion_corta": "vestido traslapado",
+    "descripcion_larga": "Vestido tallado al cuerpo con traslape y solapa, las mangas, estilo bombacha y media, campana en ruedo del vestido, cinta ajustable en cintura y botones para ajustarlo",
+    "material": "Frenchie",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T17:20:16.695Z",
+    "actualizado": "2026-05-12T17:20:16.695Z"
+  }
+},
+{
+  "model": "matys.prenda",
+  "pk": 17,
+  "fields": {
+    "nombre": "Vestido doble campana",
+    "slug": "vestido-doble-campana",
+    "categoria": "femenino",
+    "tipo": "vestido",
+    "precio": "1400.00",
+    "descripcion_corta": "falda a dos tiempos",
+    "descripcion_larga": "Vestido hombros descubiertos con detalle desde la cintura hasta los hombros, formando un escote en V falda de tiempos, doble campana",
+    "material": "Riboli",
+    "largo": "A la medida",
+    "cuidado": "Lavado a mano o seco",
+    "disponible": true,
+    "destacada": false,
+    "tallas_disponibles": "XS,S,M,L,XL",
+    "guia_tallas": {},
+    "colores_disponibles": "",
+    "fecha_creacion": "2026-05-12T17:22:08.055Z",
+    "actualizado": "2026-05-12T17:22:08.055Z"
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 3,
+  "fields": {
+    "prenda": 2,
+    "imagen": "image/upload/v1778603237/pzcg6m2kgxhrocet3cbx.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 4,
+  "fields": {
+    "prenda": 3,
+    "imagen": "image/upload/v1778603602/ha5wihirzhcow7qc5mjv.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 5,
+  "fields": {
+    "prenda": 4,
+    "imagen": "image/upload/v1778603792/wy2eflz51jpgj3twpc82.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 6,
+  "fields": {
+    "prenda": 4,
+    "imagen": "image/upload/v1778603793/nmhmr19hbcflbz2cukik.jpg",
+    "orden": 1
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 7,
+  "fields": {
+    "prenda": 5,
+    "imagen": "image/upload/v1778603938/y4zkzohxwshld6jeh8rl.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 8,
+  "fields": {
+    "prenda": 5,
+    "imagen": "image/upload/v1778603939/fupwffwtb7qaihkhzmue.jpg",
+    "orden": 1
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 9,
+  "fields": {
+    "prenda": 6,
+    "imagen": "image/upload/v1778604603/cuhbtxzrp69txybzzwon.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 10,
+  "fields": {
+    "prenda": 6,
+    "imagen": "image/upload/v1778604604/hwgyitpukhrwnnq5fw1q.jpg",
+    "orden": 1
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 11,
+  "fields": {
+    "prenda": 7,
+    "imagen": "image/upload/v1778604862/wnkduzqw7pz2xupzbd1s.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 12,
+  "fields": {
+    "prenda": 7,
+    "imagen": "image/upload/v1778604862/fu5bybiiv87wj4ghlw3y.jpg",
+    "orden": 1
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 13,
+  "fields": {
+    "prenda": 8,
+    "imagen": "image/upload/v1778605194/o4xxawbjufda0yjzsedg.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 14,
+  "fields": {
+    "prenda": 8,
+    "imagen": "image/upload/v1778605195/fiehrfdaryy9df9igyii.jpg",
+    "orden": 1
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 15,
+  "fields": {
+    "prenda": 9,
+    "imagen": "image/upload/v1778605374/fchv65pzeis6qo9w7ere.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 16,
+  "fields": {
+    "prenda": 10,
+    "imagen": "image/upload/v1778605569/k2xlt3kpjxfjsosxyitk.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 17,
+  "fields": {
+    "prenda": 10,
+    "imagen": "image/upload/v1778605570/s45dw27lbnlgnzhi9drd.jpg",
+    "orden": 1
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 18,
+  "fields": {
+    "prenda": 11,
+    "imagen": "image/upload/v1778605727/rvf8sjirgyrkes5o8mho.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 19,
+  "fields": {
+    "prenda": 12,
+    "imagen": "image/upload/v1778605889/lgudfdvqtjr6yss6dho2.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 20,
+  "fields": {
+    "prenda": 13,
+    "imagen": "image/upload/v1778605984/ohoq0vdtshymlpmkjg1p.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 21,
+  "fields": {
+    "prenda": 14,
+    "imagen": "image/upload/v1778606159/opuma6ak8snrwxmcunhd.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 22,
+  "fields": {
+    "prenda": 14,
+    "imagen": "image/upload/v1778606160/iu4rgh0ztvzopgmjqabz.jpg",
+    "orden": 1
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 23,
+  "fields": {
+    "prenda": 14,
+    "imagen": "image/upload/v1778606161/bnozv75d65bsjspdvnup.jpg",
+    "orden": 2
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 24,
+  "fields": {
+    "prenda": 15,
+    "imagen": "image/upload/v1778606324/duwait9so09lsiozhgjb.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 25,
+  "fields": {
+    "prenda": 16,
+    "imagen": "image/upload/v1778606416/fw9uemxvdkwtekeru3xf.jpg",
+    "orden": 0
+  }
+},
+{
+  "model": "matys.imagenprenda",
+  "pk": 26,
+  "fields": {
+    "prenda": 17,
+    "imagen": "image/upload/v1778606528/wlmt3eilwjxol0cxqn6o.jpg",
+    "orden": 0
+  }
+}
+]

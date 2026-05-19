@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 import cloudinary
 
-from .models import Prenda, ImagenPrenda
+from .models import Prenda, ImagenPrenda, TipoPrenda
 
 
 class ImagenPrendaInline(admin.StackedInline):
@@ -72,3 +72,11 @@ class PrendaAdmin(admin.ModelAdmin):
             if img.orden != i:
                 img.orden = i
                 img.save(update_fields=['orden'])
+
+
+@admin.register(TipoPrenda)
+class TipoPrendaAdmin(admin.ModelAdmin):
+    list_display = ['nombre', 'categoria', 'activo', 'orden']
+    list_filter = ['categoria', 'activo']
+    list_editable = ['activo', 'orden']
+    prepopulated_fields = {'slug': ('nombre',)}

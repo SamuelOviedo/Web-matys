@@ -3,6 +3,26 @@ from django.core.exceptions import ValidationError
 from cloudinary.models import CloudinaryField
 
 
+class TipoPrenda(models.Model):
+    nombre = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100)
+    categoria = models.CharField(max_length=20, choices=[
+        ('femenino', 'Femenino'),
+        ('masculino', 'Masculino'),
+    ])
+    activo = models.BooleanField(default=True)
+    orden = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['categoria', 'orden', 'nombre']
+        unique_together = [['slug', 'categoria']]
+        verbose_name = 'Tipo de prenda'
+        verbose_name_plural = 'Tipos de prenda'
+
+    def __str__(self):
+        return self.nombre
+
+
 class Prenda(models.Model):
     CATEGORIAS = [
         ('femenino', 'Femenino'),
@@ -25,7 +45,7 @@ class Prenda(models.Model):
     nombre = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
     categoria = models.CharField(max_length=20, choices=CATEGORIAS)
-    tipo = models.CharField(max_length=50, choices=TIPOS)
+    tipo = models.CharField(max_length=100)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     
     # Descripción

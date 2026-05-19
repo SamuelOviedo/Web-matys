@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py shell -c \"from matys.models import Prenda; [print\\(p.id, p.nombre, p.imagen_principal\\) for p in Prenda.objects.all\\(\\)]\")"
+    ]
+  }
+}

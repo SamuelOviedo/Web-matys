@@ -35,6 +35,73 @@
     transition: transform .22s, opacity .22s; pointer-events: none;
   }
   #editToast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── Image strip ─────────────────────────────────────────── */
+  #imgStrip {
+    display: flex; gap: 8px; overflow-x: auto;
+    padding: 4px 2px; min-height: 96px; align-items: center;
+  }
+  #imgStrip::-webkit-scrollbar { height: 4px; }
+  #imgStrip::-webkit-scrollbar-track { background: var(--paper); border-radius: 2px; }
+  #imgStrip::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 2px; }
+
+  .strip-card {
+    position: relative; flex-shrink: 0;
+    width: 80px; height: 80px; border-radius: 6px; overflow: hidden;
+    border: 2px solid transparent; cursor: grab;
+    transition: opacity .15s, transform .15s, border-color .15s;
+    background: var(--paper);
+  }
+  .strip-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .strip-card.dragging { opacity: .4; transform: scale(.95); cursor: grabbing; }
+  .strip-card.drag-over { border-color: var(--yellow); }
+
+  .strip-badge {
+    position: absolute; top: 4px; left: 4px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--navy); color: #fff;
+    font-size: 9px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .strip-trash {
+    position: absolute; top: 3px; right: 3px;
+    width: 22px; height: 22px; border-radius: 4px;
+    background: rgba(164,50,43,.88); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity .12s;
+    color: #fff; padding: 0;
+  }
+  .strip-card:hover .strip-trash { opacity: 1; }
+
+  .strip-card-new-preview {
+    position: relative; flex-shrink: 0;
+    width: 80px; height: 80px; border-radius: 6px; overflow: hidden;
+    border: 2px solid var(--yellow);
+  }
+  .strip-card-new-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .strip-new-badge {
+    position: absolute; top: 4px; left: 4px;
+    background: var(--yellow); color: var(--navy);
+    font-size: 8px; font-weight: 700;
+    padding: 1px 4px; border-radius: 3px; pointer-events: none;
+  }
+  .strip-new-remove {
+    position: absolute; top: 3px; right: 3px;
+    width: 22px; height: 22px; border-radius: 4px;
+    background: rgba(164,50,43,.88); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; padding: 0;
+  }
+
+  .strip-card-add {
+    flex-shrink: 0; width: 80px; height: 80px;
+    border-radius: 6px; border: 2px dashed var(--line-2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: border-color .12s, background .12s, color .12s;
+    background: var(--paper); color: var(--mute); font-size: 24px;
+  }
+  .strip-card-add:hover { border-color: var(--navy); color: var(--navy); background: #f0f2f8; }
 </style>
 
 <!-- ── Page header ────────────────────────────────────────────── -->
@@ -46,28 +113,28 @@
   </div>
   <div class="page-actions" style="padding-top:34px;">
     <span class="chip chip-neutral" style="height:28px;font-size:12px;">
-      {{ total_imagenes }} imagen{{ total_imagenes|pluralize:"es" }}
+      {{ total_imagenes }} prenda{{ total_imagenes|pluralize:"s" }} con imágenes
     </span>
   </div>
 </div>
 
 <!-- ── Image grid ─────────────────────────────────────────────── -->
-{% if imagenes %}
+{% if prendas %}
 <div class="image-grid">
-  {% for item in imagenes %}
+  {% for item in prendas %}
   <div class="image-card">
 
     <!-- Image + overlay -->
     <div class="img-wrap">
       <div class="img-overlay">
         <button class="overlay-edit-btn"
-                onclick="openEditModal({{ item.img.prenda.pk }})">
+                onclick="openEditModal({{ item.prenda.pk }})">
           <i class="bi bi-pencil"></i> Editar prenda
         </button>
       </div>
       {% if item.url %}
         <img src="{{ item.url }}"
-             alt="{{ item.img.prenda.nombre }}"
+             alt="{{ item.prenda.nombre }}"
              style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:var(--paper);">
       {% else %}
         <div style="width:100%;aspect-ratio:4/3;background:var(--paper);display:flex;align-items:center;justify-content:center;">
@@ -78,15 +145,15 @@
 
     <!-- Card body -->
     <div class="image-card-body">
-      <div class="image-card-name">{{ item.img.prenda.nombre }}</div>
+      <div class="image-card-name">{{ item.prenda.nombre }}</div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;">
-        <span class="chip chip-neutral">{{ item.img.prenda.get_categoria_display }}</span>
-        {% if item.img.orden == 0 %}
-          <span class="chip chip-accent">● Principal</span>
+        <span class="chip chip-neutral">{{ item.prenda.get_categoria_display }}</span>
+        {% if item.total_fotos > 1 %}
+          <span class="chip chip-accent">{{ item.total_fotos }} fotos</span>
         {% else %}
-          <span class="chip chip-muted" style="font-size:10px;">Vista {{ item.img.orden }}</span>
+          <span class="chip chip-muted" style="font-size:10px;">1 foto</span>
         {% endif %}
-        {% if not item.img.prenda.disponible %}
+        {% if not item.prenda.disponible %}
           <span class="chip chip-muted">Oculta</span>
         {% endif %}
       </div>
@@ -111,7 +178,7 @@
 
 <!-- ── Edit modal ─────────────────────────────────────────────── -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:560px;">
     <div class="modal-content" style="border:1px solid var(--line);border-radius:10px;background:#fff;">
 
       <!-- Header -->
@@ -123,10 +190,14 @@
       </div>
 
       <!-- Body -->
-      <div style="padding:20px;max-height:70vh;overflow-y:auto;">
+      <div style="padding:20px;max-height:72vh;overflow-y:auto;">
         <form id="editForm" enctype="multipart/form-data">
           {% csrf_token %}
           <input type="hidden" id="editPrendaId" name="prenda_id">
+          <input type="hidden" id="ordenImagenes" name="orden_imagenes">
+          <input type="hidden" id="eliminarImagenes" name="eliminar_imagen_ids">
+          <input type="file" id="inputNuevaImagen" name="imagen_nueva"
+                 accept="image/jpeg,image/png,image/webp" style="display:none;">
 
           <!-- Nombre -->
           <div style="margin-bottom:14px;">
@@ -180,27 +251,12 @@
             </label>
           </div>
 
-          <!-- Imagen principal -->
+          <!-- Imágenes -->
           <div style="margin-bottom:14px;">
-            <label class="form-label-admin">Imagen principal</label>
-
-            <!-- Preview imagen actual -->
-            <div id="currentImgWrap" style="display:none;margin-bottom:8px;">
-              <div style="font-size:11.5px;color:var(--mute);margin-bottom:4px;">Imagen actual:</div>
-              <img id="currentImagePreview" src="" alt="Imagen actual"
-                   style="width:100%;border-radius:6px;aspect-ratio:4/3;object-fit:cover;border:1px solid var(--line);">
-            </div>
-
-            <!-- Preview nueva imagen -->
-            <img id="newImagePreview" src="" alt="Nueva imagen"
-                 style="width:100%;border-radius:6px;aspect-ratio:4/3;object-fit:cover;
-                        border:2px solid var(--yellow);margin-bottom:8px;display:none;">
-
-            <input type="file" id="editImagen" name="imagen" class="input-admin"
-                   accept="image/jpeg,image/png,image/webp"
-                   style="height:auto;padding:6px 10px;cursor:pointer;">
-            <div style="font-size:11.5px;color:var(--mute);margin-top:4px;">
-              Dejar vacío para mantener la imagen actual. Formatos: JPG, PNG, WEBP.
+            <label class="form-label-admin">Imágenes</label>
+            <div id="imgStrip"></div>
+            <div style="font-size:11.5px;color:var(--mute);margin-top:6px;">
+              Arrastrá para reordenar · La primera imagen es la principal · Máx. 4
             </div>
           </div>
 
@@ -235,18 +291,14 @@
 
 {% block extra_js %}
 <script>
-/* ── Tipo options per categoria ──────────────────────────────── */
-const TIPOS_MAP = {
-  femenino: [
-    ['vestido','Vestido'],['blusa','Blusa'],['falda','Falda'],
-    ['chaleco','Chaleco'],['pantalon','Pantalón'],['saco','Saco'],
-    ['sueter','Suéter'],['traje','Traje']
-  ],
-  masculino: [
-    ['camisa','Camisa'],['pantalon','Pantalón'],['chaleco','Chaleco'],
-    ['saco','Saco'],['traje','Traje']
-  ]
-};
+/* ── Tipo options — loaded from DB via JSON endpoint ────────── */
+
+/* ── State ───────────────────────────────────────────────────── */
+let stripItems      = [];   // [{id, url, orden}] — current visible order
+let pendingDeletes  = [];   // image IDs to delete on save
+let pendingNewFile  = null; // File object | null
+let pendingNewFileUrl = ''; // data-URL for preview
+let dragSrcIndex    = -1;
 
 /* ── CSRF helper ─────────────────────────────────────────────── */
 function getCsrfToken() {
@@ -265,44 +317,152 @@ function showToast(msg, isError = false) {
   setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-/* ── Update tipo select ──────────────────────────────────────── */
-function updateTipoOptions(categoria, selectedTipo) {
+/* ── Update tipo select (fetches from DB) ────────────────────── */
+async function fetchAndSetTipoOptions(categoria, selectedTipo) {
   const sel = document.getElementById('editTipo');
-  sel.innerHTML = (TIPOS_MAP[categoria] || [])
-    .map(([v, l]) => `<option value="${v}"${v === selectedTipo ? ' selected' : ''}>${l}</option>`)
-    .join('');
+  sel.innerHTML = '<option disabled>Cargando…</option>';
+  try {
+    const res = await fetch(`/gestion-matys/categorias/tipos-json/?categoria=${encodeURIComponent(categoria)}`);
+    const data = await res.json();
+    sel.innerHTML = (data.tipos || [])
+      .map(t => `<option value="${t.slug}"${t.slug === selectedTipo ? ' selected' : ''}>${t.nombre}</option>`)
+      .join('');
+  } catch {
+    sel.innerHTML = '<option disabled>Error al cargar</option>';
+  }
+}
+
+/* ── Sync hidden order input ─────────────────────────────────── */
+function syncOrderInput() {
+  document.getElementById('ordenImagenes').value =
+    JSON.stringify(stripItems.map((item, i) => ({ id: item.id, orden: i })));
+}
+
+/* ── Render image strip ──────────────────────────────────────── */
+function renderStrip() {
+  const strip = document.getElementById('imgStrip');
+  strip.innerHTML = '';
+
+  stripItems.forEach((item, index) => {
+    const card = document.createElement('div');
+    card.className = 'strip-card';
+    card.draggable = true;
+    card.dataset.index = String(index);
+
+    card.innerHTML =
+      `<img src="${item.url}" alt="">` +
+      `<span class="strip-badge">${index + 1}</span>` +
+      `<button type="button" class="strip-trash" data-id="${item.id}" title="Eliminar">` +
+        `<i class="bi bi-trash3" style="font-size:10px;"></i>` +
+      `</button>`;
+
+    /* drag */
+    card.addEventListener('dragstart', e => {
+      dragSrcIndex = index;
+      setTimeout(() => card.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      strip.querySelectorAll('.strip-card').forEach(c => c.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      const targetIdx = parseInt(card.dataset.index);
+      if (dragSrcIndex < 0 || dragSrcIndex === targetIdx) return;
+      const [moved] = stripItems.splice(dragSrcIndex, 1);
+      stripItems.splice(targetIdx, 0, moved);
+      dragSrcIndex = -1;
+      renderStrip();
+      syncOrderInput();
+    });
+
+    /* trash */
+    card.querySelector('.strip-trash').addEventListener('click', () => {
+      const remainingAfter = stripItems.length - 1 + (pendingNewFile ? 1 : 0);
+      if (remainingAfter < 1) {
+        showToast('Debe quedar al menos una imagen.', true);
+        return;
+      }
+      pendingDeletes.push(item.id);
+      stripItems.splice(index, 1);
+      renderStrip();
+      syncOrderInput();
+    });
+
+    strip.appendChild(card);
+  });
+
+  /* new file preview card */
+  if (pendingNewFile) {
+    const newCard = document.createElement('div');
+    newCard.className = 'strip-card-new-preview';
+    newCard.innerHTML =
+      `<img src="${pendingNewFileUrl}" alt="">` +
+      `<span class="strip-new-badge">NUEVA</span>` +
+      `<button type="button" class="strip-new-remove" title="Cancelar">` +
+        `<i class="bi bi-x" style="font-size:13px;"></i>` +
+      `</button>`;
+    newCard.querySelector('.strip-new-remove').addEventListener('click', () => {
+      pendingNewFile    = null;
+      pendingNewFileUrl = '';
+      document.getElementById('inputNuevaImagen').value = '';
+      renderStrip();
+    });
+    strip.appendChild(newCard);
+  }
+
+  /* "+" add card (hidden when 4 images already present) */
+  const totalVisible = stripItems.length + (pendingNewFile ? 1 : 0);
+  if (totalVisible < 4) {
+    const addCard = document.createElement('div');
+    addCard.className = 'strip-card-add';
+    addCard.title = 'Agregar imagen';
+    addCard.innerHTML = '<i class="bi bi-plus-lg"></i>';
+    addCard.addEventListener('click', () => document.getElementById('inputNuevaImagen').click());
+    strip.appendChild(addCard);
+  }
 }
 
 /* ── Open edit modal ─────────────────────────────────────────── */
 async function openEditModal(prendaId) {
-  // Reset error + new image preview
+  /* reset state */
+  stripItems       = [];
+  pendingDeletes   = [];
+  pendingNewFile   = null;
+  pendingNewFileUrl = '';
+  dragSrcIndex     = -1;
+
   const errEl = document.getElementById('editError');
   errEl.style.display = 'none';
-  errEl.textContent = '';
-  document.getElementById('editImagen').value = '';
-  document.getElementById('newImagePreview').style.display = 'none';
+  errEl.textContent   = '';
+  document.getElementById('inputNuevaImagen').value  = '';
+  document.getElementById('ordenImagenes').value     = '';
+  document.getElementById('eliminarImagenes').value  = '';
 
   try {
     const res = await fetch(`/gestion-matys/prendas/${prendaId}/editar/`);
     if (!res.ok) throw new Error('Error de red');
     const d = await res.json();
 
-    document.getElementById('editPrendaId').value  = d.id;
-    document.getElementById('editNombre').value     = d.nombre;
-    document.getElementById('editPrecio').value     = d.precio;
-    document.getElementById('editDescripcion').value = d.descripcion_corta;
-    document.getElementById('editCategoria').value  = d.categoria;
-    document.getElementById('editDisponible').checked = d.disponible;
-    updateTipoOptions(d.categoria, d.tipo);
+    document.getElementById('editPrendaId').value      = d.id;
+    document.getElementById('editNombre').value        = d.nombre;
+    document.getElementById('editPrecio').value        = d.precio;
+    document.getElementById('editDescripcion').value   = d.descripcion_corta;
+    document.getElementById('editCategoria').value     = d.categoria;
+    document.getElementById('editDisponible').checked  = d.disponible;
+    await fetchAndSetTipoOptions(d.categoria, d.tipo);
 
-    const wrap    = document.getElementById('currentImgWrap');
-    const preview = document.getElementById('currentImagePreview');
-    if (d.imagen_url) {
-      preview.src = d.imagen_url;
-      wrap.style.display = 'block';
-    } else {
-      wrap.style.display = 'none';
-    }
+    stripItems = (d.imagenes || []).map(img => ({ id: img.id, url: img.url, orden: img.orden }));
+    renderStrip();
+    syncOrderInput();
 
     const btn = document.getElementById('editSubmitBtn');
     btn.disabled = false;
@@ -317,39 +477,50 @@ async function openEditModal(prendaId) {
 /* ── DOM ready ───────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
 
-  /* Categoria change → refresh tipo options */
+  /* categoria change → refresh tipo from DB */
   document.getElementById('editCategoria').addEventListener('change', function () {
-    updateTipoOptions(this.value, '');
+    fetchAndSetTipoOptions(this.value, '');
   });
 
-  /* File input → new image preview */
-  document.getElementById('editImagen').addEventListener('change', function () {
+  /* new image file selected → preview */
+  document.getElementById('inputNuevaImagen').addEventListener('change', function () {
     const file = this.files[0];
     if (!file) return;
+    pendingNewFile = file;
     const reader = new FileReader();
     reader.onload = e => {
-      const p = document.getElementById('newImagePreview');
-      p.src = e.target.result;
-      p.style.display = 'block';
+      pendingNewFileUrl = e.target.result;
+      renderStrip();
     };
     reader.readAsDataURL(file);
   });
 
-  /* Submit button → POST via fetch */
+  /* submit */
   document.getElementById('editSubmitBtn').addEventListener('click', async () => {
-    const form    = document.getElementById('editForm');
-    const errEl   = document.getElementById('editError');
-    const btn     = document.getElementById('editSubmitBtn');
+    const errEl    = document.getElementById('editError');
+    const btn      = document.getElementById('editSubmitBtn');
     const prendaId = document.getElementById('editPrendaId').value;
 
     errEl.style.display = 'none';
     errEl.textContent   = '';
 
-    const formData = new FormData(form);
-    // Checkbox unchecked won't appear in FormData — set explicitly
+    const formData = new FormData(document.getElementById('editForm'));
     formData.set('disponible', document.getElementById('editDisponible').checked ? 'true' : 'false');
+    formData.set('orden_imagenes', JSON.stringify(stripItems.map((item, i) => ({ id: item.id, orden: i }))));
 
-    btn.disabled = true;
+    if (pendingDeletes.length > 0) {
+      formData.set('eliminar_imagen_ids', JSON.stringify(pendingDeletes));
+    } else {
+      formData.delete('eliminar_imagen_ids');
+    }
+
+    if (pendingNewFile) {
+      formData.set('imagen_nueva', pendingNewFile);
+    } else {
+      formData.delete('imagen_nueva');
+    }
+
+    btn.disabled    = true;
     btn.textContent = 'Guardando…';
 
     try {
@@ -367,14 +538,14 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         errEl.textContent   = data.error || 'Error al guardar. Intentá nuevamente.';
         errEl.style.display = 'block';
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar cambios';
+        btn.disabled        = false;
+        btn.innerHTML       = '<i class="bi bi-check-lg"></i> Guardar cambios';
       }
     } catch (err) {
       errEl.textContent   = 'Error de conexión. Verificá tu internet e intentá nuevamente.';
       errEl.style.display = 'block';
-      btn.disabled = false;
-      btn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar cambios';
+      btn.disabled        = false;
+      btn.innerHTML       = '<i class="bi bi-check-lg"></i> Guardar cambios';
     }
   });
 

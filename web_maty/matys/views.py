@@ -1,3 +1,4 @@
+import json
 import time
 import cloudinary
 import cloudinary.uploader
@@ -5,8 +6,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.utils.text import slugify
 from django.views.decorators.http import require_POST
-from .models import Prenda, ImagenPrenda
+from .models import Prenda, ImagenPrenda, TipoPrenda
 
 _MAX_ATTEMPTS = 3
 _COOLDOWN_SECONDS = 300  # 5 minutos
@@ -25,6 +27,8 @@ def prendas(request):
         'title': 'Prendas - Confecciones Maty\'s',
         'productos': productos,
         'show_admin_modal': request.GET.get('modal') == '1',
+        'tipos_femenino': TipoPrenda.objects.filter(categoria='femenino', activo=True).order_by('orden', 'nombre'),
+        'tipos_masculino': TipoPrenda.objects.filter(categoria='masculino', activo=True).order_by('orden', 'nombre'),
     }
     return render(request, 'prendas.html', context)
 
@@ -128,32 +132,99 @@ def gestion_dashboard(request):
 
 def gestion_categorias(request):
     if not _staff_required(request):
+        if request.method == 'POST':
+            return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
         return redirect('gestion_login')
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+        try:
+            if action == 'agregar':
+                nombre = request.POST.get('nombre', '').strip()
+                categoria = request.POST.get('categoria', '').strip()
+                if not nombre:
+                    return JsonResponse({'success': False, 'error': 'El nombre es requerido.'})
+                if categoria not in ('femenino', 'masculino'):
+                    return JsonResponse({'success': False, 'error': 'Categoría inválida.'})
+                slug = slugify(nombre)
+                if TipoPrenda.objects.filter(slug=slug, categoria=categoria).exists():
+                    return JsonResponse({'success': False, 'error': 'Ya existe un tipo con ese nombre.'})
+                TipoPrenda.objects.create(nombre=nombre, slug=slug, categoria=categoria)
+                return JsonResponse({'success': True})
+
+            if action == 'editar':
+                tipo = get_object_or_404(TipoPrenda, pk=request.POST.get('id', ''))
+                nombre = request.POST.get('nombre', '').strip()
+                if not nombre:
+                    return JsonResponse({'success': False, 'error': 'El nombre es requerido.'})
+                tipo.nombre = nombre
+                tipo.save()
+                return JsonResponse({'success': True})
+
+            if action == 'eliminar':
+                tipo = get_object_or_404(TipoPrenda, pk=request.POST.get('id', ''))
+                if Prenda.objects.filter(tipo=tipo.slug, categoria=tipo.categoria).exists():
+                    return JsonResponse({'success': False, 'error': 'Hay prendas usando este tipo.'})
+                tipo.delete()
+                return JsonResponse({'success': True})
+
+            return JsonResponse({'success': False, 'error': 'Acción inválida.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
     context = {
         'active_nav': 'categorias',
-        'tipos_femenino': ['Vestido', 'Blusa', 'Falda', 'Chaleco', 'Pantalón', 'Saco', 'Suéter', 'Traje'],
-        'tipos_masculino': ['Camisa', 'Pantalón', 'Chaleco', 'Saco', 'Traje'],
+        'tipos_femenino': TipoPrenda.objects.filter(categoria='femenino'),
+        'tipos_masculino': TipoPrenda.objects.filter(categoria='masculino'),
     }
     return render(request, 'gestion_matys/categorias.html', context)
+
+
+def gestion_tipos_json(request):
+    if not _staff_required(request):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    categoria = request.GET.get('categoria', '')
+    qs = TipoPrenda.objects.filter(activo=True)
+    if categoria:
+        qs = qs.filter(categoria=categoria)
+    return JsonResponse({'tipos': list(qs.values('id', 'nombre', 'slug', 'categoria'))})
 
 
 def gestion_imagenes(request):
     if not _staff_required(request):
         return redirect('gestion_login')
-    imagenes_qs = ImagenPrenda.objects.select_related('prenda').order_by('prenda__nombre', 'orden')
-    # Precompute URLs using build_url (same pattern as admin.py) to avoid
-    # CloudinaryField.url silently failing when config isn't resolved at template render.
-    imagenes = []
-    for img in imagenes_qs:
-        try:
-            url = cloudinary.CloudinaryImage(str(img.imagen)).build_url(secure=True)
-        except Exception:
-            url = ''
-        imagenes.append({'img': img, 'url': url})
+    from django.db.models import Prefetch
+    prendas_qs = (
+        Prenda.objects
+        .prefetch_related(
+            Prefetch(
+                'imagenes',
+                queryset=ImagenPrenda.objects.order_by('orden'),
+                to_attr='imagenes_ordenadas',
+            )
+        )
+        .filter(imagenes__isnull=False)
+        .distinct()
+        .order_by('nombre')
+    )
+    prendas = []
+    for prenda in prendas_qs:
+        principal = prenda.imagenes_ordenadas[0] if prenda.imagenes_ordenadas else None
+        url = ''
+        if principal:
+            try:
+                url = cloudinary.CloudinaryImage(str(principal.imagen)).build_url(secure=True)
+            except Exception:
+                url = ''
+        prendas.append({
+            'prenda': prenda,
+            'url': url,
+            'total_fotos': len(prenda.imagenes_ordenadas),
+        })
     context = {
         'active_nav': 'imagenes',
-        'imagenes': imagenes,
-        'total_imagenes': len(imagenes),
+        'prendas': prendas,
+        'total_imagenes': len(prendas),
     }
     return render(request, 'gestion_matys/imagenes.html', context)
 
@@ -165,13 +236,13 @@ def gestion_editar_prenda(request, prenda_id):
     prenda = get_object_or_404(Prenda, pk=prenda_id)
 
     if request.method == 'GET':
-        img_principal = prenda.imagenes.filter(orden=0).first()
-        img_url = ''
-        if img_principal:
+        imagenes_data = []
+        for img in prenda.imagenes.order_by('orden'):
             try:
-                img_url = cloudinary.CloudinaryImage(str(img_principal.imagen)).build_url(secure=True)
+                url = cloudinary.CloudinaryImage(str(img.imagen)).build_url(secure=True)
             except Exception:
-                img_url = ''
+                url = ''
+            imagenes_data.append({'id': img.pk, 'url': url, 'orden': img.orden})
         return JsonResponse({
             'id': prenda.pk,
             'nombre': prenda.nombre,
@@ -180,7 +251,7 @@ def gestion_editar_prenda(request, prenda_id):
             'categoria': prenda.categoria,
             'tipo': prenda.tipo,
             'disponible': prenda.disponible,
-            'imagen_url': img_url,
+            'imagenes': imagenes_data,
         })
 
     if request.method == 'POST':
@@ -198,10 +269,9 @@ def gestion_editar_prenda(request, prenda_id):
                 return JsonResponse({'success': False, 'error': 'El precio es requerido.'})
 
             valid_categorias = [c[0] for c in Prenda.CATEGORIAS]
-            valid_tipos = [t[0] for t in Prenda.TIPOS]
             if categoria not in valid_categorias:
                 return JsonResponse({'success': False, 'error': 'Categoría inválida.'})
-            if tipo not in valid_tipos:
+            if not TipoPrenda.objects.filter(slug=tipo, categoria=categoria).exists():
                 return JsonResponse({'success': False, 'error': 'Tipo inválido.'})
 
             prenda.nombre = nombre
@@ -212,11 +282,43 @@ def gestion_editar_prenda(request, prenda_id):
             prenda.disponible = disponible
             prenda.save()
 
-            if 'imagen' in request.FILES:
-                result = cloudinary.uploader.upload(request.FILES['imagen'])
-                img_obj, _ = ImagenPrenda.objects.get_or_create(prenda=prenda, orden=0)
-                img_obj.imagen = result['public_id']
-                img_obj.save()
+            # Delete images (only while at least 1 remains)
+            eliminar_raw = request.POST.get('eliminar_imagen_ids', '')
+            if eliminar_raw:
+                try:
+                    ids_to_delete = json.loads(eliminar_raw)
+                    if isinstance(ids_to_delete, list):
+                        remaining = prenda.imagenes.count()
+                        for img_id in ids_to_delete:
+                            if remaining > 1:
+                                ImagenPrenda.objects.filter(pk=img_id, prenda=prenda).delete()
+                                remaining -= 1
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+            # Reorder images
+            orden_raw = request.POST.get('orden_imagenes', '')
+            if orden_raw:
+                try:
+                    for item in json.loads(orden_raw):
+                        ImagenPrenda.objects.filter(pk=item['id'], prenda=prenda).update(orden=item['orden'])
+                except (json.JSONDecodeError, KeyError, TypeError):
+                    pass
+
+            # Upload new image
+            if 'imagen_nueva' in request.FILES:
+                max_orden = (
+                    prenda.imagenes.order_by('-orden')
+                    .values_list('orden', flat=True)
+                    .first()
+                )
+                next_orden = (max_orden + 1) if max_orden is not None else 0
+                result = cloudinary.uploader.upload(request.FILES['imagen_nueva'])
+                ImagenPrenda.objects.create(
+                    prenda=prenda,
+                    imagen=result['public_id'],
+                    orden=next_orden,
+                )
 
             return JsonResponse({'success': True})
         except Exception as e:
