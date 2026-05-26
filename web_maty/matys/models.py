@@ -5,22 +5,37 @@ from cloudinary.models import CloudinaryField
 
 class Prenda(models.Model):
     CATEGORIAS = [
-        ('femenino', 'Femenino'),
-        ('masculino', 'Masculino'),
+    ('femenino',  'Femenino'),
+    ('masculino', 'Masculino'),
+    ('infantil',  'Infantil'),
     ]
-    
+
     TIPOS = [
-        ('vestido', 'Vestido'),
-        ('blusa', 'Blusa'),
-        ('falda', 'Falda'),
-        ('chaleco', 'Chaleco'),
-        ('pantalon', 'Pantalón'),
-        ('camisa', 'Camisa'),
-        ('saco', 'Saco'),
-        ('sueter', 'Suéter'),
-        ('traje', 'Traje'),
-    ]
-    
+        # ── Femenino › Vestidos ──────────────────
+        ('vestido_gala',       'Vestido de gala'),
+        ('vestido_casual',     'Vestido casual'),
+        ('vestido_semiformal', 'Vestido semiformal'),
+        ('vestido_novia',      'Vestido de novia'),
+        ('vestido_quince',     'Vestido de quinceañera'),
+        ('vestido_alusivo',    'Vestido alusivo'),
+        ('vestido_playero',    'Vestido playero'),
+    # ── Femenino › Otros ─────────────────────
+        ('blusa',              'Blusa'),
+        ('falda',              'Falda'),
+        ('chaleco',            'Chaleco'),
+        ('pantalon',           'Pantalón'),
+        ('traje',              'Traje'),
+        ('traje_alusivo',      'Traje alusivo'),
+    # ── Masculino ────────────────────────────
+        ('sueter',             'Suéter'),
+        ('camisa',             'Camisa'),
+        ('saco',               'Saco'),
+        ('smoking',            'Smoking completo'),
+        ('dos_piezas',         'Traje 2 piezas'),
+    # ── Infantil ─────────────────────────────
+        ('infantil_general',   'General infantil'),
+        ]
+
     # Información básica
     nombre = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
