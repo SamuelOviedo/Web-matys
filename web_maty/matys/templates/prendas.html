@@ -3,10 +3,10 @@
 
 {% block content %}
 
-<!-- Hero Section -->
-<section class="hero-section text-white text-center d-flex align-items-center justify-content-center" 
-          style="background: linear-gradient(135deg, rgba(0,51,102,0.85), rgba(255,215,0,0.3)), 
-                url(' {% static 'images/prendaA.JPG' %}') no-repeat center center/cover;">
+<!-- ══ Hero ══════════════════════════════════════════════════════ -->
+<section class="hero-section text-white text-center d-flex align-items-center justify-content-center"
+         style="background: linear-gradient(135deg, rgba(0,51,102,0.85), rgba(255,215,0,0.3)),
+                url('{% static 'images/prendaA.JPG' %}') no-repeat center center/cover;">
   <div class="overlay"></div>
   <div class="container position-relative header-text">
     <h1 class="display-3 fw-bold enc">Elegancia en Cada Puntada</h1>
@@ -14,218 +14,256 @@
   </div>
 </section>
 
-<!-- Botón de búsqueda flotante -->
-<div class="container">
-  <div class="search-container sticky-top">
-    <button class="search-button btn d-flex justify-content-center align-items-center" 
-            type="button" 
-            data-bs-toggle="collapse" 
-            data-bs-target="#searchCollapse"
-            aria-expanded="false"
-            aria-controls="searchCollapse">
-      <i class="bi bi-search fs-5"></i>
-    </button>
-    <div class="collapse collapse-horizontal ms-2" id="searchCollapse">
-      <div class="search-box">
-        <input type="search" 
-                class="form-control border-0" 
-                placeholder="Buscar prendas..." 
-                id="searchInput">
+<!-- ══ Barra de catálogo (pills) ════════════════════════════════ -->
+<div class="catalog-bar sticky-top">
+  <div class="container">
+    <div class="catalog-bar__inner">
+
+      <!-- Pills de categoría -->
+      <nav class="catalog-pills" aria-label="Filtro de catálogo">
+        <ul class="catalog-pills__list">
+
+          <!-- Todas -->
+          <li class="catalog-pills__item">
+            <a href="{% url 'prendas' %}"
+               class="catalog-pill {% if not categoria_activa %}catalog-pill--active{% endif %}">
+              <i class="bi bi-grid-3x3-gap-fill"></i>Todas
+            </a>
+          </li>
+
+          <!-- Categorías dinámicas -->
+          {% for cat in menu_render %}
+          <li class="catalog-pills__item {% if cat.tiene_subtipos %}catalog-pills__item--dropdown{% endif %}">
+
+            <a href="{% url 'prendas' %}?categoria={{ cat.key }}"
+               class="catalog-pill
+                      {% if categoria_activa == cat.key %}catalog-pill--active{% endif %}
+                      {% if cat.tiene_subtipos %}catalog-pill--has-arrow{% endif %}">
+              {% if cat.key == 'femenino' %}
+                <i class="bi bi-flower1"></i>
+              {% elif cat.key == 'masculino' %}
+                <i class="bi bi-person-fill"></i>
+              {% else %}
+                <i class="bi bi-stars"></i>
+              {% endif %}
+              {{ cat.label }}
+              {% if cat.tiene_subtipos %}
+                <i class="bi bi-chevron-down catalog-pill__arrow"></i>
+              {% endif %}
+            </a>
+
+            <!-- Dropdown agrupado -->
+            {% if cat.tiene_subtipos %}
+            <div class="catalog-dropdown" role="menu">
+
+              <!-- Enlace "Todo X" -->
+              <a href="{% url 'prendas' %}?categoria={{ cat.key }}"
+                 class="catalog-dropdown__link catalog-dropdown__link--all
+                        {% if categoria_activa == cat.key and not tipo_activo %}catalog-dropdown__link--active{% endif %}"
+                 role="menuitem">
+                <i class="bi bi-collection"></i>Todo {{ cat.label }}
+              </a>
+
+              <!-- Grupos con posible cabecera -->
+              {% for grupo in cat.grupos %}
+
+                {% if grupo.titulo %}
+                <div class="catalog-dropdown__group-header">{{ grupo.titulo }}</div>
+                {% else %}
+                <div class="catalog-dropdown__divider"></div>
+                {% endif %}
+
+                {% for tipo_key, tipo_label in grupo.items %}
+                <a href="{% url 'prendas' %}?categoria={{ cat.key }}&tipo={{ tipo_key }}"
+                   class="catalog-dropdown__link
+                          {% if tipo_activo == tipo_key and categoria_activa == cat.key %}catalog-dropdown__link--active{% endif %}
+                          {% if grupo.titulo %}catalog-dropdown__link--sub{% endif %}"
+                   role="menuitem">
+                  {{ tipo_label }}
+                </a>
+                {% endfor %}
+
+              {% endfor %}
+            </div>
+            {% endif %}
+
+          </li>
+          {% endfor %}
+
+        </ul>
+      </nav>
+
+      <!-- Buscador integrado -->
+      <div class="catalog-search">
+        <i class="bi bi-search catalog-search__icon"></i>
+        <input type="search"
+               id="searchInput"
+               class="catalog-search__input"
+               placeholder="Buscar prendas…"
+               autocomplete="off">
       </div>
+
     </div>
   </div>
 </div>
 
-<!-- Tabs de Categorías -->
-<div class="container my-5">
-  <div class="text-center mb-5">
-    <h2 class="fs-5 enc fw-bold text-primary mb-2">Nuestra Pasión</h2>
-    <h1 class="display-6 enc fw-bold text-body">Explora Nuestra Colección</h1>
-  </div>
-
-  <!-- Tabs principales -->
-  <ul class="nav nav-tabs justify-content-center mb-5 border-0 " id="categoryTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" 
-              id="todas-tab" 
-              data-bs-toggle="tab" 
-              data-bs-target="#todas" 
-              type="button" 
-              role="tab"
-              aria-controls="todas"
-              aria-selected="true">
-        <i class="bi bi-grid-3x3-gap-fill me-2"></i>Todas las Prendas
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" 
-              id="femenino-tab" 
-              data-bs-toggle="tab" 
-              data-bs-target="#femenino" 
-              type="button" 
-              role="tab"
-              aria-controls="femenino"
-              aria-selected="false">
-        <i class="bi bi-flower1 me-2"></i>Femenino
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" 
-              id="masculino-tab" 
-              data-bs-toggle="tab" 
-              data-bs-target="#masculino" 
-              type="button" 
-              role="tab"
-              aria-controls="masculino"
-              aria-selected="false">
-        <i class="bi bi-person-fill me-2"></i>Masculino
-      </button>
-    </li>
-  </ul>
-
-  <!-- Contenido de los Tabs -->
-  <div class="tab-content" id="categoryTabsContent">
-    
-    <!-- TAB: Todas las Prendas -->
-    <div class="tab-pane fade show active" id="todas" role="tabpanel" aria-labelledby="todas-tab">
-      <div class="row g-4 products-grid">
-        
-        {% for producto in productos %}
-        <!-- Prenda {{ forloop.counter }} -->
-        <div class="col-md-6 col-lg-4" data-category="{{ producto.categoria }}" data-type="{{ producto.tipo }}">
-          <div class="card product-card h-100 border-0 shadow-lg">
-            <div class="position-relative img-container">
-              {% if producto.imagen_principal %}
-              <img src="{{ producto.imagen_principal.url }}"
-                    class="card-img-top"
-                    alt="{{ producto.nombre }}">
-              {% else %}
-              <img src="https://via.placeholder.com/400x400?text=Sin+Imagen"
-                    class="card-img-top"
-                    alt="Sin imagen">
-              {% endif %}
-            </div>
-            <div class="card-body">
-              <span class="badge badge-cat mb-2">{{ producto.get_categoria_display }}</span>
-              <h5 class="card-title enc fw-bold">{{ producto.nombre }}</h5>
-              <p class="card-text text-muted small">{{ producto.descripcion_corta|truncatewords:15 }}</p>
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="h5 mb-0 fw-bold text-primary">L. {{ producto.precio }}</span>
-                <a href="{% url 'detalle_prendas' producto.slug %}" class="btn btn-primary btn-sm mb-0">Ver Detalles</a>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% empty %}
-        <div class="col-12">
-          <div class="alert alert-info text-center">
-            <i class="bi bi-info-circle me-2"></i>
-            No hay prendas disponibles en este momento.
-            <button type="button"
-                    class="alert-link btn btn-link p-0 border-0 align-baseline"
-                    data-bs-toggle="modal"
-                    data-bs-target="#adminLoginModal">
-              Acceso administrador
-            </button>
-          </div>
-        </div>
-        {% endfor %}
-
-      </div>
-    </div>
-
-    <!-- TAB: Femenino -->
-    <div class="tab-pane fade" id="femenino" role="tabpanel" aria-labelledby="femenino-tab">
-      <h4 class="mb-3 enc fw-bold text-primary">Moda Femenina</h4>
-
-      {% if tipos_femenino %}
-      <div class="d-flex flex-wrap gap-2 mb-4">
-        <button class="btn btn-primary btn-sm tipo-filter-btn" data-tipo="all">Todos</button>
-        {% for tipo in tipos_femenino %}
-        <button class="btn btn-outline-primary btn-sm tipo-filter-btn"
-                data-tipo="{{ tipo.slug }}">{{ tipo.nombre }}</button>
-        {% endfor %}
-      </div>
+<!-- ══ Encabezado de resultados ══════════════════════════════════ -->
+<div class="container mt-5 mb-4">
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+    <div>
+      {% if tipo_display %}
+        <h1 class="display-6 enc fw-bold mb-1">{{ tipo_display }}</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0 small">
+            <li class="breadcrumb-item">
+              <a href="{% url 'prendas' %}" class="text-decoration-none">Todas</a>
+            </li>
+            <li class="breadcrumb-item">
+              <a href="{% url 'prendas' %}?categoria={{ categoria_activa }}"
+                 class="text-decoration-none">{{ categoria_display }}</a>
+            </li>
+            <li class="breadcrumb-item active">{{ tipo_display }}</li>
+          </ol>
+        </nav>
+      {% elif categoria_display %}
+        <h1 class="display-6 enc fw-bold mb-1">Moda {{ categoria_display }}</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0 small">
+            <li class="breadcrumb-item">
+              <a href="{% url 'prendas' %}" class="text-decoration-none">Todas</a>
+            </li>
+            <li class="breadcrumb-item active">{{ categoria_display }}</li>
+          </ol>
+        </nav>
+      {% else %}
+        <h1 class="display-6 enc fw-bold mb-1">Toda la Colección</h1>
+        <p class="text-muted mb-0 small">Explora todas nuestras prendas</p>
       {% endif %}
-
-      <div class="row g-4 products-grid-femenino">
-        {% for producto in productos %}
-        {% if producto.categoria == 'femenino' %}
-        <div class="col-md-6 col-lg-4" data-tipo="{{ producto.tipo }}">
-          <div class="card product-card h-100 border-0 shadow-lg">
-            <div class="position-relative img-container">
-              {% if producto.imagen_principal %}
-              <img src="{{ producto.imagen_principal.url }}"
-                    class="card-img-top" alt="{{ producto.nombre }}">
-              {% else %}
-              <img src="https://via.placeholder.com/400x400?text=Sin+Imagen"
-                    class="card-img-top" alt="Sin imagen">
-              {% endif %}
-            </div>
-            <div class="card-body">
-              <span class="badge badge-cat mb-2">{{ producto.get_categoria_display }}</span>
-              <h5 class="card-title enc fw-bold">{{ producto.nombre }}</h5>
-              <p class="card-text text-muted small">{{ producto.descripcion_corta|truncatewords:15 }}</p>
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="h5 mb-0 fw-bold text-primary">L. {{ producto.precio }}</span>
-                <a href="{% url 'detalle_prendas' producto.slug %}" class="btn btn-primary btn-sm">Ver Detalles</a>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-        {% endfor %}
-      </div>
     </div>
 
-    <!-- TAB: Masculino -->
-    <div class="tab-pane fade" id="masculino" role="tabpanel" aria-labelledby="masculino-tab">
-      <h4 class="mb-3 enc fw-bold text-primary">Moda Masculina</h4>
-
-      {% if tipos_masculino %}
-      <div class="d-flex flex-wrap gap-2 mb-4">
-        <button class="btn btn-primary btn-sm tipo-filter-btn" data-tipo="all">Todos</button>
-        {% for tipo in tipos_masculino %}
-        <button class="btn btn-outline-primary btn-sm tipo-filter-btn"
-                data-tipo="{{ tipo.slug }}">{{ tipo.nombre }}</button>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      <div class="row g-4 products-grid-masculino">
-        {% for producto in productos %}
-        {% if producto.categoria == 'masculino' %}
-        <div class="col-md-6 col-lg-4" data-tipo="{{ producto.tipo }}">
-          <div class="card product-card h-100 border-0 shadow-lg">
-            <div class="position-relative img-container">
-              {% if producto.imagen_principal %}
-              <img src="{{ producto.imagen_principal.url }}"
-                    class="card-img-top" alt="{{ producto.nombre }}">
-              {% else %}
-              <img src="https://via.placeholder.com/400x400?text=Sin+Imagen"
-                    class="card-img-top" alt="Sin imagen">
-              {% endif %}
-            </div>
-            <div class="card-body">
-              <span class="badge badge-cat mb-2">{{ producto.get_categoria_display }}</span>
-              <h5 class="card-title enc fw-bold">{{ producto.nombre }}</h5>
-              <p class="card-text text-muted small">{{ producto.descripcion_corta|truncatewords:15 }}</p>
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="h5 mb-0 fw-bold text-primary">L. {{ producto.precio }}</span>
-                <a href="{% url 'detalle_prendas' producto.slug %}" class="btn btn-primary btn-sm">Ver Detalles</a>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-        {% endfor %}
-      </div>
-    </div>
-
+    <span class="badge bg-primary rounded-pill px-3 py-2 fs-6 align-self-center">
+      {{ page_obj.paginator.count }}
+      prenda{{ page_obj.paginator.count|pluralize:"s" }}
+    </span>
   </div>
 </div>
 
-<!-- Sección de llamada a la acción -->
+<!-- ══ Grid de productos ══════════════════════════════════════════ -->
+<div class="container mb-5">
+  <div class="row g-4 products-grid" id="productsGrid">
+
+    {% for producto in page_obj %}
+    <div class="col-md-6 col-lg-4 product-item"
+         data-nombre="{{ producto.nombre|lower }}"
+         data-tipo="{{ producto.tipo }}">
+      <div class="card product-card h-100 border-0 shadow-lg">
+        <div class="position-relative img-container">
+          {% with img=producto.imagenes.first %}
+          {% if img %}
+          <img src="{{ img.imagen.url }}"
+               class="card-img-top"
+               alt="{{ producto.nombre }}"
+               loading="lazy">
+          {% endif %}
+          {% endwith %}
+          {% if producto.por_encargo %}
+          <span class="badge-encargo">Por encargo</span>
+          {% else %}
+          <span class="badge-disponible">Disponible</span>
+          {% endif %}
+          <span class="badge-tipo-overlay">{{ producto.get_tipo_display }}</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-cat mb-2">{{ producto.get_categoria_display }}</span>
+          <h5 class="card-title enc fw-bold">{{ producto.nombre }}</h5>
+          <p class="card-text text-muted small">
+            {{ producto.descripcion_corta|truncatewords:15 }}
+          </p>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="h5 mb-0 fw-bold text-primary">L. {{ producto.precio }}</span>
+            <a href="{% url 'detalle_prendas' producto.slug %}"
+               class="btn btn-primary btn-sm mb-0">Ver Detalles</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="empty-state text-center py-5">
+        <i class="bi bi-search display-1 text-muted d-block mb-3"></i>
+        <h4 class="enc fw-bold">Sin resultados</h4>
+        <p class="text-muted">No hay prendas disponibles en esta categoría.</p>
+        <a href="{% url 'prendas' %}" class="btn btn-primary mt-2">
+          <i class="bi bi-arrow-left me-1"></i>Ver todas las prendas
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+
+  <!-- Sin resultados de búsqueda -->
+  <div id="noSearchResults" class="text-center py-5 d-none">
+    <i class="bi bi-emoji-frown display-1 text-muted d-block mb-3"></i>
+    <h5 class="enc">Ninguna prenda coincide con tu búsqueda</h5>
+    <p class="text-muted small">Prueba con otro término o
+      <a href="{% url 'prendas' %}" class="text-primary">ver todo el catálogo</a>.
+    </p>
+  </div>
+
+  <!-- ══ Paginación ════════════════════════════════════════════════ -->
+  {% if page_obj.has_other_pages %}
+  <nav class="mt-5 d-flex justify-content-center" aria-label="Paginación del catálogo">
+    <ul class="pagination pagination-catalog gap-1 flex-wrap justify-content-center mb-0">
+
+      <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+        <a class="page-link page-link--arrow"
+           href="{% if page_obj.has_previous %}?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}page={{ page_obj.previous_page_number }}{% else %}#{% endif %}"
+           aria-label="Página anterior">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+      </li>
+
+      {% for item in page_range_display %}
+        {% if item == '...' %}
+        <li class="page-item disabled">
+          <span class="page-link page-link--ellipsis">…</span>
+        </li>
+        {% elif item == page_obj.number %}
+        <li class="page-item active" aria-current="page">
+          <span class="page-link">{{ item }}</span>
+        </li>
+        {% else %}
+        <li class="page-item">
+          <a class="page-link"
+             href="?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}page={{ item }}">
+            {{ item }}
+          </a>
+        </li>
+        {% endif %}
+      {% endfor %}
+
+      <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+        <a class="page-link page-link--arrow"
+           href="{% if page_obj.has_next %}?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}page={{ page_obj.next_page_number }}{% else %}#{% endif %}"
+           aria-label="Página siguiente">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+
+    </ul>
+  </nav>
+
+  <p class="text-center text-muted small mt-3">
+    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+    &nbsp;·&nbsp;
+    {{ page_obj.paginator.count }} prenda{{ page_obj.paginator.count|pluralize:"s" }} en total
+  </p>
+  {% endif %}
+
+</div>
+
+<!-- ══ CTA ════════════════════════════════════════════════════════ -->
 <section class="py-5 bg-primary text-secondary my-5">
   <div class="container text-center">
     <h2 class="enc fw-bold mb-3">¿No encuentras lo que buscas?</h2>
@@ -234,93 +272,47 @@
   </div>
 </section>
 
-<!-- Modal acceso administrador -->
-<div class="modal fade" id="adminLoginModal" tabindex="-1" aria-hidden="true" aria-labelledby="adminLoginLabel">
-  <div class="modal-dialog modal-dialog-centered" style="max-width:320px;">
-    <div class="modal-content border-0 shadow-lg" style="background:#0d2147;border-radius:14px;">
-      <div class="modal-body p-4">
-
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <span class="text-white-50 small">
-            <i class="bi bi-lock-fill me-1"></i>Acceso restringido
-          </span>
-          <button type="button" class="btn-close btn-close-white opacity-50" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-
-        {% for message in messages %}
-        <div class="rounded-2 px-3 py-2 mb-3 small
-          {% if 'blocked' in message.tags %}
-            text-warning" style="background:rgba(255,193,7,0.12);"
-          {% else %}
-            text-danger" style="background:rgba(220,53,69,0.12);"
-          {% endif %}>
-          <i class="bi bi-exclamation-circle me-1"></i>{{ message }}
-        </div>
-        {% endfor %}
-
-        <form method="post" action="{% url 'admin_login' %}" autocomplete="off" novalidate>
-          {% csrf_token %}
-          <div class="mb-3">
-            <input type="text"
-                   name="username"
-                   class="form-control bg-transparent text-white border-0 border-bottom rounded-0 px-0"
-                   style="border-bottom:1px solid rgba(255,255,255,0.2)!important;box-shadow:none;"
-                   placeholder="Usuario"
-                   maxlength="150"
-                   minlength="3"
-                   autocomplete="off"
-                   spellcheck="false"
-                   required>
-          </div>
-          <div class="mb-4">
-            <input type="password"
-                   name="password"
-                   class="form-control bg-transparent text-white border-0 border-bottom rounded-0 px-0"
-                   style="border-bottom:1px solid rgba(255,255,255,0.2)!important;box-shadow:none;"
-                   placeholder="Contraseña"
-                   maxlength="128"
-                   minlength="3"
-                   autocomplete="new-password"
-                   required>
-          </div>
-          <button type="submit"
-                  class="btn w-100 fw-semibold"
-                  style="background:#ffd700;color:#0d2147;">
-            Ingresar
-          </button>
-        </form>
-
-      </div>
-    </div>
-  </div>
-</div>
-
-{% if show_admin_modal %}
+<!-- ══ Scripts ════════════════════════════════════════════════════ -->
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var el = document.getElementById('adminLoginModal');
-    if (el) { new bootstrap.Modal(el).show(); }
+// ── Búsqueda en tiempo real ────────────────────────────────────
+const searchInput  = document.getElementById('searchInput');
+const productsGrid = document.getElementById('productsGrid');
+const noResults    = document.getElementById('noSearchResults');
+
+searchInput.addEventListener('input', function () {
+  const q = this.value.toLowerCase().trim();
+  const items = productsGrid.querySelectorAll('.product-item');
+  let visible = 0;
+  items.forEach(item => {
+    const match = !q || item.dataset.nombre.includes(q) || item.dataset.tipo.includes(q);
+    item.style.display = match ? '' : 'none';
+    if (match) visible++;
   });
-</script>
-{% endif %}
+  noResults.classList.toggle('d-none', visible > 0);
+});
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('.tipo-filter-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var pane = this.closest('.tab-pane');
-      pane.querySelectorAll('.tipo-filter-btn').forEach(function (b) {
-        b.classList.remove('btn-primary');
-        b.classList.add('btn-outline-primary');
-      });
-      this.classList.remove('btn-outline-primary');
-      this.classList.add('btn-primary');
-      var tipo = this.dataset.tipo;
-      pane.querySelectorAll('[data-tipo]').forEach(function (card) {
-        card.style.display = (tipo === 'all' || card.dataset.tipo === tipo) ? '' : 'none';
-      });
+// ── Dropdown en mobile (click toggle) ─────────────────────────
+document.querySelectorAll('.catalog-pills__item--dropdown > .catalog-pill')
+  .forEach(pill => {
+    pill.addEventListener('click', function (e) {
+      if (window.innerWidth >= 992) return;
+      const parent = this.closest('.catalog-pills__item--dropdown');
+      const isOpen = parent.classList.contains('is-open');
+      document.querySelectorAll('.catalog-pills__item--dropdown.is-open')
+        .forEach(el => el.classList.remove('is-open'));
+      if (!isOpen) {
+        e.preventDefault();
+        parent.classList.add('is-open');
+      }
     });
   });
+
+// Cerrar al hacer click fuera
+document.addEventListener('click', function (e) {
+  if (!e.target.closest('.catalog-pills__item--dropdown')) {
+    document.querySelectorAll('.catalog-pills__item--dropdown.is-open')
+      .forEach(el => el.classList.remove('is-open'));
+  }
 });
 </script>
 

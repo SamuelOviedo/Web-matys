@@ -7,8 +7,9 @@ class TipoPrenda(models.Model):
     nombre = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100)
     categoria = models.CharField(max_length=20, choices=[
-        ('femenino', 'Femenino'),
+        ('femenino',  'Femenino'),
         ('masculino', 'Masculino'),
+        ('infantil',  'Infantil'),
     ])
     activo = models.BooleanField(default=True)
     orden = models.PositiveIntegerField(default=0)
@@ -25,27 +26,38 @@ class TipoPrenda(models.Model):
 
 class Prenda(models.Model):
     CATEGORIAS = [
-        ('femenino', 'Femenino'),
+        ('femenino',  'Femenino'),
         ('masculino', 'Masculino'),
+        ('infantil',  'Infantil'),
     ]
-    
+
     TIPOS = [
-        ('vestido', 'Vestido'),
-        ('blusa', 'Blusa'),
-        ('falda', 'Falda'),
-        ('chaleco', 'Chaleco'),
-        ('pantalon', 'Pantalón'),
-        ('camisa', 'Camisa'),
-        ('saco', 'Saco'),
-        ('sueter', 'Suéter'),
-        ('traje', 'Traje'),
+        ('vestido_gala',       'Vestido de gala'),
+        ('vestido_casual',     'Vestido casual'),
+        ('vestido_semiformal', 'Vestido semiformal'),
+        ('vestido_novia',      'Vestido de novia'),
+        ('vestido_quince',     'Vestido de quinceañera'),
+        ('vestido_alusivo',    'Vestido alusivo'),
+        ('vestido_playero',    'Vestido playero'),
+        ('blusa',              'Blusa'),
+        ('falda',              'Falda'),
+        ('chaleco',            'Chaleco'),
+        ('pantalon',           'Pantalón'),
+        ('traje',              'Traje'),
+        ('traje_alusivo',      'Traje alusivo'),
+        ('sueter',             'Suéter'),
+        ('camisa',             'Camisa'),
+        ('saco',               'Saco'),
+        ('smoking',            'Smoking completo'),
+        ('dos_piezas',         'Traje 2 piezas'),
+        ('infantil_general',   'General infantil'),
     ]
-    
+
     # Información básica
     nombre = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
     categoria = models.CharField(max_length=20, choices=CATEGORIAS)
-    tipo = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=50, choices=TIPOS)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     
     # Descripción
@@ -59,6 +71,11 @@ class Prenda(models.Model):
     
     # Disponibilidad
     disponible = models.BooleanField(default=True)
+    por_encargo = models.BooleanField(
+        default=True,
+        verbose_name="Hecho por encargo",
+        help_text="Muestra el ribbon 'Por encargo' en la tarjeta del catálogo público.",
+    )
     destacada = models.BooleanField(
         default=False,
         verbose_name="Prenda Destacada",

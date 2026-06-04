@@ -4,6 +4,104 @@
 {% block breadcrumb %}Vista general{% endblock %}
 
 {% block content %}
+<style>
+  /* ── Image strip ─────────────────────────────────────────── */
+  .img-strip {
+    display: flex; gap: 8px; overflow-x: auto;
+    padding: 4px 2px; min-height: 96px; align-items: center;
+  }
+  .img-strip::-webkit-scrollbar { height: 4px; }
+  .img-strip::-webkit-scrollbar-track { background: var(--paper); border-radius: 2px; }
+  .img-strip::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 2px; }
+
+  .strip-card {
+    position: relative; flex-shrink: 0;
+    width: 80px; height: 80px; border-radius: 6px; overflow: hidden;
+    border: 2px solid transparent; cursor: grab;
+    transition: opacity .15s, transform .15s, border-color .15s;
+    background: var(--paper);
+  }
+  .strip-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .strip-card.dragging { opacity: .4; transform: scale(.95); cursor: grabbing; }
+  .strip-card.drag-over { border-color: var(--yellow); }
+
+  .strip-badge {
+    position: absolute; top: 4px; left: 4px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--navy); color: #fff;
+    font-size: 9px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .strip-trash {
+    position: absolute; top: 3px; right: 3px;
+    width: 22px; height: 22px; border-radius: 4px;
+    background: rgba(164,50,43,.88); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity .12s;
+    color: #fff; padding: 0;
+  }
+  .strip-card:hover .strip-trash { opacity: 1; }
+
+  .strip-card-new-preview {
+    position: relative; flex-shrink: 0;
+    width: 80px; height: 80px; border-radius: 6px; overflow: hidden;
+    border: 2px solid var(--yellow);
+  }
+  .strip-card-new-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .strip-new-badge {
+    position: absolute; top: 4px; left: 4px;
+    background: var(--yellow); color: var(--navy);
+    font-size: 8px; font-weight: 700;
+    padding: 1px 4px; border-radius: 3px; pointer-events: none;
+  }
+  .strip-new-remove {
+    position: absolute; top: 3px; right: 3px;
+    width: 22px; height: 22px; border-radius: 4px;
+    background: rgba(164,50,43,.88); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; padding: 0;
+  }
+
+  .strip-card-add {
+    flex-shrink: 0; width: 80px; height: 80px;
+    border-radius: 6px; border: 2px dashed var(--line-2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: border-color .12s, background .12s, color .12s;
+    background: var(--paper); color: var(--mute); font-size: 24px;
+  }
+  .strip-card-add:hover { border-color: var(--navy); color: var(--navy); background: #f0f2f8; }
+
+  /* ── Pagination ──────────────────────────────────────────── */
+  .dash-pagination {
+    display: flex; align-items: center; justify-content: center;
+    gap: 4px; margin-top: 20px; padding: 4px 0;
+  }
+  .dash-page-btn {
+    min-width: 32px; height: 32px; padding: 0 8px;
+    border-radius: 6px; border: 1px solid var(--line);
+    background: #fff; color: var(--ink);
+    font-size: 13px; font-weight: 500;
+    display: inline-flex; align-items: center; justify-content: center;
+    text-decoration: none; cursor: pointer;
+    transition: background .12s, border-color .12s, color .12s;
+  }
+  .dash-page-btn:hover { background: var(--paper); border-color: var(--navy); color: var(--navy); }
+  .dash-page-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .dash-page-btn.disabled { opacity: .4; pointer-events: none; }
+  .dash-page-dots { color: var(--mute); font-size: 13px; padding: 0 4px; line-height: 32px; }
+
+  /* ── Toast ───────────────────────────────────────────────── */
+  #dashToast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    padding: 12px 18px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0,0,0,.18);
+    transform: translateY(12px); opacity: 0;
+    transition: transform .22s, opacity .22s; pointer-events: none;
+  }
+  #dashToast.show { transform: translateY(0); opacity: 1; }
+</style>
 
 <!-- Page header -->
 <div class="page-header d-flex flex-wrap align-items-start justify-content-between gap-3">
@@ -13,9 +111,9 @@
     <p class="page-lede">Resumen del estado actual del catálogo de Confecciones Matys.</p>
   </div>
   <div class="page-actions" style="padding-top:32px;">
-    <a href="/admin/matys/prenda/add/" target="_blank" class="btn-admin btn-admin-primary">
+    <button id="btnNuevaPrenda" class="btn-admin btn-admin-primary">
       <i class="bi bi-plus-lg"></i> Nueva prenda
-    </a>
+    </button>
   </div>
 </div>
 
@@ -60,16 +158,27 @@
   </div>
   <div class="surface-col-header">
     <span class="col-label" style="flex:1;">Nombre</span>
-    <span class="col-label" style="width:110px;">Categoría</span>
-    <span class="col-label" style="width:90px;">Precio</span>
+    <span class="col-label" style="width:100px;">Categoría</span>
+    <span class="col-label" style="width:140px;">Tipo</span>
+    <span class="col-label" style="width:110px;">Modalidad</span>
+    <span class="col-label" style="width:85px;">Precio</span>
     <span class="col-label" style="width:80px;">Estado</span>
+    <span class="col-label" style="width:72px;text-align:right;">Acciones</span>
   </div>
 
-  {% for p in prendas %}
+  {% for p, tipo_nombre in prendas_data %}
   <div class="data-row">
-    <span class="row-name">{{ p.nombre }}</span>
-    <span style="width:110px;font-size:12.5px;color:var(--mute);">{{ p.get_categoria_display }}</span>
-    <span style="width:90px;font-size:12.5px;font-family:'JetBrains Mono',monospace;">L.{{ p.precio }}</span>
+    <span class="row-name" style="flex:1;">{{ p.nombre }}</span>
+    <span style="width:100px;font-size:12.5px;color:var(--mute);">{{ p.get_categoria_display }}</span>
+    <span style="width:140px;font-size:12px;color:var(--mute);">{{ tipo_nombre }}</span>
+    <span style="width:110px;">
+      {% if p.por_encargo %}
+        <span class="chip chip-accent">Por encargo</span>
+      {% else %}
+        <span class="chip chip-success">Disponible</span>
+      {% endif %}
+    </span>
+    <span style="width:85px;font-size:12.5px;font-family:'JetBrains Mono',monospace;">L.{{ p.precio }}</span>
     <span style="width:80px;">
       {% if p.disponible %}
         <span class="chip chip-success">● Activa</span>
@@ -77,20 +186,703 @@
         <span class="chip chip-muted">● Oculta</span>
       {% endif %}
     </span>
-    <div class="row-actions">
-      <a href="/admin/matys/prenda/{{ p.pk }}/change/" target="_blank"
-         class="row-icon-btn" title="Editar en admin">
+    <div class="row-actions" style="width:72px;justify-content:flex-end;">
+      <button type="button" class="row-icon-btn edit-prenda-btn"
+              data-id="{{ p.pk }}" title="Editar">
         <i class="bi bi-pencil"></i>
-      </a>
+      </button>
+      <button type="button" class="row-icon-btn danger delete-prenda-btn"
+              data-id="{{ p.pk }}" data-nombre="{{ p.nombre }}" title="Eliminar">
+        <i class="bi bi-trash3"></i>
+      </button>
     </div>
   </div>
   {% empty %}
   <div class="empty-state">
     <i class="bi bi-box-seam"></i>
     <div class="empty-state-title">Sin prendas</div>
-    <div class="empty-state-text">Crea la primera prenda desde el admin de Django.</div>
+    <div class="empty-state-text">Usá el botón "Nueva prenda" para agregar la primera.</div>
   </div>
   {% endfor %}
 </div>
 
+<!-- Pagination -->
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="dash-pagination">
+  <a class="dash-page-btn{% if not page_obj.has_previous %} disabled{% endif %}"
+     href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% else %}#{% endif %}">
+    <i class="bi bi-chevron-left"></i>
+  </a>
+  {% for item in page_range %}
+    {% if item == '...' %}
+      <span class="dash-page-dots">…</span>
+    {% elif item == page_obj.number %}
+      <span class="dash-page-btn active">{{ item }}</span>
+    {% else %}
+      <a class="dash-page-btn" href="?page={{ item }}">{{ item }}</a>
+    {% endif %}
+  {% endfor %}
+  <a class="dash-page-btn{% if not page_obj.has_next %} disabled{% endif %}"
+     href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }}{% else %}#{% endif %}">
+    <i class="bi bi-chevron-right"></i>
+  </a>
+</div>
+{% endif %}
+
+
+<!-- ── Edit modal ─────────────────────────────────────────── -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:560px;">
+    <div class="modal-content" style="border:1px solid var(--line);border-radius:10px;background:#fff;">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);">
+        <h5 style="font-family:'Playfair Display',serif;color:var(--navy);font-size:18px;margin:0;">Editar prenda</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div style="padding:20px;max-height:72vh;overflow-y:auto;">
+        <form id="editForm" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" id="editPrendaId" name="prenda_id">
+          <input type="hidden" id="editOrdenImagenes" name="orden_imagenes">
+          <input type="hidden" id="editEliminarImagenes" name="eliminar_imagen_ids">
+          <input type="file" id="inputEditNewImg" name="imagen_nueva"
+                 accept="image/jpeg,image/png,image/webp" style="display:none;">
+
+          <div style="margin-bottom:14px;">
+            <label class="form-label-admin" for="editNombre">Nombre</label>
+            <input type="text" id="editNombre" name="nombre" class="input-admin"
+                   placeholder="Nombre de la prenda" required>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="form-label-admin" for="editPrecio">Precio (L.)</label>
+            <input type="number" id="editPrecio" name="precio" class="input-admin"
+                   placeholder="0.00" step="0.01" min="0" required>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="form-label-admin" for="editDescripcion">Descripción corta</label>
+            <textarea id="editDescripcion" name="descripcion_corta" class="input-admin"
+                      rows="2" style="height:auto;resize:none;"
+                      placeholder="Descripción breve de la prenda"></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+            <div>
+              <label class="form-label-admin" for="editCategoria">Categoría</label>
+              <select id="editCategoria" name="categoria" class="input-admin">
+                <option value="femenino">Femenino</option>
+                <option value="masculino">Masculino</option>
+                <option value="infantil">Infantil</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label-admin" for="editTipo">Tipo</label>
+              <select id="editTipo" name="tipo" class="input-admin"></select>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;
+                      padding:10px 12px;background:var(--paper);border-radius:6px;
+                      border:1px solid var(--line);">
+            <input type="checkbox" id="editDisponible" name="disponible"
+                   style="width:16px;height:16px;accent-color:var(--navy);cursor:pointer;flex-shrink:0;">
+            <label for="editDisponible"
+                   style="font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;margin:0;line-height:1.3;">
+              Disponible en el catálogo
+              <span style="display:block;font-size:11.5px;color:var(--mute);font-weight:400;">
+                Si está desmarcado, la prenda no aparece en el sitio público.
+              </span>
+            </label>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;
+                      padding:10px 12px;background:var(--paper);border-radius:6px;
+                      border:1px solid var(--line);">
+            <input type="checkbox" id="editPorEncargo" name="por_encargo"
+                   style="width:16px;height:16px;accent-color:var(--navy);cursor:pointer;flex-shrink:0;">
+            <label for="editPorEncargo"
+                   style="font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;margin:0;line-height:1.3;">
+              Hecho por encargo
+              <span style="display:block;font-size:11.5px;color:var(--mute);font-weight:400;">
+                Muestra el ribbon "Por encargo" en la tarjeta del catálogo.
+              </span>
+            </label>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="form-label-admin">Imágenes</label>
+            <div id="editImgStrip" class="img-strip"></div>
+            <div style="font-size:11.5px;color:var(--mute);margin-top:6px;">
+              Arrastrá para reordenar · La primera imagen es la principal · Máx. 4
+            </div>
+          </div>
+          <div id="editError"
+               style="color:#A4322B;font-size:12.5px;background:#FBE7E5;
+                      border-radius:6px;padding:8px 12px;display:none;"></div>
+        </form>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--line);">
+        <button type="button" class="btn-admin btn-admin-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" id="editSubmitBtn" class="btn-admin btn-admin-primary">
+          <i class="bi bi-check-lg"></i> Guardar cambios
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ── Create modal ────────────────────────────────────────── -->
+<div class="modal fade" id="createModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:560px;">
+    <div class="modal-content" style="border:1px solid var(--line);border-radius:10px;background:#fff;">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);">
+        <h5 style="font-family:'Playfair Display',serif;color:var(--navy);font-size:18px;margin:0;">Nueva prenda</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div style="padding:20px;max-height:72vh;overflow-y:auto;">
+        <form id="createForm" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div style="margin-bottom:14px;">
+            <label class="form-label-admin" for="createNombre">Nombre</label>
+            <input type="text" id="createNombre" name="nombre" class="input-admin"
+                   placeholder="Nombre de la prenda" required>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="form-label-admin" for="createPrecio">Precio (L.)</label>
+            <input type="number" id="createPrecio" name="precio" class="input-admin"
+                   placeholder="0.00" step="0.01" min="0" required>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="form-label-admin" for="createDescripcion">Descripción corta</label>
+            <textarea id="createDescripcion" name="descripcion_corta" class="input-admin"
+                      rows="2" style="height:auto;resize:none;"
+                      placeholder="Descripción breve de la prenda"></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+            <div>
+              <label class="form-label-admin" for="createCategoria">Categoría</label>
+              <select id="createCategoria" name="categoria" class="input-admin">
+                <option value="femenino">Femenino</option>
+                <option value="masculino">Masculino</option>
+                <option value="infantil">Infantil</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label-admin" for="createTipo">Tipo</label>
+              <select id="createTipo" name="tipo" class="input-admin"></select>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;
+                      padding:10px 12px;background:var(--paper);border-radius:6px;
+                      border:1px solid var(--line);">
+            <input type="checkbox" id="createDisponible" name="disponible" checked
+                   style="width:16px;height:16px;accent-color:var(--navy);cursor:pointer;flex-shrink:0;">
+            <label for="createDisponible"
+                   style="font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;margin:0;line-height:1.3;">
+              Disponible en el catálogo
+              <span style="display:block;font-size:11.5px;color:var(--mute);font-weight:400;">
+                Si está desmarcado, la prenda no aparece en el sitio público.
+              </span>
+            </label>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;
+                      padding:10px 12px;background:var(--paper);border-radius:6px;
+                      border:1px solid var(--line);">
+            <input type="checkbox" id="createPorEncargo" name="por_encargo" checked
+                   style="width:16px;height:16px;accent-color:var(--navy);cursor:pointer;flex-shrink:0;">
+            <label for="createPorEncargo"
+                   style="font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;margin:0;line-height:1.3;">
+              Hecho por encargo
+              <span style="display:block;font-size:11.5px;color:var(--mute);font-weight:400;">
+                Muestra el ribbon "Por encargo" en la tarjeta del catálogo.
+              </span>
+            </label>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="form-label-admin">Imágenes (máx. 4)</label>
+            <div id="createImgStrip" class="img-strip"></div>
+            <input type="file" id="inputCreateImg"
+                   accept="image/jpeg,image/png,image/webp" style="display:none;">
+            <div style="font-size:11.5px;color:var(--mute);margin-top:6px;">
+              La primera imagen agregada será la imagen principal del catálogo.
+            </div>
+          </div>
+          <div id="createError"
+               style="color:#A4322B;font-size:12.5px;background:#FBE7E5;
+                      border-radius:6px;padding:8px 12px;display:none;"></div>
+        </form>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--line);">
+        <button type="button" class="btn-admin btn-admin-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" id="createSubmitBtn" class="btn-admin btn-admin-primary">
+          <i class="bi bi-plus-lg"></i> Crear prenda
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ── Delete confirmation modal ──────────────────────────── -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
+    <div class="modal-content" style="border:1px solid var(--line);border-radius:10px;background:#fff;">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);">
+        <h5 style="font-family:'Playfair Display',serif;color:#A4322B;font-size:18px;margin:0;">
+          <i class="bi bi-exclamation-triangle" style="font-size:16px;margin-right:6px;"></i>Eliminar prenda
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div style="padding:20px 24px;">
+        <p style="font-size:13.5px;color:var(--ink);margin:0 0 6px;">
+          ¿Estás seguro de que querés eliminar completamente
+        </p>
+        <p style="font-size:14px;font-weight:700;color:var(--navy);margin:0 0 14px;">
+          "<span id="deleteNombreDisplay"></span>"?
+        </p>
+        <p style="font-size:12px;color:var(--mute);margin:0;">
+          Esta acción es irreversible. Se borrarán la prenda y todas sus imágenes de Cloudinary.
+        </p>
+        <div id="deleteError"
+             style="color:#A4322B;font-size:12.5px;background:#FBE7E5;
+                    border-radius:6px;padding:8px 12px;margin-top:12px;display:none;"></div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--line);">
+        <button type="button" class="btn-admin btn-admin-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" id="deleteConfirmBtn"
+                style="height:36px;padding:0 14px;border-radius:6px;border:none;cursor:pointer;
+                       background:#A4322B;color:#fff;font-size:13px;font-weight:600;
+                       display:inline-flex;align-items:center;gap:6px;
+                       transition:background .12s;">
+          <i class="bi bi-trash3"></i> Eliminar definitivamente
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="dashToast"></div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* ── CSRF ─────────────────────────────────────────────────── */
+function getCsrf() {
+  const m = document.cookie.match(/csrftoken=([^;]+)/);
+  return m ? m[1] : '';
+}
+
+/* ── Toast ───────────────────────────────────────────────── */
+function showToast(msg, isError = false) {
+  const t = document.getElementById('dashToast');
+  t.textContent      = msg;
+  t.style.background = isError ? '#FBE7E5' : '#E5F3EA';
+  t.style.color      = isError ? '#A4322B'  : '#1F6B3A';
+  t.style.border     = isError ? '1px solid #f5c6c6' : '1px solid #b7dfca';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* ── Load tipos from DB ───────────────────────────────────── */
+async function loadTipos(categoria, selEl, selected) {
+  selEl.innerHTML = '<option disabled>Cargando…</option>';
+  try {
+    const res  = await fetch(`/gestion-matys/categorias/tipos-json/?categoria=${encodeURIComponent(categoria)}`);
+    const data = await res.json();
+    selEl.innerHTML = (data.tipos || [])
+      .map(t => `<option value="${t.slug}"${t.slug === selected ? ' selected' : ''}>${t.nombre}</option>`)
+      .join('');
+  } catch {
+    selEl.innerHTML = '<option disabled>Error al cargar</option>';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EDIT STRIP
+   ═══════════════════════════════════════════════════════════ */
+let eStrip      = [];   // [{id, url, orden}]
+let ePendingDel = [];   // image IDs to delete on save
+let ePendingFile = null;
+let ePendingUrl  = '';
+let eDragIdx     = -1;
+
+function eSyncOrder() {
+  document.getElementById('editOrdenImagenes').value =
+    JSON.stringify(eStrip.map((item, i) => ({ id: item.id, orden: i })));
+}
+
+function renderEditStrip() {
+  const strip = document.getElementById('editImgStrip');
+  strip.innerHTML = '';
+
+  eStrip.forEach((item, index) => {
+    const card = document.createElement('div');
+    card.className   = 'strip-card';
+    card.draggable   = true;
+    card.dataset.index = String(index);
+    card.innerHTML =
+      `<img src="${item.url}" alt="">` +
+      `<span class="strip-badge">${index + 1}</span>` +
+      `<button type="button" class="strip-trash" title="Eliminar">` +
+        `<i class="bi bi-trash3" style="font-size:10px;"></i>` +
+      `</button>`;
+
+    card.addEventListener('dragstart', e => {
+      eDragIdx = index;
+      setTimeout(() => card.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      strip.querySelectorAll('.strip-card').forEach(c => c.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      const ti = parseInt(card.dataset.index);
+      if (eDragIdx < 0 || eDragIdx === ti) return;
+      const [moved] = eStrip.splice(eDragIdx, 1);
+      eStrip.splice(ti, 0, moved);
+      eDragIdx = -1;
+      renderEditStrip();
+      eSyncOrder();
+    });
+    card.querySelector('.strip-trash').addEventListener('click', () => {
+      const remaining = eStrip.length - 1 + (ePendingFile ? 1 : 0);
+      if (remaining < 1) { showToast('Debe quedar al menos una imagen.', true); return; }
+      ePendingDel.push(item.id);
+      eStrip.splice(index, 1);
+      renderEditStrip();
+      eSyncOrder();
+    });
+    strip.appendChild(card);
+  });
+
+  if (ePendingFile) {
+    const nc = document.createElement('div');
+    nc.className = 'strip-card-new-preview';
+    nc.innerHTML =
+      `<img src="${ePendingUrl}" alt="">` +
+      `<span class="strip-new-badge">NUEVA</span>` +
+      `<button type="button" class="strip-new-remove" title="Cancelar">` +
+        `<i class="bi bi-x" style="font-size:13px;"></i>` +
+      `</button>`;
+    nc.querySelector('.strip-new-remove').addEventListener('click', () => {
+      ePendingFile = null;
+      ePendingUrl  = '';
+      document.getElementById('inputEditNewImg').value = '';
+      renderEditStrip();
+    });
+    strip.appendChild(nc);
+  }
+
+  const total = eStrip.length + (ePendingFile ? 1 : 0);
+  if (total < 4) {
+    const add = document.createElement('div');
+    add.className = 'strip-card-add';
+    add.title     = 'Agregar imagen';
+    add.innerHTML = '<i class="bi bi-plus-lg"></i>';
+    add.addEventListener('click', () => document.getElementById('inputEditNewImg').click());
+    strip.appendChild(add);
+  }
+}
+
+async function openEditModal(prendaId) {
+  eStrip = []; ePendingDel = []; ePendingFile = null; ePendingUrl = ''; eDragIdx = -1;
+
+  const errEl = document.getElementById('editError');
+  errEl.style.display = 'none';
+  errEl.textContent   = '';
+  document.getElementById('inputEditNewImg').value      = '';
+  document.getElementById('editOrdenImagenes').value    = '';
+  document.getElementById('editEliminarImagenes').value = '';
+
+  try {
+    const res = await fetch(`/gestion-matys/prendas/${prendaId}/editar/`);
+    if (!res.ok) throw new Error();
+    const d = await res.json();
+
+    document.getElementById('editPrendaId').value      = d.id;
+    document.getElementById('editNombre').value        = d.nombre;
+    document.getElementById('editPrecio').value        = d.precio;
+    document.getElementById('editDescripcion').value   = d.descripcion_corta;
+    document.getElementById('editCategoria').value      = d.categoria;
+    document.getElementById('editDisponible').checked   = d.disponible;
+    document.getElementById('editPorEncargo').checked   = d.por_encargo;
+    await loadTipos(d.categoria, document.getElementById('editTipo'), d.tipo);
+
+    eStrip = (d.imagenes || []).map(img => ({ id: img.id, url: img.url, orden: img.orden }));
+    renderEditStrip();
+    eSyncOrder();
+
+    const btn     = document.getElementById('editSubmitBtn');
+    btn.disabled  = false;
+    btn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar cambios';
+
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+  } catch {
+    showToast('No se pudieron cargar los datos. Intentá nuevamente.', true);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CREATE STRIP
+   ═══════════════════════════════════════════════════════════ */
+let cFiles = [];  // [{file, url}] up to 4
+
+function renderCreateStrip() {
+  const strip = document.getElementById('createImgStrip');
+  strip.innerHTML = '';
+
+  cFiles.forEach((item, index) => {
+    const card = document.createElement('div');
+    card.className = 'strip-card-new-preview';
+    card.innerHTML =
+      `<img src="${item.url}" alt="">` +
+      `<span class="strip-badge">${index + 1}</span>` +
+      `<button type="button" class="strip-new-remove" title="Quitar">` +
+        `<i class="bi bi-x" style="font-size:13px;"></i>` +
+      `</button>`;
+    card.querySelector('.strip-new-remove').addEventListener('click', () => {
+      cFiles.splice(index, 1);
+      renderCreateStrip();
+    });
+    strip.appendChild(card);
+  });
+
+  if (cFiles.length < 4) {
+    const add = document.createElement('div');
+    add.className = 'strip-card-add';
+    add.title     = 'Agregar imagen';
+    add.innerHTML = '<i class="bi bi-plus-lg"></i>';
+    add.addEventListener('click', () => document.getElementById('inputCreateImg').click());
+    strip.appendChild(add);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DOM READY
+   ═══════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* Edit: open via table row button */
+  document.querySelectorAll('.edit-prenda-btn').forEach(btn => {
+    btn.addEventListener('click', () => openEditModal(btn.dataset.id));
+  });
+
+  /* Edit: categoria → refresh tipos */
+  document.getElementById('editCategoria').addEventListener('change', function () {
+    loadTipos(this.value, document.getElementById('editTipo'), '');
+  });
+
+  /* Edit: new file selected → preview */
+  document.getElementById('inputEditNewImg').addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    ePendingFile = file;
+    const r = new FileReader();
+    r.onload = e => { ePendingUrl = e.target.result; renderEditStrip(); };
+    r.readAsDataURL(file);
+  });
+
+  /* Edit: submit */
+  document.getElementById('editSubmitBtn').addEventListener('click', async () => {
+    const errEl    = document.getElementById('editError');
+    const btn      = document.getElementById('editSubmitBtn');
+    const prendaId = document.getElementById('editPrendaId').value;
+    errEl.style.display = 'none';
+    errEl.textContent   = '';
+
+    const fd = new FormData(document.getElementById('editForm'));
+    fd.set('disponible',       document.getElementById('editDisponible').checked ? 'true' : 'false');
+    fd.set('por_encargo',      document.getElementById('editPorEncargo').checked  ? 'true' : 'false');
+    fd.set('orden_imagenes',   JSON.stringify(eStrip.map((item, i) => ({ id: item.id, orden: i }))));
+    if (ePendingDel.length > 0) fd.set('eliminar_imagen_ids', JSON.stringify(ePendingDel));
+    else fd.delete('eliminar_imagen_ids');
+    if (ePendingFile) fd.set('imagen_nueva', ePendingFile);
+    else fd.delete('imagen_nueva');
+
+    btn.disabled    = true;
+    btn.textContent = 'Guardando…';
+    try {
+      const res  = await fetch(`/gestion-matys/prendas/${prendaId}/editar/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrf() },
+        body: fd,
+      });
+      const data = await res.json();
+      if (data.success) {
+        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+        showToast('Prenda actualizada correctamente.');
+        setTimeout(() => location.reload(), 900);
+      } else {
+        errEl.textContent   = data.error || 'Error al guardar.';
+        errEl.style.display = 'block';
+        btn.disabled        = false;
+        btn.innerHTML       = '<i class="bi bi-check-lg"></i> Guardar cambios';
+      }
+    } catch {
+      errEl.textContent   = 'Error de conexión. Verificá tu internet e intentá nuevamente.';
+      errEl.style.display = 'block';
+      btn.disabled        = false;
+      btn.innerHTML       = '<i class="bi bi-check-lg"></i> Guardar cambios';
+    }
+  });
+
+  /* Create: open modal */
+  document.getElementById('btnNuevaPrenda').addEventListener('click', async () => {
+    cFiles = [];
+    document.getElementById('createNombre').value        = '';
+    document.getElementById('createPrecio').value        = '';
+    document.getElementById('createDescripcion').value   = '';
+    document.getElementById('createCategoria').value     = 'femenino';
+    document.getElementById('createDisponible').checked  = true;
+    document.getElementById('createPorEncargo').checked  = true;
+    document.getElementById('inputCreateImg').value      = '';
+    const errEl = document.getElementById('createError');
+    errEl.style.display = 'none';
+    errEl.textContent   = '';
+    const btn     = document.getElementById('createSubmitBtn');
+    btn.disabled  = false;
+    btn.innerHTML = '<i class="bi bi-plus-lg"></i> Crear prenda';
+    await loadTipos('femenino', document.getElementById('createTipo'), '');
+    renderCreateStrip();
+    new bootstrap.Modal(document.getElementById('createModal')).show();
+  });
+
+  /* Create: categoria → refresh tipos */
+  document.getElementById('createCategoria').addEventListener('change', function () {
+    loadTipos(this.value, document.getElementById('createTipo'), '');
+  });
+
+  /* Create: add image */
+  document.getElementById('inputCreateImg').addEventListener('change', function () {
+    for (const file of Array.from(this.files)) {
+      if (cFiles.length >= 4) break;
+      const r = new FileReader();
+      r.onload = e => {
+        cFiles.push({ file, url: e.target.result });
+        renderCreateStrip();
+      };
+      r.readAsDataURL(file);
+    }
+    this.value = '';
+  });
+
+  /* Create: submit */
+  document.getElementById('createSubmitBtn').addEventListener('click', async () => {
+    const errEl = document.getElementById('createError');
+    const btn   = document.getElementById('createSubmitBtn');
+    errEl.style.display = 'none';
+    errEl.textContent   = '';
+
+    const nombre    = document.getElementById('createNombre').value.trim();
+    const precio    = document.getElementById('createPrecio').value.trim();
+    const categoria = document.getElementById('createCategoria').value;
+    if (!nombre) { errEl.textContent = 'El nombre es requerido.'; errEl.style.display = 'block'; return; }
+    if (!precio)  { errEl.textContent = 'El precio es requerido.';  errEl.style.display = 'block'; return; }
+
+    const fd = new FormData();
+    fd.append('nombre',            nombre);
+    fd.append('precio',            precio);
+    fd.append('descripcion_corta', document.getElementById('createDescripcion').value.trim());
+    fd.append('categoria',         categoria);
+    fd.append('tipo',              document.getElementById('createTipo').value);
+    fd.append('disponible',        document.getElementById('createDisponible').checked  ? 'true' : 'false');
+    fd.append('por_encargo',       document.getElementById('createPorEncargo').checked   ? 'true' : 'false');
+    cFiles.forEach((item, i) => fd.append(`imagen_${i}`, item.file));
+
+    btn.disabled    = true;
+    btn.textContent = 'Creando…';
+    try {
+      const res  = await fetch('/gestion-matys/prendas/crear/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrf() },
+        body: fd,
+      });
+      const data = await res.json();
+      if (data.success) {
+        bootstrap.Modal.getInstance(document.getElementById('createModal')).hide();
+        showToast('Prenda creada correctamente.');
+        setTimeout(() => location.reload(), 900);
+      } else {
+        errEl.textContent   = data.error || 'Error al crear.';
+        errEl.style.display = 'block';
+        btn.disabled        = false;
+        btn.innerHTML       = '<i class="bi bi-plus-lg"></i> Crear prenda';
+      }
+    } catch {
+      errEl.textContent   = 'Error de conexión. Verificá tu internet e intentá nuevamente.';
+      errEl.style.display = 'block';
+      btn.disabled        = false;
+      btn.innerHTML       = '<i class="bi bi-plus-lg"></i> Crear prenda';
+    }
+  });
+
+  /* Delete: open confirmation modal */
+  let deletePrendaId = null;
+  document.querySelectorAll('.delete-prenda-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      deletePrendaId = btn.dataset.id;
+      document.getElementById('deleteNombreDisplay').textContent = btn.dataset.nombre;
+      document.getElementById('deleteError').style.display = 'none';
+      document.getElementById('deleteError').textContent   = '';
+      const confirmBtn = document.getElementById('deleteConfirmBtn');
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '<i class="bi bi-trash3"></i> Eliminar definitivamente';
+      new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    });
+  });
+
+  /* Delete: confirm */
+  document.getElementById('deleteConfirmBtn').addEventListener('click', async () => {
+    if (!deletePrendaId) return;
+    const errEl = document.getElementById('deleteError');
+    const btn   = document.getElementById('deleteConfirmBtn');
+    errEl.style.display = 'none';
+    errEl.textContent   = '';
+    btn.disabled    = true;
+    btn.textContent = 'Eliminando…';
+    try {
+      const res  = await fetch(`/gestion-matys/prendas/${deletePrendaId}/eliminar/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrf() },
+      });
+      const data = await res.json();
+      if (data.success) {
+        bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+        showToast('Prenda eliminada correctamente.');
+        setTimeout(() => location.reload(), 900);
+      } else {
+        errEl.textContent   = data.error || 'Error al eliminar.';
+        errEl.style.display = 'block';
+        btn.disabled        = false;
+        btn.innerHTML       = '<i class="bi bi-trash3"></i> Eliminar definitivamente';
+      }
+    } catch {
+      errEl.textContent   = 'Error de conexión. Verificá tu internet e intentá nuevamente.';
+      errEl.style.display = 'block';
+      btn.disabled        = false;
+      btn.innerHTML       = '<i class="bi bi-trash3"></i> Eliminar definitivamente';
+    }
+  });
+
+});
+</script>
 {% endblock %}

@@ -32,7 +32,7 @@
 </div>
 
 <div class="page-section">
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px;">
 
     <!-- FEMENINO -->
     <div class="admin-card">
@@ -148,6 +148,66 @@
 
       <div class="data-row add-trigger" id="add-trigger-masculino"
            data-categoria="masculino"
+           style="cursor:pointer; color:var(--mute);">
+        <i class="bi bi-plus" style="font-size:16px; margin-right:8px;"></i>
+        <span style="font-size:13px;">Agregar tipo</span>
+      </div>
+    </div>
+
+    <!-- INFANTIL -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div class="admin-card-title">
+          <i class="bi bi-stars me-2" style="color:var(--navy);"></i>Infantil
+        </div>
+        <span class="chip chip-neutral">{{ tipos_infantil.count }} tipos</span>
+      </div>
+
+      <div class="surface-col-header" style="padding:0 16px;">
+        <span class="col-label" style="flex:1;">Tipo de prenda</span>
+        <span class="col-label" style="width:70px; text-align:right;">Acciones</span>
+      </div>
+
+      {% for tipo in tipos_infantil %}
+      <div class="data-row" id="tipo-row-{{ tipo.pk }}">
+        <span class="row-name" id="tipo-name-{{ tipo.pk }}">{{ tipo.nombre }}</span>
+        <div class="row-actions" id="tipo-actions-{{ tipo.pk }}">
+          <button class="row-icon-btn edit-btn"
+                  data-id="{{ tipo.pk }}" data-nombre="{{ tipo.nombre }}"
+                  title="Editar">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="row-icon-btn danger delete-btn"
+                  data-id="{{ tipo.pk }}" data-nombre="{{ tipo.nombre }}"
+                  title="Eliminar">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+      {% empty %}
+      <div class="data-row" style="color:var(--mute);font-size:13px;">
+        Sin tipos registrados.
+      </div>
+      {% endfor %}
+
+      <!-- Inline add row -->
+      <div class="data-row" id="add-row-infantil"
+           style="display:none; gap:8px; align-items:center;">
+        <input type="text" id="add-input-infantil" class="tipo-edit-input"
+               placeholder="Nombre del tipo…"
+               onkeydown="if(event.key==='Enter')submitAddTipo('infantil');else if(event.key==='Escape')cancelAdd('infantil');">
+        <div class="row-actions">
+          <button class="row-icon-btn" onclick="submitAddTipo('infantil')" title="Guardar">
+            <i class="bi bi-check-lg"></i>
+          </button>
+          <button class="row-icon-btn" onclick="cancelAdd('infantil')" title="Cancelar">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="data-row add-trigger" id="add-trigger-infantil"
+           data-categoria="infantil"
            style="cursor:pointer; color:var(--mute);">
         <i class="bi bi-plus" style="font-size:16px; margin-right:8px;"></i>
         <span style="font-size:13px;">Agregar tipo</span>
