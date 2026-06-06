@@ -1,21 +1,25 @@
 import json
-import time
 import cloudinary
 import cloudinary.uploader
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 from django.utils.text import slugify
-from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
-from .models import Prenda, ImagenPrenda, TipoPrenda
+from .models import Prenda, ImagenPrenda, TipoPrenda, SiteConfig
+from .site_textos import SECCIONES_TEXTOS, DEFAULTS_TEXTOS, VALIDACIONES_TEXTOS, get_textos
 
-_MAX_ATTEMPTS = 3
-_COOLDOWN_SECONDS = 300  # 5 minutos
 
 def inicio(request):
-    prendas_destacadas = Prenda.objects.filter(destacada=True).prefetch_related('imagenes')[:3]
+    # Solo prendas destacadas Y disponibles: una prenda oculta no debe
+    # aparecer en la portada (su detalle daría 404).
+    prendas_destacadas = (
+        Prenda.objects
+        .filter(destacada=True, disponible=True)
+        .prefetch_related('imagenes')[:3]
+    )
     context = {
         'title': "Inicio - Confecciones Maty's",
         'prendas_destacadas': prendas_destacadas,
@@ -79,51 +83,11 @@ def prendas(request):
     }
     return render(request, 'prendas.html', context)
 
-@require_POST
 def admin_login(request):
-    now = time.time()
-    attempts = request.session.get('_login_attempts', 0)
-    last_attempt_time = request.session.get('_login_last_attempt', 0.0)
+    # Ruta heredada (/acceso/): el modal de login al que redirigía ya no
+    # existe. Se mantiene la URL y se envía al login real del panel.
+    return redirect('gestion_login')
 
-    # Resetear contador si ya pasó el cooldown
-    if (now - last_attempt_time) >= _COOLDOWN_SECONDS:
-        attempts = 0
-        request.session['_login_attempts'] = 0
-
-    # Bloqueo temporal
-    if attempts >= _MAX_ATTEMPTS and (now - last_attempt_time) < _COOLDOWN_SECONDS:
-        remaining = int(_COOLDOWN_SECONDS - (now - last_attempt_time))
-        messages.error(
-            request,
-            f'Demasiados intentos fallidos. Intenta nuevamente en {remaining // 60 + 1} minuto(s).',
-            extra_tags='blocked',
-        )
-        return redirect('/prendas/?modal=1')
-
-    username = request.POST.get('username', '').strip()
-    password = request.POST.get('password', '').strip()
-
-    # Validación: vacíos y longitud mínima
-    if not username or not password or len(username) < 3 or len(password) < 3:
-        attempts += 1
-        request.session['_login_attempts'] = attempts
-        request.session['_login_last_attempt'] = now
-        messages.error(request, 'Credenciales incorrectas.')
-        return redirect('/prendas/?modal=1')
-
-    user = authenticate(request, username=username, password=password)
-
-    if user is not None and (user.is_staff or user.is_superuser):
-        request.session.pop('_login_attempts', None)
-        request.session.pop('_login_last_attempt', None)
-        login(request, user)  # Django cicla el session key internamente
-        return redirect('/admin/')
-
-    attempts += 1
-    request.session['_login_attempts'] = attempts
-    request.session['_login_last_attempt'] = now
-    messages.error(request, 'Credenciales incorrectas.')
-    return redirect('/prendas/?modal=1')
 
 def trayectoria(request):
     context = {
@@ -132,13 +96,14 @@ def trayectoria(request):
     return render(request, 'trayectoria.html', context)
 
 def contacto(request):
+    txt = get_textos()
     context = {
         'title': 'Contáctanos - Confecciones Maty\'s',
-        'whatsapp_number': '50498267040',
-        'facebook_url': 'https://www.facebook.com/maryurihern/reels/',
-        'instagram_url': 'https://www.instagram.com/confe_ccionesmaty?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==',
-        'tiktok_url': 'https://www.tiktok.com/@confeccinesmaty4?is_from_webapp=1&sender_device=pc',
-        'youtube_url': 'https://youtube.com/@maty-2020?si=ncsHDzw-QCMJGlX1',
+        'whatsapp_number': txt['contacto_whatsapp'],
+        'facebook_url': txt['red_facebook'],
+        'instagram_url': txt['red_instagram'],
+        'tiktok_url': txt['red_tiktok'],
+        'youtube_url': txt['red_youtube'],
     }
     return render(request, 'contacto.html', context)
 
@@ -214,6 +179,7 @@ def gestion_crear_prenda(request):
         tipo              = request.POST.get('tipo', '').strip()
         disponible        = request.POST.get('disponible') == 'true'
         por_encargo       = request.POST.get('por_encargo') == 'true'
+        destacada         = request.POST.get('destacada') == 'true'
 
         if not nombre:
             return JsonResponse({'success': False, 'error': 'El nombre es requerido.'})
@@ -221,6 +187,14 @@ def gestion_crear_prenda(request):
             return JsonResponse({'success': False, 'error': 'El precio es requerido.'})
         if categoria not in [c[0] for c in Prenda.CATEGORIAS]:
             return JsonResponse({'success': False, 'error': 'Categoría inválida.'})
+        static_tipos = {t[0] for t in Prenda.TIPOS}
+        tipo_valid = (
+            not tipo or
+            TipoPrenda.objects.filter(slug=tipo, categoria=categoria).exists() or
+            tipo in static_tipos
+        )
+        if not tipo_valid:
+            return JsonResponse({'success': False, 'error': 'Tipo inválido.'})
 
         base_slug = slugify(nombre)
         slug, counter = base_slug, 1
@@ -238,6 +212,7 @@ def gestion_crear_prenda(request):
             tipo=tipo,
             disponible=disponible,
             por_encargo=por_encargo,
+            destacada=destacada,
         )
 
         for i in range(4):
@@ -374,6 +349,7 @@ def gestion_editar_prenda(request, prenda_id):
             'tipo': prenda.tipo,
             'disponible': prenda.disponible,
             'por_encargo': prenda.por_encargo,
+            'destacada': prenda.destacada,
             'imagenes': imagenes_data,
         })
 
@@ -385,7 +361,6 @@ def gestion_editar_prenda(request, prenda_id):
             categoria = request.POST.get('categoria', '').strip()
             tipo = request.POST.get('tipo', '').strip()
             disponible = request.POST.get('disponible') == 'true'
-            por_encargo = request.POST.get('por_encargo') == 'true'
 
             if not nombre:
                 return JsonResponse({'success': False, 'error': 'El nombre es requerido.'})
@@ -410,34 +385,60 @@ def gestion_editar_prenda(request, prenda_id):
             prenda.categoria = categoria
             prenda.tipo = tipo
             prenda.disponible = disponible
-            prenda.por_encargo = por_encargo
+            # Solo actualizar si el formulario los envía: el modal de
+            # "Imágenes" no incluye estos campos y antes los reseteaba.
+            if 'por_encargo' in request.POST:
+                prenda.por_encargo = request.POST.get('por_encargo') == 'true'
+            if 'destacada' in request.POST:
+                prenda.destacada = request.POST.get('destacada') == 'true'
             prenda.save()
 
-            # Delete images (only while at least 1 remains)
+            nueva_subida = 'imagen_nueva' in request.FILES
+
+            # 1) Eliminar imágenes: valida que quede al menos una foto
+            #    (contando la nueva, si la hay) y destruye en Cloudinary.
             eliminar_raw = request.POST.get('eliminar_imagen_ids', '')
             if eliminar_raw:
                 try:
                     ids_to_delete = json.loads(eliminar_raw)
-                    if isinstance(ids_to_delete, list):
-                        remaining = prenda.imagenes.count()
-                        for img_id in ids_to_delete:
-                            if remaining > 1:
-                                ImagenPrenda.objects.filter(pk=img_id, prenda=prenda).delete()
-                                remaining -= 1
                 except (json.JSONDecodeError, TypeError):
-                    pass
+                    ids_to_delete = []
+                if isinstance(ids_to_delete, list) and ids_to_delete:
+                    qs_del = prenda.imagenes.filter(pk__in=ids_to_delete)
+                    final_count = (
+                        prenda.imagenes.count() - qs_del.count()
+                        + (1 if nueva_subida else 0)
+                    )
+                    if final_count < 1:
+                        return JsonResponse({
+                            'success': False,
+                            'error': 'La prenda debe conservar al menos una imagen.',
+                        })
+                    for img in qs_del:
+                        try:
+                            cloudinary.uploader.destroy(str(img.imagen))
+                        except Exception:
+                            pass  # si Cloudinary falla, igual quitamos la referencia
+                        img.delete()
 
-            # Reorder images
+            # 2) Reordenar imágenes según el orden visual del panel
             orden_raw = request.POST.get('orden_imagenes', '')
             if orden_raw:
                 try:
                     for item in json.loads(orden_raw):
-                        ImagenPrenda.objects.filter(pk=item['id'], prenda=prenda).update(orden=item['orden'])
+                        ImagenPrenda.objects.filter(
+                            pk=item['id'], prenda=prenda
+                        ).update(orden=item['orden'])
                 except (json.JSONDecodeError, KeyError, TypeError):
                     pass
 
-            # Upload new image
-            if 'imagen_nueva' in request.FILES:
+            # 3) Subir imagen nueva (máx. 4 por prenda, también en servidor)
+            if nueva_subida:
+                if prenda.imagenes.count() >= 4:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Máximo 4 imágenes por prenda. Eliminá una antes de subir otra.',
+                    })
                 max_orden = (
                     prenda.imagenes.order_by('-orden')
                     .values_list('orden', flat=True)
@@ -450,6 +451,13 @@ def gestion_editar_prenda(request, prenda_id):
                     imagen=result['public_id'],
                     orden=next_orden,
                 )
+
+            # 4) Re-compactar la secuencia: garantiza que siempre exista
+            #    orden=0 (la imagen principal del catálogo) sin huecos.
+            for i, img in enumerate(prenda.imagenes.order_by('orden', 'pk')):
+                if img.orden != i:
+                    img.orden = i
+                    img.save(update_fields=['orden'])
 
             return JsonResponse({'success': True})
         except Exception as e:
@@ -478,9 +486,78 @@ def gestion_eliminar_prenda(request, prenda_id):
 
 
 def gestion_inicio(request):
+    """Editor de textos del sitio público (CMS ligero sobre SiteConfig)."""
     if not _staff_required(request):
+        if request.method == 'POST':
+            return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
         return redirect('gestion_login')
-    return render(request, 'gestion_matys/inicio.html', {'active_nav': 'inicio_admin'})
+
+    if request.method == 'POST':
+        try:
+            # Validar antes de guardar
+            url_validator = URLValidator(schemes=['http', 'https'])
+            for key, regla in VALIDACIONES_TEXTOS.items():
+                val = request.POST.get(key, '').strip()
+                if not val:
+                    continue  # vacío = vuelve al default, siempre válido
+                if regla == 'digits' and not val.isdigit():
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'El número de WhatsApp debe contener solo dígitos '
+                                 '(ej: 50498267040).',
+                    })
+                if regla == 'url':
+                    try:
+                        url_validator(val)
+                    except ValidationError:
+                        return JsonResponse({
+                            'success': False,
+                            'error': f'"{val[:60]}" no es una URL válida. '
+                                     'Debe comenzar con https://',
+                        })
+
+            cfg = SiteConfig.get_solo()
+            data = dict(cfg.data or {})
+            for key, default in DEFAULTS_TEXTOS.items():
+                if key not in request.POST:
+                    continue
+                val = request.POST.get(key, '').strip()
+                if val and val != default:
+                    data[key] = val
+                else:
+                    # vacío o igual al original → quitar override (vuelve al default)
+                    data.pop(key, None)
+            cfg.data = data
+            cfg.save()
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    textos = get_textos()
+    overrides = set()
+    try:
+        overrides = {
+            k for k, v in (SiteConfig.get_solo().data or {}).items()
+            if k in DEFAULTS_TEXTOS and isinstance(v, str) and v.strip()
+        }
+    except Exception:
+        pass
+
+    secciones = []
+    for seccion in SECCIONES_TEXTOS:
+        campos = []
+        for campo in seccion['campos']:
+            campos.append({
+                **campo,
+                'valor': textos[campo['key']],
+                'modificado': campo['key'] in overrides,
+            })
+        secciones.append({**seccion, 'campos': campos})
+
+    return render(request, 'gestion_matys/inicio.html', {
+        'active_nav': 'inicio_admin',
+        'secciones': secciones,
+    })
 
 
 def gestion_logout(request):

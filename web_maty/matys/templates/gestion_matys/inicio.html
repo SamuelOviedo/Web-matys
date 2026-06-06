@@ -1,26 +1,175 @@
 {% extends 'gestion_matys/base_admin.html' %}
 
-{% block title %}Editar Inicio — Panel Matys{% endblock %}
-{% block breadcrumb %}Inicio{% endblock %}
+{% block title %}Textos del sitio — Panel Matys{% endblock %}
+{% block breadcrumb %}Textos del sitio{% endblock %}
 
 {% block content %}
 
+<style>
+  .textos-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px; align-items: start;
+  }
+  @media (max-width: 992px) { .textos-grid { grid-template-columns: 1fr; } }
+
+  .campo-block { padding: 14px 20px; border-bottom: 1px solid var(--line); }
+  .campo-block:last-child { border-bottom: none; }
+
+  .campo-label-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 5px;
+  }
+  .chip-mod { background: rgba(255,214,10,.35); color: var(--ink); }
+
+  .seccion-desc {
+    font-size: 12px; color: var(--mute);
+    padding: 10px 20px; border-bottom: 1px solid var(--line);
+    background: rgba(250,248,242,.6);
+  }
+
+  /* Barra de guardado fija */
+  .save-bar {
+    position: sticky; bottom: 0; z-index: 1010;
+    margin: 0 24px 24px;
+    background: rgba(250,248,242,.92);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 -4px 24px -12px rgba(11,18,36,.25);
+  }
+  .save-hint { font-size: 12px; color: var(--mute); flex: 1; }
+
+  #txtToast {
+    position: fixed; bottom: 84px; right: 24px; z-index: 9999;
+    padding: 12px 18px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0,0,0,.18);
+    transform: translateY(12px); opacity: 0;
+    transition: transform .22s, opacity .22s; pointer-events: none;
+  }
+  #txtToast.show { transform: translateY(0); opacity: 1; }
+</style>
+
 <div class="page-header">
   <div class="page-eyebrow">Tienda</div>
-  <h1 class="page-title">Editar Inicio</h1>
-  <p class="page-lede">Gestión de textos y contenido de la página de inicio del sitio público.</p>
+  <h1 class="page-title">Textos del sitio</h1>
+  <p class="page-lede">
+    Editá los títulos y textos de la página de inicio, los datos de contacto y las redes sociales.
+    Los cambios se publican al instante en el sitio público.
+  </p>
 </div>
 
-<div class="page-section">
-  <div class="placeholder-card">
-    <i class="bi bi-pencil-square" style="font-size:2.5rem; color:var(--line-2); display:block; margin-bottom:14px;"></i>
-    <div style="font-size:15px; font-weight:600; color:var(--mute); font-family:'Playfair Display',serif;">
-      Edición de textos del sitio
-    </div>
-    <div style="font-size:13px; color:var(--mute); margin-top:6px; max-width:400px; margin-left:auto; margin-right:auto;">
-      Próximamente podrás editar los títulos, textos y contenidos de la página de inicio directamente desde aquí, sin tocar el código.
+<form id="textosForm">
+  {% csrf_token %}
+
+  <div class="page-section">
+    <div class="textos-grid">
+
+      {% for seccion in secciones %}
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="admin-card-title">
+            <i class="bi {{ seccion.icono }} me-2" style="color:var(--navy);"></i>{{ seccion.titulo }}
+          </div>
+        </div>
+        <div class="seccion-desc">{{ seccion.descripcion }}</div>
+
+        {% for campo in seccion.campos %}
+        <div class="campo-block">
+          <div class="campo-label-row">
+            <label class="form-label-admin" for="campo-{{ campo.key }}" style="margin-bottom:0;">
+              {{ campo.label }}
+            </label>
+            {% if campo.modificado %}
+            <span class="chip chip-mod" title="Texto personalizado (distinto al original)">Editado</span>
+            {% endif %}
+          </div>
+          {% if campo.widget == 'textarea' %}
+          <textarea id="campo-{{ campo.key }}"
+                    name="{{ campo.key }}"
+                    class="input-admin"
+                    rows="3"
+                    data-default="{{ campo.default }}"
+                    placeholder="{{ campo.default }}">{{ campo.valor }}</textarea>
+          {% else %}
+          <input type="text"
+                 id="campo-{{ campo.key }}"
+                 name="{{ campo.key }}"
+                 class="input-admin"
+                 value="{{ campo.valor }}"
+                 data-default="{{ campo.default }}"
+                 placeholder="{{ campo.default }}">
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
     </div>
   </div>
-</div>
 
+  <!-- Barra de guardado -->
+  <div class="save-bar">
+    <span class="save-hint">
+      <i class="bi bi-info-circle me-1"></i>
+      Dejá un campo vacío para restaurar su texto original.
+    </span>
+    <a href="{% url 'inicio' %}" target="_blank" class="btn-admin btn-admin-secondary">
+      <i class="bi bi-box-arrow-up-right"></i> Ver sitio
+    </a>
+    <button type="submit" id="guardarBtn" class="btn-admin btn-admin-primary">
+      <i class="bi bi-check-lg"></i> Guardar cambios
+    </button>
+  </div>
+</form>
+
+<div id="txtToast"></div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+const CSRF = (() => { const m = document.cookie.match(/csrftoken=([^;]+)/); return m ? m[1] : ''; })();
+
+function showTxtToast(msg, isError = false) {
+  const t = document.getElementById('txtToast');
+  t.textContent = msg;
+  t.style.background = isError ? '#FBE7E5' : '#E5F3EA';
+  t.style.color      = isError ? '#A4322B'  : '#1F6B3A';
+  t.style.border     = isError ? '1px solid #f5c6c6' : '1px solid #b7dfca';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+document.getElementById('textosForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('guardarBtn');
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+
+  try {
+    const fd = new FormData(document.getElementById('textosForm'));
+    const res = await fetch('{% url "gestion_inicio" %}', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': CSRF },
+      body: fd,
+    });
+    const data = await res.json();
+    if (data.success) {
+      showTxtToast('Textos guardados. Ya están publicados en el sitio.');
+      setTimeout(() => location.reload(), 900);
+    } else {
+      showTxtToast(data.error || 'Error al guardar.', true);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar cambios';
+    }
+  } catch {
+    showTxtToast('Error de conexión. Verificá tu internet e intentá nuevamente.', true);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar cambios';
+  }
+});
+</script>
 {% endblock %}

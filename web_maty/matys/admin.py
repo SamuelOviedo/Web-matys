@@ -2,7 +2,19 @@ from django.contrib import admin
 from django.utils.html import format_html
 import cloudinary
 
-from .models import Prenda, ImagenPrenda, TipoPrenda
+from .models import Prenda, ImagenPrenda, TipoPrenda, SiteConfig
+
+
+@admin.register(SiteConfig)
+class SiteConfigAdmin(admin.ModelAdmin):
+    """Respaldo de emergencia: los textos se editan normalmente en /gestion-matys/inicio/."""
+    list_display = ('__str__', 'actualizado')
+
+    def has_add_permission(self, request):
+        return not SiteConfig.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class ImagenPrendaInline(admin.StackedInline):

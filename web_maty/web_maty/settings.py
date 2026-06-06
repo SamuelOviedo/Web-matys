@@ -2,6 +2,7 @@
 Django settings for web_maty project.
 """
 import os
+import sys
 import cloudinary
 import dj_database_url
 from pathlib import Path
@@ -62,6 +63,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'matys.context_processors.site_textos',
             ],
         },
     },
@@ -106,12 +108,6 @@ CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
 CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '')
 CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')
 
-print("DEBUG CLOUDINARY:", {
-    "cloud_name": os.environ.get('CLOUDINARY_CLOUD_NAME', 'FALTA'),
-    "api_key": os.environ.get('CLOUDINARY_API_KEY', 'FALTA'),
-    "api_secret": "OK" if os.environ.get('CLOUDINARY_API_SECRET') else 'FALTA',
-})
-
 if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     cloudinary.config(
         cloud_name=CLOUDINARY_CLOUD_NAME,
@@ -128,3 +124,9 @@ STORAGES = {
         'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
     },
 }
+
+# En tests no existe el manifest de collectstatic: usar storage simple.
+if 'test' in sys.argv:
+    STORAGES['staticfiles'] = {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    }

@@ -164,6 +164,11 @@
                class="card-img-top"
                alt="{{ producto.nombre }}"
                loading="lazy">
+          {% else %}
+          <img src="{% static 'images/placeholder.svg' %}"
+               class="card-img-top"
+               alt="Sin imagen"
+               loading="lazy">
           {% endif %}
           {% endwith %}
           {% if producto.por_encargo %}

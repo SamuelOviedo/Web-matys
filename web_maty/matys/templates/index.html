@@ -8,9 +8,9 @@
           style="background: url(' {% static 'images/principal.jpeg' %}') no-repeat center center/cover;">
   <div class="overlay"></div>
   <div class="container position-relative header-text">
-    <h1 class="display-2 fw-bold enc">Confecciones Matys</h1>
-    <p class="lead fw-semibold fs-3">Confeccionando con amor y gratitud</p>
-    <a class="btn btn-primary btn-lg mt-3" href="{% url 'prendas' %}">Ver Colección</a>
+    <h1 class="display-2 fw-bold enc">{{ txt.hero_titulo }}</h1>
+    <p class="lead fw-semibold fs-3">{{ txt.hero_subtitulo }}</p>
+    <a class="btn btn-primary btn-lg mt-3" href="{% url 'prendas' %}">{{ txt.hero_boton }}</a>
   </div>
 </section>
 
@@ -18,8 +18,8 @@
 <section class="py-5 container section-flow">
   <div class="row mb-4 text-center">
     <div class="col-12">
-      <h2 class="fs-5 enc fw-bold text-primary mb-2">Nuestra Pasión</h2>
-      <h1 class="fs-1 enc fw-bold text-body">Creando Moda con Tradición</h1>
+      <h2 class="fs-5 enc fw-bold text-primary mb-2">{{ txt.quienes_eyebrow }}</h2>
+      <h1 class="fs-1 enc fw-bold text-body">{{ txt.quienes_titulo }}</h1>
     </div>
   </div>
   
@@ -32,14 +32,12 @@
     </div>
     <div class="col-lg-6">
       <p class="fs-5 text-body-secondary">
-        En <strong class="text-primary">Matys</strong>, transformamos telas en obras de arte. 
-        Cada prenda es confeccionada con dedicación, precisión y un profundo respeto por la elegancia.
+        {{ txt.quienes_parrafo1 }}
       </p>
       <p class="text-body-secondary">
-        Especializados en vestidos, blusas, trajes formales y prendas a medida, 
-        llevamos años vistiendo a quienes valoran la calidad y el estilo personal.
+        {{ txt.quienes_parrafo2 }}
       </p>
-      <a href="{% url 'trayectoria' %}" class="btn btn-outline-primary mt-3">Conoce Nuestra Historia</a>
+      <a href="{% url 'trayectoria' %}" class="btn btn-outline-primary mt-3">{{ txt.quienes_boton }}</a>
     </div>
   </div>
 </section>
@@ -49,8 +47,8 @@
   <div class="container section-flow">
     <div class="row mb-5 text-center">
       <div class="col-12">
-        <h2 class="fs-5 enc fw-bold text-primary mb-2">Lo Que Hacemos</h2>
-        <h1 class="fs-1 enc fw-bold text-body">Nuestras Especialidades</h1>
+        <h2 class="fs-5 enc fw-bold text-primary mb-2">{{ txt.esp_eyebrow }}</h2>
+        <h1 class="fs-1 enc fw-bold text-body">{{ txt.esp_titulo }}</h1>
       </div>
     </div>
     
@@ -62,9 +60,9 @@
             <div class="mb-3">
               <i class="bi bi-bag-heart text-primary" style="font-size: 3rem;"></i>
             </div>
-            <h5 class="card-title enc fw-bold">Moda Femenina</h5>
+            <h5 class="card-title enc fw-bold">{{ txt.esp1_titulo }}</h5>
             <p class="card-text text-body-secondary">
-              Vestidos, blusas, faldas y chalecos diseñados para realzar tu estilo único.
+              {{ txt.esp1_texto }}
             </p>
           </div>
         </div>
@@ -77,9 +75,9 @@
             <div class="mb-3">
               <i class="bi bi-person-workspace text-primary" style="font-size: 3rem;"></i>
             </div>
-            <h5 class="card-title enc fw-bold">Trajes Formales</h5>
+            <h5 class="card-title enc fw-bold">{{ txt.esp2_titulo }}</h5>
             <p class="card-text text-body-secondary">
-              Sacos, pantalones y camisas para lucir impecable en toda ocasión.
+              {{ txt.esp2_texto }}
             </p>
           </div>
         </div>
@@ -92,9 +90,9 @@
             <div class="mb-3">
               <i class="bi bi-scissors text-primary" style="font-size: 3rem;"></i>
             </div>
-            <h5 class="card-title enc fw-bold">A Medida</h5>
+            <h5 class="card-title enc fw-bold">{{ txt.esp3_titulo }}</h5>
             <p class="card-text text-body-secondary">
-              Prendas personalizadas que se ajustan perfectamente a tu cuerpo.
+              {{ txt.esp3_texto }}
             </p>
           </div>
         </div>
@@ -107,9 +105,9 @@
             <div class="mb-3">
               <i class="bi bi-check-circle-fill text-primary" style="font-size: 3rem;"></i>
             </div>
-            <h5 class="card-title enc fw-bold">Arreglos</h5>
+            <h5 class="card-title enc fw-bold">{{ txt.esp4_titulo }}</h5>
             <p class="card-text text-body-secondary">
-              Modificaciones y ajustes profesionales para renovar tu guardarropa.
+              {{ txt.esp4_texto }}
             </p>
           </div>
         </div>
@@ -122,8 +120,8 @@
 <section class="py-5 container">
   <div class="row mb-5 text-center">
     <div class="col-12">
-      <h2 class="fs-5 enc fw-bold text-primary mb-2">Colección Destacada</h2>
-      <h1 class="fs-1 enc fw-bold text-body">Nuestras Prendas Favoritas</h1>
+      <h2 class="fs-5 enc fw-bold text-primary mb-2">{{ txt.dest_eyebrow }}</h2>
+      <h1 class="fs-1 enc fw-bold text-body">{{ txt.dest_titulo }}</h1>
     </div>
   </div>
   
@@ -137,8 +135,8 @@
               alt="{{ prenda.nombre }}"
               style="height: 300px; object-fit: cover;">
         {% else %}
-        <img src="https://via.placeholder.com/400x300?text=Sin+Imagen" 
-              class="card-img-top" 
+        <img src="{% static 'images/placeholder.svg' %}"
+              class="card-img-top"
               alt="Sin imagen"
               style="height: 300px; object-fit: cover;">
         {% endif %}
@@ -158,7 +156,7 @@
     <div class="col-12">
       <div class="alert alert-info text-center" role="alert">
         <i class="bi bi-info-circle me-2"></i>
-        Aún no hay prendas destacadas. ¡Pronto agregaremos nuevas prendas!
+        {{ txt.dest_vacio }}
       </div>
     </div>
     {% endfor %}
@@ -166,7 +164,7 @@
   
   <div class="row mt-4">
     <div class="col-12 text-center">
-      <a href="{% url 'prendas' %}" class="btn btn-outline-primary btn-lg">Ver Toda la Colección</a>
+      <a href="{% url 'prendas' %}" class="btn btn-outline-primary btn-lg">{{ txt.dest_boton }}</a>
     </div>
   </div>
 </section>
@@ -174,9 +172,9 @@
 <!-- ========== SECCIÓN: LLAMADO A LA ACCIÓN ========== -->
 <section class="mt-5 py-5 bg-primary text-secondary">
   <div class="container text-center">
-    <h2 class="enc fw-bold mb-3">¿Buscas algo especial?</h2>
-    <p class="fs-5 mb-4">Contáctanos y creamos la prenda perfecta para ti</p>
-    <a href="{% url 'contacto' %}" class="btn btn-light btn-lg">Solicitar Cotización</a>
+    <h2 class="enc fw-bold mb-3">{{ txt.cta_titulo }}</h2>
+    <p class="fs-5 mb-4">{{ txt.cta_texto }}</p>
+    <a href="{% url 'contacto' %}" class="btn btn-light btn-lg">{{ txt.cta_boton }}</a>
   </div>
 </section>
 
@@ -184,8 +182,8 @@
 <section class="py-5 container">
   <div class="row mb-5 text-center">
     <div class="col-12">
-      <h2 class="fs-5 enc fw-bold text-primary mb-2">Ventajas</h2>
-      <h1 class="fs-1 enc fw-bold text-body">¿Por Qué Elegirnos?</h1>
+      <h2 class="fs-5 enc fw-bold text-primary mb-2">{{ txt.vent_eyebrow }}</h2>
+      <h1 class="fs-1 enc fw-bold text-body">{{ txt.vent_titulo }}</h1>
     </div>
   </div>
   
@@ -193,32 +191,32 @@
     <div class="col-md-3 shadow-sm">
       <div class="pop-img">
         <i class="bi bi-award text-secondary" style="font-size: 4rem;"></i>
-        <h5 class="enc fw-bold mt-3">Calidad Garantizada</h5>
-        <p class="text-body-secondary">Materiales premium y acabados impecables</p>
+        <h5 class="enc fw-bold mt-3">{{ txt.vent1_titulo }}</h5>
+        <p class="text-body-secondary">{{ txt.vent1_texto }}</p>
       </div>
     </div>
     
     <div class="col-md-3 shadow-sm">
       <div class="pop-img">
         <i class="bi bi-clock-history text-secondary" style="font-size: 4rem;"></i>
-        <h5 class="enc fw-bold mt-3">Años de Experiencia</h5>
-        <p class="text-body-secondary">Tradición y conocimiento en cada costura</p>
+        <h5 class="enc fw-bold mt-3">{{ txt.vent2_titulo }}</h5>
+        <p class="text-body-secondary">{{ txt.vent2_texto }}</p>
       </div>
     </div>
     
     <div class="col-md-3 shadow-sm">
       <div class="pop-img">
         <i class="bi bi-heart text-secondary" style="font-size: 4rem;"></i>
-        <h5 class="enc fw-bold mt-3">Atención Personalizada</h5>
-        <p class="text-body-secondary">Nos importa tu satisfacción</p>
+        <h5 class="enc fw-bold mt-3">{{ txt.vent3_titulo }}</h5>
+        <p class="text-body-secondary">{{ txt.vent3_texto }}</p>
       </div>
     </div>
     
     <div class="col-md-3 shadow-sm">
       <div class="pop-img">
         <i class="bi bi-truck text-secondary" style="font-size: 4rem;"></i>
-        <h5 class="enc fw-bold mt-3">Entrega a Tiempo</h5>
-        <p class="text-body-secondary">Cumplimos con los plazos acordados</p>
+        <h5 class="enc fw-bold mt-3">{{ txt.vent4_titulo }}</h5>
+        <p class="text-body-secondary">{{ txt.vent4_texto }}</p>
       </div>
     </div>
   </div>

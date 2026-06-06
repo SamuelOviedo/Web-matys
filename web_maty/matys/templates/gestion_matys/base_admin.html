@@ -415,7 +415,11 @@
     <div class="sb-section-label">Tienda</div>
     <a href="{% url 'gestion_inicio' %}"
        class="sb-nav-item {% if active_nav == 'inicio_admin' %}active{% endif %}">
-      <i class="bi bi-house"></i> Inicio
+      <i class="bi bi-pencil-square"></i> Textos del sitio
+    </a>
+    <a href="{% url 'gestion_imagenes' %}"
+       class="sb-nav-item {% if active_nav == 'imagenes' %}active{% endif %}">
+      <i class="bi bi-images"></i> Imágenes
     </a>
 
     <!-- User block -->

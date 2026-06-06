@@ -40,7 +40,7 @@
     </script>
   </head>
   
-  <body>
+  <body data-whatsapp="{{ txt.contacto_whatsapp }}">
     <!-- ========== HEADER ========== -->
     <header class="container-fluid position-fixed top-0 py-2 head-blur shadow-lg" style="z-index: 9999;padding-right: 0.5rem; padding-left: 0.5rem;" >
       <nav class="navbar navbar-expand-lg py-2">
@@ -113,9 +113,9 @@
         <!-- Información de Contacto -->
         <div class="col-lg-6 col-md-12 mb-3">
           <div class="d-flex flex-column align-items-center align-items-lg-start ps-lg-4">
-            <p class="mb-2 text-body-secondary"><i class="bi bi-telephone-fill me-2"></i>+504 9826-7040</p>
-            <p class="mb-2 text-body-secondary"><i class="bi bi-envelope-fill me-2"></i>confeccionesmaty62@gmail.com</p>
-            <p class="mb-0 text-body-secondary"><i class="bi bi-geo-alt-fill me-2"></i>Siguatepeque, Honduras</p>
+            <p class="mb-2 text-body-secondary"><i class="bi bi-telephone-fill me-2"></i>{{ txt.contacto_telefono }}</p>
+            <p class="mb-2 text-body-secondary"><i class="bi bi-envelope-fill me-2"></i>{{ txt.contacto_email }}</p>
+            <p class="mb-0 text-body-secondary"><i class="bi bi-geo-alt-fill me-2"></i>{{ txt.contacto_direccion }}</p>
           </div>
         </div>
       </div>
@@ -125,23 +125,23 @@
         <p class="text-body-secondary mb-2 mb-sm-0">© 2025 Matys Confecciones | Todos los derechos reservados</p>
         <ul class="list-unstyled d-flex gap-3 mb-0"><br>
           <li>
-            <a href="https://www.facebook.com/maryurihern/reels/" aria-label="Facebook" class="text-body-secondary">
+            <a href="{{ txt.red_facebook }}" aria-label="Facebook" class="text-body-secondary">
               <i class="bi bi-facebook fs-5"></i>
             </a>
           </li>
           <li>
-            <a href="https://www.instagram.com/confe_ccionesmaty?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" aria-label="Instagram" class="text-body-secondary">
+            <a href="{{ txt.red_instagram }}" aria-label="Instagram" class="text-body-secondary">
               <i class="bi bi-instagram fs-5"></i>
             </a>
           </li>
           <li>
-            <a href="https://youtube.com/@maty-2020?si=ncsHDzw-QCMJGlX1" aria-label="Youtube" class="text-body-secondary">
+            <a href="{{ txt.red_youtube }}" aria-label="Youtube" class="text-body-secondary">
               <i class="bi bi-youtube fs-5"></i>
             </a>
           </li>
-          
+
           <li>
-            <a href="https://www.tiktok.com/@confeccinesmaty4?is_from_webapp=1&sender_device=pc" aria-label="TikTok" class="text-body-secondary">
+            <a href="{{ txt.red_tiktok }}" aria-label="TikTok" class="text-body-secondary">
               <i class="bi bi-tiktok fs-5"></i>
             </a>
           </li>
@@ -151,8 +151,8 @@
 
     <!-- ========== BOTÓN FLOTANTE WHATSAPP ========== -->
     <div class="position-fixed" id="whatsapp-contacts" style="bottom: 3vh; right: 3vw; z-index: 1999;">
-      <a href="https://wa.me/50498267040?text=Hola%20Matys,%20me%20interesa%20información%20sobre..." 
-          target="_blank" 
+      <a href="https://wa.me/{{ txt.contacto_whatsapp }}?text=Hola%20Matys,%20me%20interesa%20información%20sobre..."
+          target="_blank"
           class="btn btn-whatsapp d-flex justify-content-center align-items-center" 
           aria-label="Contactar por WhatsApp">
         <i class="bi bi-whatsapp fs-2 text-white"></i>
@@ -194,5 +194,7 @@
       });
     })();
     </script>
+
+    {% block extra_js %}{% endblock %}
   </body>
 </html>

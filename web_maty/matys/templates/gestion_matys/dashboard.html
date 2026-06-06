@@ -305,6 +305,19 @@
               </span>
             </label>
           </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;
+                      padding:10px 12px;background:var(--paper);border-radius:6px;
+                      border:1px solid var(--line);">
+            <input type="checkbox" id="editDestacada" name="destacada"
+                   style="width:16px;height:16px;accent-color:var(--navy);cursor:pointer;flex-shrink:0;">
+            <label for="editDestacada"
+                   style="font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;margin:0;line-height:1.3;">
+              Prenda destacada
+              <span style="display:block;font-size:11.5px;color:var(--mute);font-weight:400;">
+                Aparece en la sección "Colección Destacada" de la página de inicio (máx. 3 visibles).
+              </span>
+            </label>
+          </div>
           <div style="margin-bottom:14px;">
             <label class="form-label-admin">Imágenes</label>
             <div id="editImgStrip" class="img-strip"></div>
@@ -396,6 +409,19 @@
               Hecho por encargo
               <span style="display:block;font-size:11.5px;color:var(--mute);font-weight:400;">
                 Muestra el ribbon "Por encargo" en la tarjeta del catálogo.
+              </span>
+            </label>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;
+                      padding:10px 12px;background:var(--paper);border-radius:6px;
+                      border:1px solid var(--line);">
+            <input type="checkbox" id="createDestacada" name="destacada"
+                   style="width:16px;height:16px;accent-color:var(--navy);cursor:pointer;flex-shrink:0;">
+            <label for="createDestacada"
+                   style="font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;margin:0;line-height:1.3;">
+              Prenda destacada
+              <span style="display:block;font-size:11.5px;color:var(--mute);font-weight:400;">
+                Aparece en la sección "Colección Destacada" de la página de inicio (máx. 3 visibles).
               </span>
             </label>
           </div>
@@ -625,6 +651,7 @@ async function openEditModal(prendaId) {
     document.getElementById('editCategoria').value      = d.categoria;
     document.getElementById('editDisponible').checked   = d.disponible;
     document.getElementById('editPorEncargo').checked   = d.por_encargo;
+    document.getElementById('editDestacada').checked    = d.destacada;
     await loadTipos(d.categoria, document.getElementById('editTipo'), d.tipo);
 
     eStrip = (d.imagenes || []).map(img => ({ id: img.id, url: img.url, orden: img.orden }));
@@ -712,6 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fd = new FormData(document.getElementById('editForm'));
     fd.set('disponible',       document.getElementById('editDisponible').checked ? 'true' : 'false');
     fd.set('por_encargo',      document.getElementById('editPorEncargo').checked  ? 'true' : 'false');
+    fd.set('destacada',        document.getElementById('editDestacada').checked   ? 'true' : 'false');
     fd.set('orden_imagenes',   JSON.stringify(eStrip.map((item, i) => ({ id: item.id, orden: i }))));
     if (ePendingDel.length > 0) fd.set('eliminar_imagen_ids', JSON.stringify(ePendingDel));
     else fd.delete('eliminar_imagen_ids');
@@ -754,6 +782,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('createCategoria').value     = 'femenino';
     document.getElementById('createDisponible').checked  = true;
     document.getElementById('createPorEncargo').checked  = true;
+    document.getElementById('createDestacada').checked   = false;
     document.getElementById('inputCreateImg').value      = '';
     const errEl = document.getElementById('createError');
     errEl.style.display = 'none';
@@ -806,6 +835,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fd.append('tipo',              document.getElementById('createTipo').value);
     fd.append('disponible',        document.getElementById('createDisponible').checked  ? 'true' : 'false');
     fd.append('por_encargo',       document.getElementById('createPorEncargo').checked   ? 'true' : 'false');
+    fd.append('destacada',         document.getElementById('createDestacada').checked    ? 'true' : 'false');
     cFiles.forEach((item, i) => fd.append(`imagen_${i}`, item.file));
 
     btn.disabled    = true;

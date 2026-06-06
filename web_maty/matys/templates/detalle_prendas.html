@@ -27,7 +27,7 @@
                id="mainImage"
                alt="{{ prenda.nombre }}">
         {% else %}
-          <img src="https://via.placeholder.com/800x600?text=Sin+Imagen"
+          <img src="{% static 'images/placeholder.svg' %}"
                class="main-image"
                id="mainImage"
                alt="Sin imagen disponible">
@@ -180,53 +180,9 @@
         <i class="bi bi-info-circle me-1"></i>
         Las medidas son aproximadas. Si tienes dudas, contáctanos para asesoría personalizada.
     </p>
-</div>
+</div><!-- /tab-pane sizes -->
+    </div><!-- /tab-content -->
+  </div><!-- /mt-5 tabs -->
+</div><!-- /container my-5 -->
 {% endblock %}
-
-{% block extra_js %}
-<script>
-  // Cambio de imágenes al hacer click en miniaturas
-  document.querySelectorAll('.thumbnail').forEach(thumb => {
-    thumb.addEventListener('click', function() {
-      const fullImageUrl = this.getAttribute('data-full');
-      const mainImage = document.getElementById('mainImage');
-      
-      // Cambiar imagen principal
-      mainImage.src = fullImageUrl;
-      
-      // Actualizar clase active
-      document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-      this.classList.add('active');
-    });
-  });
-  
-  // Selector de tallas
-  document.querySelectorAll('.size-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-    });
-  });
-  
-  
-  // Botón de WhatsApp
-  document.getElementById('btnCotizacion').addEventListener('click', function() {
-    const prendaNombre = "{{ prenda.nombre }}";
-    const prendaPrecio = "{{ prenda.precio }}";
-    const talla = document.querySelector('.size-btn.active')?.getAttribute('data-size') || 'M';
-    const color = document.querySelector('.color-btn.active')?.getAttribute('data-color') || 'N/A';
-    
-    const mensaje = `Hola, me interesa la prenda:
-    
-📦 *${prendaNombre}*
-💰 Precio: L. ${prendaPrecio}
-📏 Talla: ${talla}
-🎨 Color: ${color}
-
-¿Está disponible?`;
-    
-    const whatsappUrl = `https://wa.me/50498267040?text=${encodeURIComponent(mensaje)}`;
-    window.open(whatsappUrl, '_blank');
-  });
-</script>
-{% endblock %}
+{# Los handlers de miniaturas, tallas y cotización por WhatsApp viven en static/js/base.js #}

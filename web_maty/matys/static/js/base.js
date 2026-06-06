@@ -257,13 +257,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   /* ==========================================
-     LOGS DE DESARROLLO (REMOVER EN PRODUCCIÓN)
-  ========================================== */
-  
-  console.log('✨ Matys Confecciones - Sistema inicializado');
-  console.log(`📱 Tema actual: ${document.documentElement.getAttribute('data-bs-theme')}`);
-  
-  /* ==========================================
      FUNCIONALIDAD DE PÁGINA DE PRENDAS
   ========================================== */
   
@@ -493,8 +486,8 @@ function toggleDetails(element) {
 
 ¿Podrían confirmarme disponibilidad y tiempo de entrega?`;
       
-      // Número de WhatsApp de la empresa
-      const whatsappNumber = '50498267040';
+      // Número de WhatsApp de la empresa (editable desde el panel → Inicio)
+      const whatsappNumber = document.body.dataset.whatsapp || '50498267040';
       
       // Crear URL de WhatsApp
       const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;

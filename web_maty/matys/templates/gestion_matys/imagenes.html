@@ -169,7 +169,7 @@
     <i class="bi bi-images" style="font-size:2.5rem;color:var(--line-2);display:block;margin-bottom:14px;"></i>
     <div style="font-size:14px;font-weight:600;color:var(--mute);">Sin imágenes subidas</div>
     <div style="font-size:13px;color:var(--mute);margin-top:4px;">
-      Agregá imágenes desde el admin de Django al editar una prenda.
+      Agregá imágenes desde "Vista general" al crear o editar una prenda.
     </div>
   </div>
 </div>
@@ -228,6 +228,7 @@
               <select id="editCategoria" name="categoria" class="input-admin">
                 <option value="femenino">Femenino</option>
                 <option value="masculino">Masculino</option>
+                <option value="infantil">Infantil</option>
               </select>
             </div>
             <div>
@@ -247,6 +248,36 @@
               Disponible en el catálogo
               <span style="display:block;font-size:11.5px;color:var(--mute);font-weight:400;">
                 Si está desmarcado, la prenda no aparece en el sitio público.
+              </span>
+            </label>
+          </div>
+
+          <!-- Por encargo -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;
+                      padding:10px 12px;background:var(--paper);border-radius:6px;
+                      border:1px solid var(--line);">
+            <input type="checkbox" id="editPorEncargo" name="por_encargo"
+                   style="width:16px;height:16px;accent-color:var(--navy);cursor:pointer;flex-shrink:0;">
+            <label for="editPorEncargo"
+                   style="font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;margin:0;line-height:1.3;">
+              Hecho por encargo
+              <span style="display:block;font-size:11.5px;color:var(--mute);font-weight:400;">
+                Muestra el ribbon "Por encargo" en la tarjeta del catálogo.
+              </span>
+            </label>
+          </div>
+
+          <!-- Destacada -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;
+                      padding:10px 12px;background:var(--paper);border-radius:6px;
+                      border:1px solid var(--line);">
+            <input type="checkbox" id="editDestacada" name="destacada"
+                   style="width:16px;height:16px;accent-color:var(--navy);cursor:pointer;flex-shrink:0;">
+            <label for="editDestacada"
+                   style="font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;margin:0;line-height:1.3;">
+              Prenda destacada
+              <span style="display:block;font-size:11.5px;color:var(--mute);font-weight:400;">
+                Aparece en la "Colección Destacada" de la página de inicio (máx. 3 visibles).
               </span>
             </label>
           </div>
@@ -458,6 +489,8 @@ async function openEditModal(prendaId) {
     document.getElementById('editDescripcion').value   = d.descripcion_corta;
     document.getElementById('editCategoria').value     = d.categoria;
     document.getElementById('editDisponible').checked  = d.disponible;
+    document.getElementById('editPorEncargo').checked  = d.por_encargo;
+    document.getElementById('editDestacada').checked   = d.destacada;
     await fetchAndSetTipoOptions(d.categoria, d.tipo);
 
     stripItems = (d.imagenes || []).map(img => ({ id: img.id, url: img.url, orden: img.orden }));
@@ -505,7 +538,9 @@ document.addEventListener('DOMContentLoaded', () => {
     errEl.textContent   = '';
 
     const formData = new FormData(document.getElementById('editForm'));
-    formData.set('disponible', document.getElementById('editDisponible').checked ? 'true' : 'false');
+    formData.set('disponible',  document.getElementById('editDisponible').checked  ? 'true' : 'false');
+    formData.set('por_encargo', document.getElementById('editPorEncargo').checked  ? 'true' : 'false');
+    formData.set('destacada',   document.getElementById('editDestacada').checked   ? 'true' : 'false');
     formData.set('orden_imagenes', JSON.stringify(stripItems.map((item, i) => ({ id: item.id, orden: i }))));
 
     if (pendingDeletes.length > 0) {

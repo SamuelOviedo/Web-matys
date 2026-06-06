@@ -3,6 +3,28 @@ from django.core.exceptions import ValidationError
 from cloudinary.models import CloudinaryField
 
 
+class SiteConfig(models.Model):
+    """
+    Registro único (singleton) con los textos editables del sitio público.
+    Solo guarda los textos que el cliente cambió; el resto usa los
+    defaults definidos en site_textos.SECCIONES_TEXTOS.
+    """
+    data = models.JSONField(default=dict, blank=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Configuración del sitio'
+        verbose_name_plural = 'Configuración del sitio'
+
+    def __str__(self):
+        return 'Configuración del sitio'
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
 class TipoPrenda(models.Model):
     nombre = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100)
