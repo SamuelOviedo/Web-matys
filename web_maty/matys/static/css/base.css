@@ -1485,6 +1485,21 @@ footer::before {
   color: var(--bs-secondary-color);
 }
 
+.catalog-search__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bs-secondary-color);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.catalog-search__clear:hover {
+  color: var(--bs-primary);
+}
+
 /* ══════════════════════════════════════════════════════════════
    BADGE DE TIPO (superpuesto en imagen de card)
 ══════════════════════════════════════════════════════════════ */

@@ -30,12 +30,39 @@ def inicio(request):
 def prendas(request):
     categoria = request.GET.get('categoria', '')
     tipo      = request.GET.get('tipo', '')
+    q         = request.GET.get('q', '').strip()
 
+    cat_map = dict(Prenda.CATEGORIAS)
+    # Etiqueta visible de cada tipo: TipoPrenda (dinámico) + TIPOS (estático).
+    tipo_map = dict(Prenda.TIPOS)
+    for t in TipoPrenda.objects.filter(activo=True):
+        tipo_map[t.slug] = t.nombre
+
+    # ── Catálogo base: solo prendas disponibles ───────────────────────
     qs = Prenda.objects.filter(disponible=True)
     if categoria:
         qs = qs.filter(categoria=categoria)
     if tipo:
         qs = qs.filter(tipo=tipo)
+
+    # ── Búsqueda de texto: nombre, descripciones, categoría y tipo ────
+    if q:
+        from django.db.models import Q
+        ql = q.lower()
+        # Categorías cuyo nombre visible coincide con la búsqueda.
+        cat_keys = [k for k, label in Prenda.CATEGORIAS if ql in label.lower()]
+        # Tipos cuyo nombre visible coincide con la búsqueda.
+        tipo_keys = [slug for slug, label in tipo_map.items() if ql in label.lower()]
+        filtro = (
+            Q(nombre__icontains=q)
+            | Q(descripcion_corta__icontains=q)
+            | Q(descripcion_larga__icontains=q)
+        )
+        if cat_keys:
+            filtro |= Q(categoria__in=cat_keys)
+        if tipo_keys:
+            filtro |= Q(tipo__in=tipo_keys)
+        qs = qs.filter(filtro)
 
     paginator = Paginator(qs, 12)
     page_obj  = paginator.get_page(request.GET.get('page', 1))
@@ -51,18 +78,28 @@ def prendas(request):
         page_range_display.append(n)
         prev = n
 
-    # Build menu dynamically from TipoPrenda so admin-panel changes sync instantly
-    cat_map     = dict(Prenda.CATEGORIAS)
-    tipo_map    = {t.slug: t.nombre for t in TipoPrenda.objects.filter(activo=True)}
-    menu_render = []
+    # ── Menú dinámico: ocultar categorías/tipos SIN prendas disponibles ─
+    # Conjuntos calculados solo desde prendas disponibles, para que una
+    # categoría o tipo vacío nunca aparezca en la navegación.
+    disponibles      = Prenda.objects.filter(disponible=True)
+    cats_con_prendas = set(disponibles.values_list('categoria', flat=True))
+    pares_con_prendas = set(disponibles.values_list('categoria', 'tipo'))
 
+    menu_render = []
     for cat_key, cat_label in Prenda.CATEGORIAS:
+        if cat_key not in cats_con_prendas:
+            continue  # categoría sin prendas → no se muestra
         tipos_activos = (
             TipoPrenda.objects
             .filter(categoria=cat_key, activo=True)
             .order_by('orden', 'nombre')
         )
-        items = [(t.slug, t.nombre) for t in tipos_activos]
+        # Solo tipos que tengan al menos una prenda disponible en esta categoría.
+        items = [
+            (t.slug, t.nombre)
+            for t in tipos_activos
+            if (cat_key, t.slug) in pares_con_prendas
+        ]
         grupos_render = [{'titulo': None, 'items': items}] if items else []
         menu_render.append({
             'key':            cat_key,
@@ -76,6 +113,7 @@ def prendas(request):
         'page_obj':           page_obj,
         'categoria_activa':   categoria,
         'tipo_activo':        tipo,
+        'busqueda':           q,
         'categoria_display':  cat_map.get(categoria, ''),
         'tipo_display':       tipo_map.get(tipo, tipo),
         'menu_render':        menu_render,

@@ -93,15 +93,26 @@
         </ul>
       </nav>
 
-      <!-- Buscador integrado -->
-      <div class="catalog-search">
+      <!-- Buscador integrado (búsqueda en servidor) -->
+      <form method="get" action="{% url 'prendas' %}" class="catalog-search" role="search">
         <i class="bi bi-search catalog-search__icon"></i>
         <input type="search"
                id="searchInput"
+               name="q"
+               value="{{ busqueda }}"
                class="catalog-search__input"
                placeholder="Buscar prendas…"
+               aria-label="Buscar prendas"
                autocomplete="off">
-      </div>
+        {% if categoria_activa %}<input type="hidden" name="categoria" value="{{ categoria_activa }}">{% endif %}
+        {% if tipo_activo %}<input type="hidden" name="tipo" value="{{ tipo_activo }}">{% endif %}
+        {% if busqueda %}
+        <a href="?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}{% endif %}"
+           class="catalog-search__clear" aria-label="Limpiar búsqueda">
+          <i class="bi bi-x-lg"></i>
+        </a>
+        {% endif %}
+      </form>
 
     </div>
   </div>
@@ -111,7 +122,17 @@
 <div class="container mt-5 mb-4">
   <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
     <div>
-      {% if tipo_display %}
+      {% if busqueda %}
+        <h1 class="display-6 enc fw-bold mb-1">Resultados de búsqueda</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0 small">
+            <li class="breadcrumb-item">
+              <a href="{% url 'prendas' %}" class="text-decoration-none">Todas</a>
+            </li>
+            <li class="breadcrumb-item active">“{{ busqueda }}”</li>
+          </ol>
+        </nav>
+      {% elif tipo_display %}
         <h1 class="display-6 enc fw-bold mb-1">{{ tipo_display }}</h1>
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb mb-0 small">
@@ -197,7 +218,11 @@
       <div class="empty-state text-center py-5">
         <i class="bi bi-search display-1 text-muted d-block mb-3"></i>
         <h4 class="enc fw-bold">Sin resultados</h4>
+        {% if busqueda %}
+        <p class="text-muted">Ninguna prenda coincide con “{{ busqueda }}”.</p>
+        {% else %}
         <p class="text-muted">No hay prendas disponibles en esta categoría.</p>
+        {% endif %}
         <a href="{% url 'prendas' %}" class="btn btn-primary mt-2">
           <i class="bi bi-arrow-left me-1"></i>Ver todas las prendas
         </a>
@@ -207,15 +232,6 @@
 
   </div>
 
-  <!-- Sin resultados de búsqueda -->
-  <div id="noSearchResults" class="text-center py-5 d-none">
-    <i class="bi bi-emoji-frown display-1 text-muted d-block mb-3"></i>
-    <h5 class="enc">Ninguna prenda coincide con tu búsqueda</h5>
-    <p class="text-muted small">Prueba con otro término o
-      <a href="{% url 'prendas' %}" class="text-primary">ver todo el catálogo</a>.
-    </p>
-  </div>
-
   <!-- ══ Paginación ════════════════════════════════════════════════ -->
   {% if page_obj.has_other_pages %}
   <nav class="mt-5 d-flex justify-content-center" aria-label="Paginación del catálogo">
@@ -223,7 +239,7 @@
 
       <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
         <a class="page-link page-link--arrow"
-           href="{% if page_obj.has_previous %}?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}page={{ page_obj.previous_page_number }}{% else %}#{% endif %}"
+           href="{% if page_obj.has_previous %}?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}{% if busqueda %}q={{ busqueda|urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}{% else %}#{% endif %}"
            aria-label="Página anterior">
           <i class="bi bi-chevron-left"></i>
         </a>
@@ -241,7 +257,7 @@
         {% else %}
         <li class="page-item">
           <a class="page-link"
-             href="?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}page={{ item }}">
+             href="?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}{% if busqueda %}q={{ busqueda|urlencode }}&{% endif %}page={{ item }}">
             {{ item }}
           </a>
         </li>
@@ -250,7 +266,7 @@
 
       <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
         <a class="page-link page-link--arrow"
-           href="{% if page_obj.has_next %}?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}page={{ page_obj.next_page_number }}{% else %}#{% endif %}"
+           href="{% if page_obj.has_next %}?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}{% if busqueda %}q={{ busqueda|urlencode }}&{% endif %}page={{ page_obj.next_page_number }}{% else %}#{% endif %}"
            aria-label="Página siguiente">
           <i class="bi bi-chevron-right"></i>
         </a>
@@ -279,22 +295,20 @@
 
 <!-- ══ Scripts ════════════════════════════════════════════════════ -->
 <script>
-// ── Búsqueda en tiempo real ────────────────────────────────────
-const searchInput  = document.getElementById('searchInput');
-const productsGrid = document.getElementById('productsGrid');
-const noResults    = document.getElementById('noSearchResults');
+// ── Búsqueda en servidor (auto-submit con debounce) ────────────
+// El filtro real corre en el backend (vista `prendas`): busca por
+// nombre, descripción, categoría y tipo sobre TODO el catálogo,
+// no solo la página visible.
+const searchForm  = document.getElementById('searchInput').form;
+const searchInput = document.getElementById('searchInput');
+let searchTimer;
 
 searchInput.addEventListener('input', function () {
-  const q = this.value.toLowerCase().trim();
-  const items = productsGrid.querySelectorAll('.product-item');
-  let visible = 0;
-  items.forEach(item => {
-    const match = !q || item.dataset.nombre.includes(q) || item.dataset.tipo.includes(q);
-    item.style.display = match ? '' : 'none';
-    if (match) visible++;
-  });
-  noResults.classList.toggle('d-none', visible > 0);
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => searchForm.requestSubmit(), 400);
 });
+// Enter envía de inmediato (sin esperar el debounce).
+searchForm.addEventListener('submit', () => clearTimeout(searchTimer));
 
 // ── Dropdown en mobile (click toggle) ─────────────────────────
 document.querySelectorAll('.catalog-pills__item--dropdown > .catalog-pill')
