@@ -1272,7 +1272,10 @@ footer::before {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  overflow-x: auto;
+  /* overflow visible on desktop: el dropdown es position:absolute y debe
+     poder "salirse" de la lista. Si se usa overflow-x:auto, el navegador
+     fuerza overflow-y a auto y recorta el menú desplegable. */
+  overflow: visible;
   scrollbar-width: none;
   -ms-overflow-style: none;
   flex-shrink: 0;
@@ -1623,6 +1626,13 @@ footer::before {
 ══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 991px) {
+  /* En mobile el dropdown es estático (acordeón): los pills deben poder
+     envolverse para que el menú abierto crezca hacia abajo sin recortarse. */
+  .catalog-pills__list {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
   .catalog-dropdown {
     position: static;
     box-shadow: none;
