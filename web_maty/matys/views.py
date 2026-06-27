@@ -1,4 +1,5 @@
 import json
+import os
 import cloudinary
 import cloudinary.uploader
 from django.shortcuts import render, get_object_or_404, redirect
@@ -601,6 +602,53 @@ def gestion_inicio(request):
 def gestion_logout(request):
     logout(request)
     return redirect('inicio')
+
+
+def gestion_ai_tono(request):
+    if not _staff_required(request):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    try:
+        from groq import Groq
+        data = json.loads(request.body)
+        descripcion = data.get('descripcion', '').strip()
+        if not descripcion:
+            return JsonResponse({'error': 'Descripción vacía'}, status=400)
+
+        client = Groq(api_key=os.environ.get('GROQ_API_KEY', ''))
+        completion = client.chat.completions.create(
+            model='llama-3.1-8b-instant',
+            messages=[
+                {
+                    'role': 'system',
+                    'content': (
+                        'Eres un asistente de copywriting para Confecciones Matys, una tienda de ropa. '
+                        'Respondes siempre con JSON válido y nada más.'
+                    ),
+                },
+                {
+                    'role': 'user',
+                    'content': (
+                        f'Reescribe esta descripción de prenda en 4 tonos distintos (máx 20 palabras cada uno):\n'
+                        f'"{descripcion}"\n\n'
+                        'Responde SOLO con este JSON exacto, sin texto adicional:\n'
+                        '{"tonos":[{"nombre":"Profesional","texto":"..."},{"nombre":"Casual","texto":"..."},{"nombre":"Emocional","texto":"..."},{"nombre":"Juvenil","texto":"..."}]}'
+                    ),
+                },
+            ],
+            temperature=0.75,
+            max_tokens=400,
+        )
+        raw = completion.choices[0].message.content.strip()
+        if raw.startswith('```'):
+            raw = raw.split('```')[1]
+            if raw.startswith('json'):
+                raw = raw[4:]
+        result = json.loads(raw.strip())
+        return JsonResponse(result)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def detalle_prendas(request, slug):

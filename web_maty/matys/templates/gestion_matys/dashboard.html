@@ -259,11 +259,20 @@
             <input type="number" id="editPrecio" name="precio" class="input-admin"
                    placeholder="0.00" step="0.01" min="0" required>
           </div>
-          <div style="margin-bottom:14px;">
+          <div style="margin-bottom:6px;">
             <label class="form-label-admin" for="editDescripcion">Descripción corta</label>
             <textarea id="editDescripcion" name="descripcion_corta" class="input-admin"
                       rows="2" style="height:auto;resize:none;"
                       placeholder="Descripción breve de la prenda"></textarea>
+          </div>
+          <div style="margin-bottom:14px;">
+            <button type="button" id="editBtnTono"
+                    style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;
+                           padding:4px 12px;border:1px solid var(--navy);border-radius:20px;
+                           background:transparent;color:var(--navy);cursor:pointer;font-weight:500;">
+              ✦ Sugerir tonos con IA
+            </button>
+            <div id="editTonoPanel" style="display:none;margin-top:10px;"></div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
             <div>
@@ -366,11 +375,20 @@
             <input type="number" id="createPrecio" name="precio" class="input-admin"
                    placeholder="0.00" step="0.01" min="0" required>
           </div>
-          <div style="margin-bottom:14px;">
+          <div style="margin-bottom:6px;">
             <label class="form-label-admin" for="createDescripcion">Descripción corta</label>
             <textarea id="createDescripcion" name="descripcion_corta" class="input-admin"
                       rows="2" style="height:auto;resize:none;"
                       placeholder="Descripción breve de la prenda"></textarea>
+          </div>
+          <div style="margin-bottom:14px;">
+            <button type="button" id="createBtnTono"
+                    style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;
+                           padding:4px 12px;border:1px solid var(--navy);border-radius:20px;
+                           background:transparent;color:var(--navy);cursor:pointer;font-weight:500;">
+              ✦ Sugerir tonos con IA
+            </button>
+            <div id="createTonoPanel" style="display:none;margin-top:10px;"></div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
             <div>
@@ -912,6 +930,91 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.innerHTML       = '<i class="bi bi-trash3"></i> Eliminar definitivamente';
     }
   });
+
+  /* ═══════════════════════════════════════════════════════════
+     AI TONE COPILOT
+     ═══════════════════════════════════════════════════════════ */
+  const TONO_EMOJIS = { 'Profesional': '💼', 'Casual': '😊', 'Emocional': '💖', 'Juvenil': '⚡' };
+
+  function renderTonoCards(tonos, textareaId, panelEl) {
+    panelEl.innerHTML = '';
+    const scroll = document.createElement('div');
+    scroll.style.cssText = 'display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;';
+    tonos.forEach(t => {
+      const card = document.createElement('div');
+      card.style.cssText = 'flex:0 0 190px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;';
+      const usarBtn = document.createElement('button');
+      usarBtn.type = 'button';
+      usarBtn.textContent = '↑ Usar';
+      usarBtn.style.cssText = 'flex:1;font-size:11.5px;padding:4px 0;border-radius:6px;background:var(--navy);color:#fff;border:none;cursor:pointer;font-weight:500;';
+      usarBtn.addEventListener('click', () => {
+        document.getElementById(textareaId).value = t.texto;
+        panelEl.style.display = 'none';
+      });
+      const copiarBtn = document.createElement('button');
+      copiarBtn.type = 'button';
+      copiarBtn.textContent = 'Copiar';
+      copiarBtn.style.cssText = 'flex:1;font-size:11.5px;padding:4px 0;border-radius:6px;background:transparent;color:var(--navy);border:1px solid var(--navy);cursor:pointer;';
+      copiarBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(t.texto);
+        copiarBtn.textContent = '✓ Copiado';
+        setTimeout(() => { copiarBtn.textContent = 'Copiar'; }, 1500);
+      });
+      const btnRow = document.createElement('div');
+      btnRow.style.cssText = 'display:flex;gap:6px;margin-top:4px;';
+      btnRow.appendChild(usarBtn);
+      btnRow.appendChild(copiarBtn);
+      card.innerHTML = `
+        <span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;background:var(--navy);color:#fff;align-self:flex-start;">
+          ${TONO_EMOJIS[t.nombre] || '✦'} ${t.nombre}
+        </span>
+        <p style="font-size:13px;color:var(--ink);margin:0;line-height:1.5;flex:1;">${t.texto}</p>
+      `;
+      card.appendChild(btnRow);
+      scroll.appendChild(card);
+    });
+    panelEl.appendChild(scroll);
+    panelEl.style.display = 'block';
+  }
+
+  const aiCtrl = { edit: null, create: null };
+
+  async function fetchTonos(textareaId, panelId, ctrlKey) {
+    const textarea = document.getElementById(textareaId);
+    const panel    = document.getElementById(panelId);
+    const texto    = textarea.value.trim();
+    if (!texto) { showToast('Escribí una descripción primero.', true); return; }
+
+    if (aiCtrl[ctrlKey]) aiCtrl[ctrlKey].abort();
+    aiCtrl[ctrlKey] = new AbortController();
+
+    panel.style.display = 'block';
+    panel.innerHTML = '<span style="font-size:12px;color:var(--mute);">✦ Generando sugerencias…</span>';
+
+    try {
+      const res = await fetch('/gestion-matys/ai/tono/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+        body: JSON.stringify({ descripcion: texto }),
+        signal: aiCtrl[ctrlKey].signal,
+      });
+      const data = await res.json();
+      if (data.tonos) {
+        renderTonoCards(data.tonos, textareaId, panel);
+      } else {
+        panel.innerHTML = `<span style="font-size:12px;color:#A4322B;">${data.error || 'Error al generar.'}</span>`;
+      }
+    } catch (e) {
+      if (e.name !== 'AbortError') {
+        panel.innerHTML = '<span style="font-size:12px;color:#A4322B;">Error de conexión.</span>';
+      }
+    }
+  }
+
+  document.getElementById('editBtnTono').addEventListener('click',
+    () => fetchTonos('editDescripcion', 'editTonoPanel', 'edit'));
+  document.getElementById('createBtnTono').addEventListener('click',
+    () => fetchTonos('createDescripcion', 'createTonoPanel', 'create'));
 
 });
 </script>

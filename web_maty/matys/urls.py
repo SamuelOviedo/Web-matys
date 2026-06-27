@@ -21,4 +21,5 @@ urlpatterns = [
     path('gestion-matys/prendas/<int:prenda_id>/editar/', views.gestion_editar_prenda, name='gestion_editar_prenda'),
     path('gestion-matys/prendas/<int:prenda_id>/eliminar/', views.gestion_eliminar_prenda, name='gestion_eliminar_prenda'),
     path('gestion-matys/categorias/tipos-json/', views.gestion_tipos_json, name='gestion_tipos_json'),
+    path('gestion-matys/ai/tono/', views.gestion_ai_tono, name='gestion_ai_tono'),
 ]
