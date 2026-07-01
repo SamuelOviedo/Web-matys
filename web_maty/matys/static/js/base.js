@@ -261,8 +261,9 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ==========================================
      FUNCIONALIDAD DE DETALLE DE PRENDA
   ========================================== */
-  /* NOTA: la búsqueda del catálogo se resuelve en el servidor (vista
-     `prendas`) con auto-submit; su handler vive en prendas.html. */
+  /* NOTA: el filtrado del catálogo (búsqueda, categorías y paginación) se
+     resuelve vía AJAX sobre la vista `prendas`; su handler vive en
+     prendas.html y solo actualiza el contenedor de resultados. */
   
   // Cambiar imagen principal al hacer clic en miniatura
   const thumbnails = document.querySelectorAll('.thumbnail');
