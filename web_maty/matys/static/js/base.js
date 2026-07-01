@@ -18,7 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   checkHeaderStatus();
   checkIconStatus();
-  initSmoothScroll();
+  // Aislado: si el CDN de Lenis falla, el resto de la página (incluida la
+  // selección de tallas y la cotización) debe seguir funcionando igual.
+  try { initSmoothScroll(); } catch (e) { console.warn('Smooth scroll no disponible:', e); }
   
   /* ==========================================
      SMOOTH SCROLL CON LENIS
@@ -285,23 +287,67 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Selector de tallas
-  const sizeButtons = document.querySelectorAll('.size-btn');
-  
+  /* ==========================================
+     SELECTOR DE TALLAS + COTIZACIÓN POR WHATSAPP
+     ------------------------------------------------------------
+     La talla seleccionada (.size-btn.active) es la ÚNICA fuente de
+     verdad. Tanto el botón "Solicitar cotización" como el botón
+     flotante de WhatsApp construyen el mensaje leyendo ese estado
+     en el momento del clic, por lo que siempre reflejan la talla
+     realmente elegida (nunca se queda "congelado" en la primera).
+  ========================================== */
+  const sizeButtons     = document.querySelectorAll('.size-btn');
+  const btnCotizacion   = document.getElementById('btnCotizacion');
+  const floatingWhatsApp = document.querySelector('#whatsapp-contacts a');
+  const isDetailPage    = !!btnCotizacion;   // el botón de cotización solo existe en la ficha
+  const whatsappNumber  = document.body.dataset.whatsapp || '50498267040';
+
+  // Construye la URL de WhatsApp con el ESTADO ACTUAL de la interfaz.
+  function buildCotizacionURL() {
+    const productName  = document.querySelector('h2')?.textContent.trim() || 'una prenda';
+    // El modelo maneja un único precio por prenda (no varía por talla),
+    // así que el precio mostrado es siempre el correcto para la selección.
+    const productPrice = document.querySelector('.product-price')?.textContent.trim() || 'Consultar';
+    const activeBtn    = document.querySelector('.size-btn.active');
+    const selectedSize = activeBtn ? activeBtn.getAttribute('data-size').trim() : 'No seleccionada';
+    const productURL   = window.location.href;
+
+    const message = `Hola Matys, me interesa solicitar una cotización:
+
+📦 *Producto:* ${productName}
+💰 *Precio:* ${productPrice}
+📏 *Talla:* ${selectedSize}
+🔗 *Enlace:* ${productURL}
+
+¿Podrían confirmarme disponibilidad y tiempo de entrega?`;
+
+    return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+  }
+
+  // Mantiene el botón flotante apuntando a la talla elegida (solo en la ficha).
+  function syncFloatingWhatsApp() {
+    if (isDetailPage && floatingWhatsApp) floatingWhatsApp.href = buildCotizacionURL();
+  }
+
+  // Selección de talla → mueve el estado activo y re-sincroniza el mensaje.
   if (sizeButtons.length > 0) {
     sizeButtons.forEach(btn => {
-      btn.addEventListener('click', function() {
-        // Remover clase active de todos los botones
-        sizeButtons.forEach(b => b.classList.remove('active'));
-        
-        // Agregar clase active al botón clickeado
+      btn.addEventListener('click', function () {
+        sizeButtons.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
         this.classList.add('active');
-        
-        // Marcar la talla activa (se usa al construir el mensaje de WhatsApp)
         this.setAttribute('aria-pressed', 'true');
-        sizeButtons.forEach(b => { if (b !== this) b.setAttribute('aria-pressed', 'false'); });
+        syncFloatingWhatsApp();
       });
     });
+  }
+
+  if (isDetailPage) {
+    // Botón principal: siempre abre el mensaje con la talla actual.
+    btnCotizacion.addEventListener('click', () => window.open(buildCotizacionURL(), '_blank'));
+    // Botón flotante: href inicial sincronizado + refresco al hacer clic
+    // (cubre "copiar enlace" y cualquier estado sin recalcular de más).
+    syncFloatingWhatsApp();
+    if (floatingWhatsApp) floatingWhatsApp.addEventListener('click', syncFloatingWhatsApp);
   }
 });
 
@@ -311,66 +357,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-/**
- * Función para alternar el estado (activo/inactivo) de una opción de contacto.
- * Simula el comportamiento de un acordeón o menú desplegable.
- */
-function toggleDetails(element) {
-    // 1. Alterna la clase 'active' en el elemento clickeado.
-    // Esto activa los estilos CSS para el despliegue y rotación de flecha.
-    element.classList.toggle('active');
-
-    // OPCIONAL: Desactiva otros elementos si solo quieres que uno esté abierto a la vez.
-    // const allOptions = document.querySelectorAll('.contact-option');
-    // allOptions.forEach(option => {
-    //     if (option !== element && option.classList.contains('active')) {
-    //         option.classList.remove('active');
-    //     }
-    // });
-}
-
-  
-  /* ==========================================
-     COTIZACIÓN POR WHATSAPP CON DATOS DINÁMICOS
-  ========================================== */
-  
-  const btnCotizacion = document.getElementById('btnCotizacion');
-
-  if (btnCotizacion) {
-    // Número de WhatsApp de la empresa (editable desde el panel → Inicio)
-    const whatsappNumber = document.body.dataset.whatsapp || '50498267040';
-
-    // Construye el mensaje de cotización SIEMPRE con el enlace directo a la
-    // prenda. La URL actual (window.location) es exactamente la del producto
-    // que se está viendo, por lo que apunta siempre al artículo correcto y le
-    // sirve tanto al cliente como al administrador para abrir la ficha exacta.
-    function buildCotizacionURL() {
-      const productName = document.querySelector('h2')?.textContent.trim() || 'una prenda';
-      const productPrice = document.querySelector('.product-price')?.textContent.trim() || 'Consultar';
-      const selectedSizeBtn = document.querySelector('.size-btn.active');
-      const selectedSize = selectedSizeBtn ? selectedSizeBtn.getAttribute('data-size') : 'No seleccionada';
-      const productURL = window.location.href;
-
-      const message = `Hola Matys, me interesa solicitar una cotización:
-
-📦 *Producto:* ${productName}
-💰 *Precio:* ${productPrice}
-📏 *Talla:* ${selectedSize}
-🔗 *Enlace:* ${productURL}
-
-¿Podrían confirmarme disponibilidad y tiempo de entrega?`;
-
-      return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-    }
-
-    btnCotizacion.addEventListener('click', function () {
-      window.open(buildCotizacionURL(), '_blank');
-    });
-
-    // El botón flotante de WhatsApp, en la ficha de producto, también apunta a
-    // la prenda concreta (mismo mensaje) en lugar del texto genérico del sitio.
-    const floatingWhatsApp = document.querySelector('#whatsapp-contacts a');
-    if (floatingWhatsApp) {
-      floatingWhatsApp.href = buildCotizacionURL();
-    }
-  }
