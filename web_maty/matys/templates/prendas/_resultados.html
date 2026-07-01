@@ -1,13 +1,13 @@
 {% load static %}
-{# ══════════════════════════════════════════════════════════════════
-   Fragmento de resultados del catálogo.
-   Se renderiza tanto dentro de prendas.html (carga inicial / sin JS)
-   como de forma aislada ante peticiones AJAX (?partial=1), para que el
-   filtrado actualice SOLO esta parte sin recargar la página.
+{% comment %}
+  Fragmento de resultados del catálogo.
+  Se renderiza tanto dentro de prendas.html (carga inicial / sin JS)
+  como de forma aislada ante peticiones AJAX (?partial=1), para que el
+  filtrado actualice SOLO esta parte sin recargar la página.
 
-   Los enlaces conservan su href real (funciona sin JS); el JS los
-   intercepta vía las clases js-filter / data-page / data-reset.
-   ══════════════════════════════════════════════════════════════════ #}
+  Los enlaces conservan su href real (funciona sin JS); el JS los
+  intercepta vía las clases js-filter / data-page / data-reset.
+{% endcomment %}
 
 <!-- ══ Encabezado de resultados ══════════════════════════════════ -->
 <div class="container mt-5 mb-4">
