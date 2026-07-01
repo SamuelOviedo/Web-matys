@@ -312,12 +312,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedSize = activeBtn ? activeBtn.getAttribute('data-size').trim() : 'No seleccionada';
     const productURL   = window.location.href;
 
+    // Emojis como escapes Unicode (ASCII puro) para que el mensaje sea
+    // inmune a cualquier problema de codificación al guardar/servir el .js.
+    // 📦=1F4E6  💰=1F4B0  📏=1F4CF  🔗=1F517
     const message = `Hola Matys, me interesa solicitar una cotización:
 
-📦 *Producto:* ${productName}
-💰 *Precio:* ${productPrice}
-📏 *Talla:* ${selectedSize}
-🔗 *Enlace:* ${productURL}
+\u{1F4E6} *Producto:* ${productName}
+\u{1F4B0} *Precio:* ${productPrice}
+\u{1F4CF} *Talla:* ${selectedSize}
+\u{1F517} *Enlace:* ${productURL}
 
 ¿Podrían confirmarme disponibilidad y tiempo de entrega?`;
 
