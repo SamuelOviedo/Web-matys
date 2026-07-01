@@ -373,6 +373,25 @@ footer a:hover {
   color: var(--bs-secondary) !important;
 }
 
+/* Enlace discreto de acceso al panel de administración */
+.admin-access-link {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: rgba(var(--bs-primary-rgb), 0.45) !important;
+  text-decoration: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+  transition: color 0.25s ease, background-color 0.25s ease;
+}
+
+.admin-access-link:hover {
+  color: var(--bs-primary) !important;
+  background-color: rgba(var(--bs-primary-rgb), 0.08);
+}
+
 footer::before {
   content: "";
   position: absolute;
@@ -1008,7 +1027,6 @@ footer::before {
         }
 }
  /*exta trayectoria*/
- <style>
     /* Hero específico de trayectoria */
     .hero-trayectoria {
         background: linear-gradient(135deg, rgba(0,51,102,0.85), rgba(255,215,0,0.3)), 
@@ -1650,6 +1668,25 @@ footer::before {
   .catalog-search__input:focus { width: 140px; }
 }
 
+/* En móvil el buscador pasa a una fila propia a todo el ancho, debajo de
+   los pills, en lugar de ocultarse (antes no se podía buscar en teléfono). */
 @media (max-width: 575px) {
-  .catalog-search { display: none; }
+  .catalog-bar__inner {
+    flex-wrap: wrap;
+  }
+
+  .catalog-pills {
+    width: 100%;
+  }
+
+  .catalog-search {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .catalog-search__input,
+  .catalog-search__input:focus {
+    width: 100%;
+    flex: 1;
+  }
 }

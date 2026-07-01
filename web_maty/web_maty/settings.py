@@ -102,6 +102,12 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = []
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Media: las fotos productivas viven en Cloudinary, pero definimos estos
+# valores para que el helper static() de urls.py no falle en DEBUG y para
+# servir cualquier archivo subido localmente durante el desarrollo.
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Cloudinary: configuración directa — evita AppConfig de django-cloudinary-storage
 # que hace settings.STATICFILES_STORAGE, atributo eliminado en Django 6.
 CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
@@ -125,8 +131,10 @@ STORAGES = {
     },
 }
 
-# En tests no existe el manifest de collectstatic: usar storage simple.
-if 'test' in sys.argv:
+# El manifest comprimido solo tiene sentido en producción (requiere
+# collectstatic). En tests y en desarrollo (DEBUG) usamos el storage simple
+# para poder editar/añadir archivos estáticos sin regenerar el manifest.
+if 'test' in sys.argv or DEBUG:
     STORAGES['staticfiles'] = {
         'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     }

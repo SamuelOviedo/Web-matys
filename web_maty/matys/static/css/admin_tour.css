@@ -1,0 +1,321 @@
+/* ============================================================
+   SISTEMA DE TUTORIALES GUIADOS — Panel Matys
+   Motor de "tours" interactivos + Centro de ayuda.
+   Usa los mismos design tokens del panel (--navy, --yellow, …).
+   ============================================================ */
+
+/* ── Capa de foco (spotlight) ─────────────────────────────── */
+#tourSpotlight {
+  position: fixed;
+  z-index: 2147482000;
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgba(11, 18, 36, 0.62);
+  border: 2px solid var(--yellow, #FFD60A);
+  pointer-events: none;               /* nunca bloquea la interacción */
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+}
+#tourSpotlight.tour-visible { opacity: 1; }
+
+/* Cuando no hay elemento objetivo: oscurece toda la pantalla sin recorte */
+#tourBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147482000;
+  background: rgba(11, 18, 36, 0.62);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+#tourBackdrop.tour-visible { opacity: 1; }
+
+/* ── Tarjeta / popover del paso ───────────────────────────── */
+#tourTip {
+  position: fixed;
+  z-index: 2147483000;
+  width: min(340px, calc(100vw - 32px));
+  background: #fff;
+  border: 1px solid var(--line, #E6E3DA);
+  border-radius: 14px;
+  box-shadow: 0 18px 50px -12px rgba(11, 18, 36, 0.45);
+  padding: 0;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow: hidden;
+}
+#tourTip.tour-visible { opacity: 1; transform: translateY(0); }
+
+.tour-tip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 0;
+}
+.tour-tip-eyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--navy, #0E1F4D);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.tour-tip-eyebrow .tour-eyebrow-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tour-tip-close {
+  border: none;
+  background: transparent;
+  color: var(--mute, #6B6A63);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+}
+.tour-tip-close:hover { background: #F0ECE0; color: var(--ink, #0B1224); }
+
+.tour-tip-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--navy, #0E1F4D);
+  line-height: 1.2;
+  margin: 6px 16px 0;
+}
+
+.tour-tip-body {
+  padding: 8px 16px 4px;
+}
+.tour-tip-body p { font-size: 13.5px; color: var(--ink, #0B1224); line-height: 1.55; margin: 0 0 8px; }
+.tour-tip-body p:last-child { margin-bottom: 0; }
+
+.tour-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: rgba(255, 214, 10, 0.14);
+  border: 1px solid rgba(255, 214, 10, 0.5);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 4px 16px 0;
+  font-size: 12.5px;
+  color: #6b5300;
+  line-height: 1.45;
+}
+.tour-note i { color: #b7930a; font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+
+.tour-action {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 10px 16px 0;
+  font-size: 12.5px;
+  color: var(--navy, #0E1F4D);
+  font-weight: 600;
+  line-height: 1.45;
+}
+.tour-action i { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+
+/* ── Progreso ─────────────────────────────────────────────── */
+.tour-progress-wrap { padding: 14px 16px 0; }
+.tour-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--mute, #6B6A63);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.tour-progress-bar {
+  height: 5px;
+  background: #ECE8DB;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.tour-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--navy, #0E1F4D), var(--navy-2, #16306E));
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* ── Pie con botones ──────────────────────────────────────── */
+.tour-tip-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 16px;
+  margin-top: 12px;
+}
+.tour-btn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+  font-family: inherit;
+}
+.tour-btn-skip {
+  background: transparent;
+  color: var(--mute, #6B6A63);
+  padding: 0 8px;
+  margin-right: auto;
+}
+.tour-btn-skip:hover { color: var(--ink, #0B1224); text-decoration: underline; }
+.tour-btn-prev {
+  background: #fff;
+  color: var(--ink, #0B1224);
+  border: 1px solid var(--line, #E6E3DA);
+}
+.tour-btn-prev:hover { background: var(--paper, #FAF8F2); }
+.tour-btn-prev:disabled { opacity: 0.4; cursor: default; }
+.tour-btn-next {
+  background: var(--navy, #0E1F4D);
+  color: #fff;
+  box-shadow: 0 8px 18px -10px rgba(14, 31, 77, 0.55);
+}
+.tour-btn-next:hover { background: var(--navy-2, #16306E); }
+
+/* ── Pantalla final ───────────────────────────────────────── */
+.tour-finish { text-align: center; padding: 26px 22px 22px; }
+.tour-finish-check {
+  width: 58px; height: 58px; border-radius: 50%;
+  background: #E5F3EA; color: #1F6B3A;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; margin: 0 auto 14px;
+  animation: tour-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tour-pop { from { transform: scale(0); } to { transform: scale(1); } }
+.tour-finish-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700; color: var(--navy, #0E1F4D); margin: 0 0 6px;
+}
+.tour-finish-text { font-size: 13.5px; color: var(--mute, #6B6A63); line-height: 1.5; margin: 0 0 18px; }
+.tour-finish-actions { display: flex; flex-direction: column; gap: 8px; }
+
+/* ── Responsive: en móvil el popover es una hoja inferior ──── */
+@media (max-width: 640px) {
+  #tourTip {
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    bottom: 12px !important;
+    top: auto !important;
+    max-height: 78vh;
+    overflow-y: auto;
+  }
+  .tour-tip-footer { flex-wrap: wrap; }
+  .tour-btn-next, .tour-btn-prev { flex: 1; justify-content: center; }
+}
+
+/* Respeta usuarios que prefieren menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  #tourSpotlight, #tourTip, #tourBackdrop, .tour-progress-fill { transition: none; }
+  .tour-finish-check { animation: none; }
+}
+
+/* ============================================================
+   CENTRO DE AYUDA (página /gestion-matys/ayuda/)
+   ============================================================ */
+.help-search-wrap { position: relative; max-width: 520px; }
+.help-search {
+  width: 100%; height: 44px;
+  border: 1px solid var(--line, #E6E3DA); border-radius: 10px;
+  background: #fff; padding: 0 14px 0 40px;
+  font-size: 14px; color: var(--ink, #0B1224); outline: none;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.help-search:focus { border-color: var(--line-2, #D9D5C7); box-shadow: 0 0 0 3px rgba(255, 214, 10, 0.3); }
+.help-search-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  color: var(--mute, #6B6A63); font-size: 15px; pointer-events: none;
+}
+
+.help-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.help-filter-chip {
+  height: 30px; padding: 0 14px; border-radius: 999px;
+  border: 1px solid var(--line, #E6E3DA); background: #fff;
+  font-size: 12.5px; font-weight: 600; color: var(--mute, #6B6A63);
+  cursor: pointer; transition: all 0.15s;
+}
+.help-filter-chip:hover { border-color: var(--navy, #0E1F4D); color: var(--navy, #0E1F4D); }
+.help-filter-chip.active { background: var(--navy, #0E1F4D); color: #fff; border-color: var(--navy, #0E1F4D); }
+
+.help-cat-title {
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--navy, #0E1F4D); margin: 26px 0 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.help-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;
+}
+
+.help-card {
+  background: #fff; border: 1px solid var(--line, #E6E3DA); border-radius: 12px;
+  padding: 16px; display: flex; flex-direction: column; gap: 10px;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.help-card:hover { transform: translateY(-2px); box-shadow: 0 12px 26px -14px rgba(11, 18, 36, 0.35); border-color: var(--line-2, #D9D5C7); }
+
+.help-card-top { display: flex; align-items: flex-start; gap: 12px; }
+.help-card-icon {
+  width: 40px; height: 40px; border-radius: 9px; flex-shrink: 0;
+  background: rgba(255, 214, 10, 0.2); color: var(--navy, #0E1F4D);
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.help-card-title { font-size: 15px; font-weight: 700; color: var(--ink, #0B1224); line-height: 1.25; }
+.help-card-desc { font-size: 13px; color: var(--mute, #6B6A63); line-height: 1.5; flex: 1; }
+
+.help-card-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 11.5px; color: var(--mute, #6B6A63); }
+.help-meta-item { display: inline-flex; align-items: center; gap: 4px; }
+
+.help-badge-done {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #E5F3EA; color: #1F6B3A;
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+}
+.help-badge-new {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--yellow, #FFD60A); color: var(--ink, #0B1224);
+  font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+.help-card-btn {
+  height: 38px; border-radius: 8px; border: none; cursor: pointer;
+  background: var(--navy, #0E1F4D); color: #fff; font-size: 13px; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background 0.15s; font-family: inherit; width: 100%;
+}
+.help-card-btn:hover { background: var(--navy-2, #16306E); }
+.help-card-btn.is-replay { background: #fff; color: var(--navy, #0E1F4D); border: 1px solid var(--line, #E6E3DA); }
+.help-card-btn.is-replay:hover { background: var(--paper, #FAF8F2); }
+
+.help-empty { text-align: center; color: var(--mute, #6B6A63); padding: 40px 20px; }
+.help-empty i { font-size: 2rem; color: var(--line-2, #D9D5C7); display: block; margin-bottom: 10px; }
+
+/* Botón de ayuda contextual en la topbar */
+.topbar-help-btn { position: relative; }
+.topbar-help-dot {
+  position: absolute; top: 4px; right: 4px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #E23B2E; border: 1.5px solid #fff;
+}

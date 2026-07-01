@@ -1,0 +1,94 @@
+{% extends 'gestion_matys/base_admin.html' %}
+
+{% block title %}Centro de ayuda — Panel Matys{% endblock %}
+{% block breadcrumb %}Centro de ayuda{% endblock %}
+
+{% block content %}
+
+<style>
+  /* Tarjeta de bienvenida al Centro de ayuda */
+  .help-hero {
+    margin: 0 24px 4px;
+    background: linear-gradient(120deg, var(--navy), var(--navy-2));
+    border-radius: 14px;
+    padding: 22px 24px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .help-hero-icon {
+    width: 52px; height: 52px; border-radius: 12px; flex-shrink: 0;
+    background: rgba(255,214,10,.22); color: var(--yellow);
+    display: flex; align-items: center; justify-content: center; font-size: 26px;
+  }
+  .help-hero-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin: 0 0 2px; }
+  .help-hero-text { font-size: 13.5px; color: rgba(255,255,255,.8); margin: 0; max-width: 560px; }
+  .help-hero-btn {
+    margin-left: auto; height: 42px; padding: 0 20px; border-radius: 9px; border: none;
+    background: var(--yellow); color: var(--ink); font-weight: 700; font-size: 13.5px;
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap;
+    transition: background .15s, transform .15s;
+  }
+  .help-hero-btn:hover { background: var(--yellow-2); transform: translateY(-1px); }
+  @media (max-width: 640px) {
+    .help-hero { margin: 0 16px 4px; }
+    .help-hero-btn { margin-left: 0; width: 100%; justify-content: center; }
+  }
+</style>
+
+<div class="page-header">
+  <div class="page-eyebrow">Ayuda</div>
+  <h1 class="page-title">Centro de ayuda</h1>
+  <p class="page-lede">
+    Tutoriales interactivos que te guían por el panel real, paso a paso. Iniciá cualquiera cuando lo
+    necesites: te van a mostrar exactamente dónde tocar y por qué. Podés repetirlos las veces que quieras.
+  </p>
+</div>
+
+<!-- Bienvenida / recorrido general -->
+<div class="help-hero">
+  <div class="help-hero-icon"><i class="bi bi-life-preserver"></i></div>
+  <div>
+    <h2 class="help-hero-title">¿Primera vez por acá?</h2>
+    <p class="help-hero-text">
+      Empezá por el recorrido general: en pocos minutos vas a conocer todas las secciones del panel.
+    </p>
+  </div>
+  <button type="button" class="help-hero-btn" data-launch="overview">
+    <i class="bi bi-play-fill"></i> Iniciar recorrido general
+  </button>
+</div>
+
+<!-- Buscador + filtros -->
+<div class="page-section" style="padding-bottom:0;">
+  <div class="help-search-wrap">
+    <i class="bi bi-search help-search-icon"></i>
+    <input type="search" id="helpSearch" class="help-search"
+           placeholder="Buscar un tutorial (ej: crear prenda, WhatsApp, categorías…)"
+           autocomplete="off" aria-label="Buscar tutoriales">
+  </div>
+  <div class="help-filters" id="helpFilters"><!-- chips generados por JS --></div>
+</div>
+
+<!-- Listado de tutoriales (render dinámico desde el registro JS) -->
+<div class="page-section">
+  <div id="helpMount"><!-- tarjetas generadas por admin_tours.js --></div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // El botón grande de bienvenida usa el mismo lanzador que las tarjetas.
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-launch]').forEach(function (b) {
+      if (b.closest('#helpMount')) return; // esos ya los maneja admin_tours.js
+      b.addEventListener('click', function () {
+        if (window.MatysTour) window.MatysTour.launch(b.getAttribute('data-launch'));
+      });
+    });
+  });
+</script>
+{% endblock %}

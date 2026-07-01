@@ -17,6 +17,7 @@ urlpatterns = [
     path('gestion-matys/categorias/', views.gestion_categorias, name='gestion_categorias'),
     path('gestion-matys/imagenes/', views.gestion_imagenes, name='gestion_imagenes'),
     path('gestion-matys/inicio/', views.gestion_inicio, name='gestion_inicio'),
+    path('gestion-matys/ayuda/', views.gestion_ayuda, name='gestion_ayuda'),
     path('gestion-matys/prendas/crear/', views.gestion_crear_prenda, name='gestion_crear_prenda'),
     path('gestion-matys/prendas/<int:prenda_id>/editar/', views.gestion_editar_prenda, name='gestion_editar_prenda'),
     path('gestion-matys/prendas/<int:prenda_id>/eliminar/', views.gestion_eliminar_prenda, name='gestion_eliminar_prenda'),

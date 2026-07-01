@@ -101,6 +101,59 @@
     transition: transform .22s, opacity .22s; pointer-events: none;
   }
   #dashToast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── Tabla de prendas: columnas fijas en desktop ─────────────── */
+  .prenda-row .pcell-cat    { width: 100px; font-size: 12.5px; color: var(--mute); }
+  .prenda-row .pcell-tipo   { width: 140px; font-size: 12px;   color: var(--mute); }
+  .prenda-row .pcell-mod    { width: 110px; }
+  .prenda-row .pcell-precio { width: 85px;  font-size: 12.5px; font-family: 'JetBrains Mono', monospace; }
+  .prenda-row .pcell-estado { width: 80px; }
+  .prenda-row .pcell-actions{ width: 72px; justify-content: flex-end; }
+
+  /* ── Móvil: cada fila se convierte en una tarjeta apilada ────── */
+  @media (max-width: 767px) {
+    .prendas-colhead { display: none; }
+
+    .prenda-row {
+      height: auto;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      padding: 14px 16px;
+    }
+    .prenda-row .pcell {
+      width: auto !important;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+    }
+    .prenda-row .pcell-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    /* Etiqueta de columna delante de cada dato en móvil */
+    .prenda-row .pcell[data-label]::before {
+      content: attr(data-label);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--mute);
+      flex-shrink: 0;
+    }
+    /* Las acciones son siempre visibles en táctil (sin hover) */
+    .prenda-row .row-actions {
+      opacity: 1;
+      justify-content: flex-end;
+      padding-top: 4px;
+      border-top: 1px solid var(--line);
+      margin-top: 2px;
+    }
+    .prenda-row .row-icon-btn { width: 34px; height: 34px; font-size: 15px; }
+  }
 </style>
 
 <!-- Page header -->
@@ -156,7 +209,7 @@
     <div style="flex:1;"></div>
     <span class="chip chip-neutral">{{ total_prendas }} registros</span>
   </div>
-  <div class="surface-col-header">
+  <div class="surface-col-header prendas-colhead">
     <span class="col-label" style="flex:1;">Nombre</span>
     <span class="col-label" style="width:100px;">Categoría</span>
     <span class="col-label" style="width:140px;">Tipo</span>
@@ -167,26 +220,26 @@
   </div>
 
   {% for p, tipo_nombre in prendas_data %}
-  <div class="data-row">
-    <span class="row-name" style="flex:1;">{{ p.nombre }}</span>
-    <span style="width:100px;font-size:12.5px;color:var(--mute);">{{ p.get_categoria_display }}</span>
-    <span style="width:140px;font-size:12px;color:var(--mute);">{{ tipo_nombre }}</span>
-    <span style="width:110px;">
+  <div class="data-row prenda-row">
+    <span class="row-name pcell pcell-name" style="flex:1;">{{ p.nombre }}</span>
+    <span class="pcell pcell-cat" data-label="Categoría">{{ p.get_categoria_display }}</span>
+    <span class="pcell pcell-tipo" data-label="Tipo">{{ tipo_nombre }}</span>
+    <span class="pcell pcell-mod" data-label="Modalidad">
       {% if p.por_encargo %}
         <span class="chip chip-accent">Por encargo</span>
       {% else %}
         <span class="chip chip-success">Disponible</span>
       {% endif %}
     </span>
-    <span style="width:85px;font-size:12.5px;font-family:'JetBrains Mono',monospace;">L.{{ p.precio }}</span>
-    <span style="width:80px;">
+    <span class="pcell pcell-precio" data-label="Precio">L.{{ p.precio }}</span>
+    <span class="pcell pcell-estado" data-label="Estado">
       {% if p.disponible %}
         <span class="chip chip-success">● Activa</span>
       {% else %}
         <span class="chip chip-muted">● Oculta</span>
       {% endif %}
     </span>
-    <div class="row-actions" style="width:72px;justify-content:flex-end;">
+    <div class="row-actions pcell pcell-actions">
       <button type="button" class="row-icon-btn edit-prenda-btn"
               data-id="{{ p.pk }}" title="Editar">
         <i class="bi bi-pencil"></i>

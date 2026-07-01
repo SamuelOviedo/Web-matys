@@ -257,115 +257,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   /* ==========================================
-     FUNCIONALIDAD DE PÁGINA DE PRENDAS
-  ========================================== */
-  
-  const searchInput = document.querySelector('#searchInput');
-  const productCards = document.querySelectorAll('.products-grid > div');
-  const tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
-  const femeninoGrid = document.querySelector('.products-grid-femenino');
-  const masculinoGrid = document.querySelector('.products-grid-masculino');
-  
-  // Búsqueda de productos en tiempo real
-  if (searchInput && productCards.length > 0) {
-    searchInput.addEventListener('input', (e) => {
-      const searchTerm = e.target.value.toLowerCase().trim();
-      
-      productCards.forEach(card => {
-        const title = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
-        const description = card.querySelector('.card-text')?.textContent.toLowerCase() || '';
-        const category = card.querySelector('.badge-cat')?.textContent.toLowerCase() || '';
-        
-        const matchesSearch = 
-          title.includes(searchTerm) || 
-          description.includes(searchTerm) || 
-          category.includes(searchTerm);
-        
-        if (matchesSearch) {
-          card.style.display = 'block';
-          setTimeout(() => {
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-          }, 10);
-        } else {
-          card.style.opacity = '0';
-          card.style.transform = 'translateY(20px)';
-          setTimeout(() => {
-            card.style.display = 'none';
-          }, 300);
-        }
-      });
-    });
-  }
-  
-  // Filtrar productos por categoría (tabs)
-  if (tabs.length > 0) {
-    tabs.forEach(tab => {
-      tab.addEventListener('shown.bs.tab', (e) => {
-        const targetId = e.target.getAttribute('data-bs-target');
-        
-        if (targetId === '#femenino' && femeninoGrid) {
-          filterAndPopulateGrid(femeninoGrid, 'femenino');
-        } else if (targetId === '#masculino' && masculinoGrid) {
-          filterAndPopulateGrid(masculinoGrid, 'masculino');
-        }
-      });
-    });
-  }
-  
-  // Poblar grid filtrado
-  function filterAndPopulateGrid(targetGrid, category) {
-    if (!targetGrid) return;
-    
-    targetGrid.innerHTML = '';
-    const allProducts = document.querySelectorAll('.products-grid > div[data-category]');
-    
-    let found = false;
-    
-    allProducts.forEach(product => {
-      const productCategory = product.getAttribute('data-category');
-      
-      if (productCategory === category) {
-        found = true;
-        const clone = product.cloneNode(true);
-        clone.style.opacity = '0';
-        clone.style.transform = 'translateY(30px)';
-        targetGrid.appendChild(clone);
-        
-        setTimeout(() => {
-          clone.style.transition = 'all 0.6s ease-out';
-          clone.style.opacity = '1';
-          clone.style.transform = 'translateY(0)';
-        }, 100);
-      }
-    });
-    
-    if (!found) {
-      targetGrid.innerHTML = `
-        <div class="col-12 text-center py-5">
-          <i class="bi bi-inbox fs-1 text-muted mb-3 d-block"></i>
-          <p class="text-muted fs-5">No hay productos en esta categoría</p>
-        </div>
-      `;
-    }
-  }
-  
-  // Pre-poblar grids al cargar la página
-  if (femeninoGrid && productCards.length > 0) {
-    setTimeout(() => {
-      filterAndPopulateGrid(femeninoGrid, 'femenino');
-    }, 100);
-  }
-  
-  if (masculinoGrid && productCards.length > 0) {
-    setTimeout(() => {
-      filterAndPopulateGrid(masculinoGrid, 'masculino');
-    }, 100);
-  }
-  
-  /* ==========================================
      FUNCIONALIDAD DE DETALLE DE PRENDA
   ========================================== */
+  /* NOTA: la búsqueda del catálogo se resuelve en el servidor (vista
+     `prendas`) con auto-submit; su handler vive en prendas.html. */
   
   // Cambiar imagen principal al hacer clic en miniatura
   const thumbnails = document.querySelectorAll('.thumbnail');
@@ -402,28 +297,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Agregar clase active al botón clickeado
         this.classList.add('active');
         
-        // Opcional: Guardar talla seleccionada
-        const selectedSize = this.getAttribute('data-size');
-        console.log('Talla seleccionada:', selectedSize);
-      });
-    });
-  }
-  
-  // Selector de colores
-  const colorButtons = document.querySelectorAll('.color-btn');
-  
-  if (colorButtons.length > 0) {
-    colorButtons.forEach(btn => {
-      btn.addEventListener('click', function() {
-        // Remover clase active de todos los botones
-        colorButtons.forEach(b => b.classList.remove('active'));
-        
-        // Agregar clase active al botón clickeado
-        this.classList.add('active');
-        
-        // Opcional: Guardar color seleccionado
-        const selectedColor = this.getAttribute('data-color');
-        console.log('Color seleccionado:', selectedColor);
+        // Marcar la talla activa (se usa al construir el mensaje de WhatsApp)
+        this.setAttribute('aria-pressed', 'true');
+        sizeButtons.forEach(b => { if (b !== this) b.setAttribute('aria-pressed', 'false'); });
       });
     });
   }
@@ -459,40 +335,42 @@ function toggleDetails(element) {
   ========================================== */
   
   const btnCotizacion = document.getElementById('btnCotizacion');
-  
+
   if (btnCotizacion) {
-    btnCotizacion.addEventListener('click', function() {
-      // Obtener nombre del producto
-      const productName = document.querySelector('h2')?.textContent.trim() || 'prendaNombre';
-      
-      // Obtener precio
+    // Número de WhatsApp de la empresa (editable desde el panel → Inicio)
+    const whatsappNumber = document.body.dataset.whatsapp || '50498267040';
+
+    // Construye el mensaje de cotización SIEMPRE con el enlace directo a la
+    // prenda. La URL actual (window.location) es exactamente la del producto
+    // que se está viendo, por lo que apunta siempre al artículo correcto y le
+    // sirve tanto al cliente como al administrador para abrir la ficha exacta.
+    function buildCotizacionURL() {
+      const productName = document.querySelector('h2')?.textContent.trim() || 'una prenda';
       const productPrice = document.querySelector('.product-price')?.textContent.trim() || 'Consultar';
-      
-      // Obtener talla seleccionada
       const selectedSizeBtn = document.querySelector('.size-btn.active');
       const selectedSize = selectedSizeBtn ? selectedSizeBtn.getAttribute('data-size') : 'No seleccionada';
-      
-      // Obtener color seleccionado
-      const selectedColorBtn = document.querySelector('.color-btn.active');
-      const selectedColor = selectedColorBtn ? selectedColorBtn.getAttribute('data-color') : 'No seleccionado';
-      
-      // Construir mensaje personalizado
+      const productURL = window.location.href;
+
       const message = `Hola Matys, me interesa solicitar una cotización:
 
 📦 *Producto:* ${productName}
 💰 *Precio:* ${productPrice}
 📏 *Talla:* ${selectedSize}
-🎨 *Color:* ${selectedColor}
+🔗 *Enlace:* ${productURL}
 
 ¿Podrían confirmarme disponibilidad y tiempo de entrega?`;
-      
-      // Número de WhatsApp de la empresa (editable desde el panel → Inicio)
-      const whatsappNumber = document.body.dataset.whatsapp || '50498267040';
-      
-      // Crear URL de WhatsApp
-      const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-      
-      // Abrir WhatsApp en nueva pestaña
-      window.open(whatsappURL, '_blank');
+
+      return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    }
+
+    btnCotizacion.addEventListener('click', function () {
+      window.open(buildCotizacionURL(), '_blank');
     });
-  };
+
+    // El botón flotante de WhatsApp, en la ficha de producto, también apunta a
+    // la prenda concreta (mismo mensaje) en lugar del texto genérico del sitio.
+    const floatingWhatsApp = document.querySelector('#whatsapp-contacts a');
+    if (floatingWhatsApp) {
+      floatingWhatsApp.href = buildCotizacionURL();
+    }
+  }

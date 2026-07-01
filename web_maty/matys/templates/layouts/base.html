@@ -8,9 +8,7 @@
 
     <link rel="shortcut icon" href="{% static 'images/icon_maty.jpg' %}" type="image/x-icon">
 
-    <link rel="shortcut icon" href="" type="image/x-icon">
 
-    
     <!-- Preload imagen hero si existe -->
     {% if img_header %}
     <link rel="preload" as="image" href="{% static 'images/' %}{{ img_header }}">
@@ -123,7 +121,7 @@
       <!-- Copyright y Redes Sociales -->
       <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center py-4 mt-3 ">
         <p class="text-body-secondary mb-2 mb-sm-0">© 2025 Matys Confecciones | Todos los derechos reservados</p>
-        <ul class="list-unstyled d-flex gap-3 mb-0"><br>
+        <ul class="list-unstyled d-flex gap-3 mb-0 align-items-center"><br>
           <li>
             <a href="{{ txt.red_facebook }}" aria-label="Facebook" class="text-body-secondary">
               <i class="bi bi-facebook fs-5"></i>
@@ -147,6 +145,13 @@
           </li>
         </ul>
       </div>
+
+      <!-- Acceso administradores: enlace discreto pero visible al login del panel -->
+      <div class="text-center pb-2">
+        <a href="{% url 'gestion_login' %}" class="admin-access-link" rel="nofollow">
+          <i class="bi bi-lock-fill me-1"></i>Acceso administradores
+        </a>
+      </div>
     </footer>
 
     <!-- ========== BOTÓN FLOTANTE WHATSAPP ========== -->
@@ -168,32 +173,6 @@
     
     <!-- JavaScript Personalizado -->
     <script src="{% static 'js/base.js' %}"></script>
-
-    <!-- 3 taps rápidos en el logo → panel de gestión -->
-    <script>
-    (function () {
-      var logoLink = document.querySelector('a.navbar-brand');
-      if (!logoLink) return;
-
-      logoLink.addEventListener('click', function (e) {
-        var now = Date.now();
-        var raw = sessionStorage.getItem('_mg');
-        var state = raw ? JSON.parse(raw) : { c: 0, t: 0 };
-
-        if (now - state.t > 1500) state = { c: 0, t: 0 };
-
-        state.c += 1;
-        state.t = now;
-        sessionStorage.setItem('_mg', JSON.stringify(state));
-
-        if (state.c >= 3) {
-          e.preventDefault();
-          sessionStorage.removeItem('_mg');
-          window.location.href = '/gestion-matys/';
-        }
-      });
-    })();
-    </script>
 
     {% block extra_js %}{% endblock %}
   </body>

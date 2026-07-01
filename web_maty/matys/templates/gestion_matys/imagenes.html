@@ -16,6 +16,16 @@
     z-index: 2;
   }
   .image-card:hover .img-overlay { opacity: 1; }
+  /* En táctil no hay hover: el botón de editar queda siempre accesible */
+  @media (hover: none) {
+    .img-overlay {
+      opacity: 1;
+      background: rgba(11,18,36,.30);
+      align-items: flex-end;
+      padding: 10px;
+    }
+    .overlay-edit-btn { height: 32px; font-size: 12px; padding: 0 12px; }
+  }
   .overlay-edit-btn {
     display: inline-flex; align-items: center; gap: 6px;
     height: 36px; padding: 0 16px; border-radius: 6px;

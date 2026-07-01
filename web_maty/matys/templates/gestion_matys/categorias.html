@@ -23,6 +23,17 @@
     transition: transform .22s, opacity .22s; pointer-events: none;
   }
   #catToast.show { transform: translateY(0); opacity: 1; }
+
+  /* Grilla de categorías: 3 columnas en desktop, se adapta sola en
+     pantallas menores hasta apilarse en una sola columna en móvil. */
+  .cats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 992px) {
+    .cats-grid { grid-template-columns: 1fr; gap: 16px; }
+  }
 </style>
 
 <div class="page-header">
@@ -32,7 +43,7 @@
 </div>
 
 <div class="page-section">
-  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px;">
+  <div class="cats-grid">
 
     <!-- FEMENINO -->
     <div class="admin-card">

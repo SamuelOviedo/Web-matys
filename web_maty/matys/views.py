@@ -599,6 +599,18 @@ def gestion_inicio(request):
     })
 
 
+def gestion_ayuda(request):
+    """Centro de ayuda: tutoriales guiados interactivos del panel.
+
+    La página es un contenedor; el listado de tutoriales se construye en el
+    cliente desde el registro único (static/js/admin_tours.js), de modo que
+    agregar un tutorial no requiere tocar el backend.
+    """
+    if not _staff_required(request):
+        return redirect('gestion_login')
+    return render(request, 'gestion_matys/ayuda.html', {'active_nav': 'ayuda'})
+
+
 def gestion_logout(request):
     logout(request)
     return redirect('inicio')
