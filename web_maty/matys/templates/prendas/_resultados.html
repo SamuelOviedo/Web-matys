@@ -1,0 +1,183 @@
+{% load static %}
+{# ══════════════════════════════════════════════════════════════════
+   Fragmento de resultados del catálogo.
+   Se renderiza tanto dentro de prendas.html (carga inicial / sin JS)
+   como de forma aislada ante peticiones AJAX (?partial=1), para que el
+   filtrado actualice SOLO esta parte sin recargar la página.
+
+   Los enlaces conservan su href real (funciona sin JS); el JS los
+   intercepta vía las clases js-filter / data-page / data-reset.
+   ══════════════════════════════════════════════════════════════════ #}
+
+<!-- ══ Encabezado de resultados ══════════════════════════════════ -->
+<div class="container mt-5 mb-4">
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+    <div>
+      {% if busqueda %}
+        <h1 class="display-6 enc fw-bold mb-1">Resultados de búsqueda</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0 small">
+            <li class="breadcrumb-item">
+              <a href="{% url 'prendas' %}" class="text-decoration-none js-filter"
+                 data-categoria="" data-tipo="" data-reset="1">Todas</a>
+            </li>
+            <li class="breadcrumb-item active">“{{ busqueda }}”</li>
+          </ol>
+        </nav>
+      {% elif tipo_display %}
+        <h1 class="display-6 enc fw-bold mb-1">{{ tipo_display }}</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0 small">
+            <li class="breadcrumb-item">
+              <a href="{% url 'prendas' %}" class="text-decoration-none js-filter"
+                 data-categoria="" data-tipo="" data-reset="1">Todas</a>
+            </li>
+            <li class="breadcrumb-item">
+              <a href="{% url 'prendas' %}?categoria={{ categoria_activa }}"
+                 class="text-decoration-none js-filter"
+                 data-categoria="{{ categoria_activa }}" data-tipo="">{{ categoria_display }}</a>
+            </li>
+            <li class="breadcrumb-item active">{{ tipo_display }}</li>
+          </ol>
+        </nav>
+      {% elif categoria_display %}
+        <h1 class="display-6 enc fw-bold mb-1">Moda {{ categoria_display }}</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0 small">
+            <li class="breadcrumb-item">
+              <a href="{% url 'prendas' %}" class="text-decoration-none js-filter"
+                 data-categoria="" data-tipo="" data-reset="1">Todas</a>
+            </li>
+            <li class="breadcrumb-item active">{{ categoria_display }}</li>
+          </ol>
+        </nav>
+      {% else %}
+        <h1 class="display-6 enc fw-bold mb-1">Toda la Colección</h1>
+        <p class="text-muted mb-0 small">Explora todas nuestras prendas</p>
+      {% endif %}
+    </div>
+
+    <span class="badge bg-primary rounded-pill px-3 py-2 fs-6 align-self-center">
+      {{ page_obj.paginator.count }}
+      prenda{{ page_obj.paginator.count|pluralize:"s" }}
+    </span>
+  </div>
+</div>
+
+<!-- ══ Grid de productos ══════════════════════════════════════════ -->
+<div class="container mb-5">
+  <div class="row g-4 products-grid" id="productsGrid">
+
+    {% for producto in page_obj %}
+    <div class="col-md-6 col-lg-4 product-item"
+         data-nombre="{{ producto.nombre|lower }}"
+         data-tipo="{{ producto.tipo }}">
+      <div class="card product-card h-100 border-0 shadow-lg">
+        <div class="position-relative img-container">
+          {% with img=producto.imagenes.first %}
+          {% if img %}
+          <img src="{{ img.imagen.url }}"
+               class="card-img-top"
+               alt="{{ producto.nombre }}"
+               loading="lazy">
+          {% else %}
+          <img src="{% static 'images/placeholder.svg' %}"
+               class="card-img-top"
+               alt="Sin imagen"
+               loading="lazy">
+          {% endif %}
+          {% endwith %}
+          {% if producto.por_encargo %}
+          <span class="badge-encargo">Por encargo</span>
+          {% else %}
+          <span class="badge-disponible">Disponible</span>
+          {% endif %}
+          <span class="badge-tipo-overlay">{{ producto.get_tipo_display }}</span>
+        </div>
+        <div class="card-body">
+          <span class="badge badge-cat mb-2">{{ producto.get_categoria_display }}</span>
+          <h5 class="card-title enc fw-bold">{{ producto.nombre }}</h5>
+          <p class="card-text text-muted small">
+            {{ producto.descripcion_corta|truncatewords:15 }}
+          </p>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="h5 mb-0 fw-bold text-primary">L. {{ producto.precio }}</span>
+            <a href="{% url 'detalle_prendas' producto.slug %}"
+               class="btn btn-primary btn-sm mb-0">Ver Detalles</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="empty-state text-center py-5">
+        <i class="bi bi-search display-1 text-muted d-block mb-3"></i>
+        <h4 class="enc fw-bold">Sin resultados</h4>
+        {% if busqueda %}
+        <p class="text-muted">Ninguna prenda coincide con “{{ busqueda }}”.</p>
+        {% else %}
+        <p class="text-muted">No hay prendas disponibles en esta categoría.</p>
+        {% endif %}
+        <a href="{% url 'prendas' %}" class="btn btn-primary mt-2 js-filter"
+           data-categoria="" data-tipo="" data-reset="1">
+          <i class="bi bi-arrow-left me-1"></i>Ver todas las prendas
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+
+  <!-- ══ Paginación ════════════════════════════════════════════════ -->
+  {% if page_obj.has_other_pages %}
+  <nav class="mt-5 d-flex justify-content-center" aria-label="Paginación del catálogo">
+    <ul class="pagination pagination-catalog gap-1 flex-wrap justify-content-center mb-0">
+
+      <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+        <a class="page-link page-link--arrow"
+           {% if page_obj.has_previous %}data-page="{{ page_obj.previous_page_number }}"{% endif %}
+           href="{% if page_obj.has_previous %}?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}{% if busqueda %}q={{ busqueda|urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}{% else %}#{% endif %}"
+           aria-label="Página anterior">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+      </li>
+
+      {% for item in page_range_display %}
+        {% if item == '...' %}
+        <li class="page-item disabled">
+          <span class="page-link page-link--ellipsis">…</span>
+        </li>
+        {% elif item == page_obj.number %}
+        <li class="page-item active" aria-current="page">
+          <span class="page-link">{{ item }}</span>
+        </li>
+        {% else %}
+        <li class="page-item">
+          <a class="page-link" data-page="{{ item }}"
+             href="?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}{% if busqueda %}q={{ busqueda|urlencode }}&{% endif %}page={{ item }}">
+            {{ item }}
+          </a>
+        </li>
+        {% endif %}
+      {% endfor %}
+
+      <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+        <a class="page-link page-link--arrow"
+           {% if page_obj.has_next %}data-page="{{ page_obj.next_page_number }}"{% endif %}
+           href="{% if page_obj.has_next %}?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}{% if busqueda %}q={{ busqueda|urlencode }}&{% endif %}page={{ page_obj.next_page_number }}{% else %}#{% endif %}"
+           aria-label="Página siguiente">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+
+    </ul>
+  </nav>
+
+  <p class="text-center text-muted small mt-3">
+    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+    &nbsp;·&nbsp;
+    {{ page_obj.paginator.count }} prenda{{ page_obj.paginator.count|pluralize:"s" }} en total
+  </p>
+  {% endif %}
+
+</div>

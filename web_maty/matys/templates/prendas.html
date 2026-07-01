@@ -26,7 +26,8 @@
           <!-- Todas -->
           <li class="catalog-pills__item">
             <a href="{% url 'prendas' %}"
-               class="catalog-pill {% if not categoria_activa %}catalog-pill--active{% endif %}">
+               class="catalog-pill js-filter {% if not categoria_activa %}catalog-pill--active{% endif %}"
+               data-categoria="" data-tipo="">
               <i class="bi bi-grid-3x3-gap-fill"></i>Todas
             </a>
           </li>
@@ -36,9 +37,10 @@
           <li class="catalog-pills__item {% if cat.tiene_subtipos %}catalog-pills__item--dropdown{% endif %}">
 
             <a href="{% url 'prendas' %}?categoria={{ cat.key }}"
-               class="catalog-pill
+               class="catalog-pill js-filter
                       {% if categoria_activa == cat.key %}catalog-pill--active{% endif %}
-                      {% if cat.tiene_subtipos %}catalog-pill--has-arrow{% endif %}">
+                      {% if cat.tiene_subtipos %}catalog-pill--has-arrow{% endif %}"
+               data-categoria="{{ cat.key }}" data-tipo="">
               {% if cat.key == 'femenino' %}
                 <i class="bi bi-flower1"></i>
               {% elif cat.key == 'masculino' %}
@@ -58,8 +60,9 @@
 
               <!-- Enlace "Todo X" -->
               <a href="{% url 'prendas' %}?categoria={{ cat.key }}"
-                 class="catalog-dropdown__link catalog-dropdown__link--all
+                 class="catalog-dropdown__link catalog-dropdown__link--all js-filter
                         {% if categoria_activa == cat.key and not tipo_activo %}catalog-dropdown__link--active{% endif %}"
+                 data-categoria="{{ cat.key }}" data-tipo=""
                  role="menuitem">
                 <i class="bi bi-collection"></i>Todo {{ cat.label }}
               </a>
@@ -75,9 +78,10 @@
 
                 {% for tipo_key, tipo_label in grupo.items %}
                 <a href="{% url 'prendas' %}?categoria={{ cat.key }}&tipo={{ tipo_key }}"
-                   class="catalog-dropdown__link
+                   class="catalog-dropdown__link js-filter
                           {% if tipo_activo == tipo_key and categoria_activa == cat.key %}catalog-dropdown__link--active{% endif %}
                           {% if grupo.titulo %}catalog-dropdown__link--sub{% endif %}"
+                   data-categoria="{{ cat.key }}" data-tipo="{{ tipo_key }}"
                    role="menuitem">
                   {{ tipo_label }}
                 </a>
@@ -93,8 +97,8 @@
         </ul>
       </nav>
 
-      <!-- Buscador integrado (búsqueda en servidor) -->
-      <form method="get" action="{% url 'prendas' %}" class="catalog-search" role="search">
+      <!-- Buscador integrado (filtra vía AJAX; sin JS hace GET normal) -->
+      <form method="get" action="{% url 'prendas' %}" class="catalog-search" role="search" id="catalogSearchForm">
         <i class="bi bi-search catalog-search__icon"></i>
         <input type="search"
                id="searchInput"
@@ -106,182 +110,27 @@
                autocomplete="off">
         {% if categoria_activa %}<input type="hidden" name="categoria" value="{{ categoria_activa }}">{% endif %}
         {% if tipo_activo %}<input type="hidden" name="tipo" value="{{ tipo_activo }}">{% endif %}
-        {% if busqueda %}
-        <a href="?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}{% endif %}"
-           class="catalog-search__clear" aria-label="Limpiar búsqueda">
+        <button type="button" id="searchClear"
+                class="catalog-search__clear{% if not busqueda %} d-none{% endif %}"
+                aria-label="Limpiar búsqueda">
           <i class="bi bi-x-lg"></i>
-        </a>
-        {% endif %}
+        </button>
       </form>
 
     </div>
   </div>
 </div>
 
-<!-- ══ Encabezado de resultados ══════════════════════════════════ -->
-<div class="container mt-5 mb-4">
-  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
-    <div>
-      {% if busqueda %}
-        <h1 class="display-6 enc fw-bold mb-1">Resultados de búsqueda</h1>
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb mb-0 small">
-            <li class="breadcrumb-item">
-              <a href="{% url 'prendas' %}" class="text-decoration-none">Todas</a>
-            </li>
-            <li class="breadcrumb-item active">“{{ busqueda }}”</li>
-          </ol>
-        </nav>
-      {% elif tipo_display %}
-        <h1 class="display-6 enc fw-bold mb-1">{{ tipo_display }}</h1>
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb mb-0 small">
-            <li class="breadcrumb-item">
-              <a href="{% url 'prendas' %}" class="text-decoration-none">Todas</a>
-            </li>
-            <li class="breadcrumb-item">
-              <a href="{% url 'prendas' %}?categoria={{ categoria_activa }}"
-                 class="text-decoration-none">{{ categoria_display }}</a>
-            </li>
-            <li class="breadcrumb-item active">{{ tipo_display }}</li>
-          </ol>
-        </nav>
-      {% elif categoria_display %}
-        <h1 class="display-6 enc fw-bold mb-1">Moda {{ categoria_display }}</h1>
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb mb-0 small">
-            <li class="breadcrumb-item">
-              <a href="{% url 'prendas' %}" class="text-decoration-none">Todas</a>
-            </li>
-            <li class="breadcrumb-item active">{{ categoria_display }}</li>
-          </ol>
-        </nav>
-      {% else %}
-        <h1 class="display-6 enc fw-bold mb-1">Toda la Colección</h1>
-        <p class="text-muted mb-0 small">Explora todas nuestras prendas</p>
-      {% endif %}
+<!-- ══ Resultados del catálogo (se actualizan vía AJAX, sin recargar) ══ -->
+<div id="catalogResults" class="catalog-results" aria-live="polite" aria-busy="false">
+  <div class="catalog-spinner" id="catalogSpinner" aria-hidden="true">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando…</span>
     </div>
-
-    <span class="badge bg-primary rounded-pill px-3 py-2 fs-6 align-self-center">
-      {{ page_obj.paginator.count }}
-      prenda{{ page_obj.paginator.count|pluralize:"s" }}
-    </span>
   </div>
-</div>
-
-<!-- ══ Grid de productos ══════════════════════════════════════════ -->
-<div class="container mb-5">
-  <div class="row g-4 products-grid" id="productsGrid">
-
-    {% for producto in page_obj %}
-    <div class="col-md-6 col-lg-4 product-item"
-         data-nombre="{{ producto.nombre|lower }}"
-         data-tipo="{{ producto.tipo }}">
-      <div class="card product-card h-100 border-0 shadow-lg">
-        <div class="position-relative img-container">
-          {% with img=producto.imagenes.first %}
-          {% if img %}
-          <img src="{{ img.imagen.url }}"
-               class="card-img-top"
-               alt="{{ producto.nombre }}"
-               loading="lazy">
-          {% else %}
-          <img src="{% static 'images/placeholder.svg' %}"
-               class="card-img-top"
-               alt="Sin imagen"
-               loading="lazy">
-          {% endif %}
-          {% endwith %}
-          {% if producto.por_encargo %}
-          <span class="badge-encargo">Por encargo</span>
-          {% else %}
-          <span class="badge-disponible">Disponible</span>
-          {% endif %}
-          <span class="badge-tipo-overlay">{{ producto.get_tipo_display }}</span>
-        </div>
-        <div class="card-body">
-          <span class="badge badge-cat mb-2">{{ producto.get_categoria_display }}</span>
-          <h5 class="card-title enc fw-bold">{{ producto.nombre }}</h5>
-          <p class="card-text text-muted small">
-            {{ producto.descripcion_corta|truncatewords:15 }}
-          </p>
-          <div class="d-flex justify-content-between align-items-center mt-3">
-            <span class="h5 mb-0 fw-bold text-primary">L. {{ producto.precio }}</span>
-            <a href="{% url 'detalle_prendas' producto.slug %}"
-               class="btn btn-primary btn-sm mb-0">Ver Detalles</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    {% empty %}
-    <div class="col-12">
-      <div class="empty-state text-center py-5">
-        <i class="bi bi-search display-1 text-muted d-block mb-3"></i>
-        <h4 class="enc fw-bold">Sin resultados</h4>
-        {% if busqueda %}
-        <p class="text-muted">Ninguna prenda coincide con “{{ busqueda }}”.</p>
-        {% else %}
-        <p class="text-muted">No hay prendas disponibles en esta categoría.</p>
-        {% endif %}
-        <a href="{% url 'prendas' %}" class="btn btn-primary mt-2">
-          <i class="bi bi-arrow-left me-1"></i>Ver todas las prendas
-        </a>
-      </div>
-    </div>
-    {% endfor %}
-
+  <div id="catalogResultsInner">
+    {% include 'prendas/_resultados.html' %}
   </div>
-
-  <!-- ══ Paginación ════════════════════════════════════════════════ -->
-  {% if page_obj.has_other_pages %}
-  <nav class="mt-5 d-flex justify-content-center" aria-label="Paginación del catálogo">
-    <ul class="pagination pagination-catalog gap-1 flex-wrap justify-content-center mb-0">
-
-      <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
-        <a class="page-link page-link--arrow"
-           href="{% if page_obj.has_previous %}?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}{% if busqueda %}q={{ busqueda|urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}{% else %}#{% endif %}"
-           aria-label="Página anterior">
-          <i class="bi bi-chevron-left"></i>
-        </a>
-      </li>
-
-      {% for item in page_range_display %}
-        {% if item == '...' %}
-        <li class="page-item disabled">
-          <span class="page-link page-link--ellipsis">…</span>
-        </li>
-        {% elif item == page_obj.number %}
-        <li class="page-item active" aria-current="page">
-          <span class="page-link">{{ item }}</span>
-        </li>
-        {% else %}
-        <li class="page-item">
-          <a class="page-link"
-             href="?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}{% if busqueda %}q={{ busqueda|urlencode }}&{% endif %}page={{ item }}">
-            {{ item }}
-          </a>
-        </li>
-        {% endif %}
-      {% endfor %}
-
-      <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
-        <a class="page-link page-link--arrow"
-           href="{% if page_obj.has_next %}?{% if categoria_activa %}categoria={{ categoria_activa }}&{% endif %}{% if tipo_activo %}tipo={{ tipo_activo }}&{% endif %}{% if busqueda %}q={{ busqueda|urlencode }}&{% endif %}page={{ page_obj.next_page_number }}{% else %}#{% endif %}"
-           aria-label="Página siguiente">
-          <i class="bi bi-chevron-right"></i>
-        </a>
-      </li>
-
-    </ul>
-  </nav>
-
-  <p class="text-center text-muted small mt-3">
-    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-    &nbsp;·&nbsp;
-    {{ page_obj.paginator.count }} prenda{{ page_obj.paginator.count|pluralize:"s" }} en total
-  </p>
-  {% endif %}
-
 </div>
 
 <!-- ══ CTA ════════════════════════════════════════════════════════ -->
@@ -295,44 +144,167 @@
 
 <!-- ══ Scripts ════════════════════════════════════════════════════ -->
 <script>
-// ── Búsqueda en servidor (auto-submit con debounce) ────────────
-// El filtro real corre en el backend (vista `prendas`): busca por
-// nombre, descripción, categoría y tipo sobre TODO el catálogo,
-// no solo la página visible.
-const searchForm  = document.getElementById('searchInput').form;
-const searchInput = document.getElementById('searchInput');
-let searchTimer;
+(function () {
+  const searchForm   = document.getElementById('catalogSearchForm');
+  const searchInput  = document.getElementById('searchInput');
+  const searchClear  = document.getElementById('searchClear');
+  const resultsWrap  = document.getElementById('catalogResults');
+  const resultsInner = document.getElementById('catalogResultsInner');
+  if (!resultsInner || !searchInput || !searchForm) return; // sin JS: fallback GET normal
 
-searchInput.addEventListener('input', function () {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => searchForm.requestSubmit(), 400);
-});
-// Enter envía de inmediato (sin esperar el debounce).
-searchForm.addEventListener('submit', () => clearTimeout(searchTimer));
+  const BASE = searchForm.getAttribute('action') || location.pathname;
+  let controller = null;   // aborta peticiones en curso (evita condiciones de carrera)
+  let debounceId = null;
 
-// ── Dropdown en mobile (click toggle) ─────────────────────────
-document.querySelectorAll('.catalog-pills__item--dropdown > .catalog-pill')
-  .forEach(pill => {
-    pill.addEventListener('click', function (e) {
-      if (window.innerWidth >= 992) return;
-      const parent = this.closest('.catalog-pills__item--dropdown');
-      const isOpen = parent.classList.contains('is-open');
-      document.querySelectorAll('.catalog-pills__item--dropdown.is-open')
-        .forEach(el => el.classList.remove('is-open'));
-      if (!isOpen) {
-        e.preventDefault();
-        parent.classList.add('is-open');
-      }
+  // Estado inicial tomado de la URL → permite compartir enlaces filtrados.
+  const state = readState();
+
+  function readState() {
+    const p = new URLSearchParams(location.search);
+    return {
+      q:         (p.get('q') || '').trim(),
+      categoria: p.get('categoria') || '',
+      tipo:      p.get('tipo') || '',
+      page:      parseInt(p.get('page'), 10) || 1,
+    };
+  }
+
+  function buildQuery(extra) {
+    const p = new URLSearchParams();
+    if (state.q)         p.set('q', state.q);
+    if (state.categoria) p.set('categoria', state.categoria);
+    if (state.tipo)      p.set('tipo', state.tipo);
+    if (state.page > 1)  p.set('page', state.page);
+    if (extra)           p.set(extra[0], extra[1]);
+    return p;
+  }
+
+  function setLoading(on) {
+    resultsWrap.classList.toggle('is-loading', on);
+    resultsWrap.setAttribute('aria-busy', on ? 'true' : 'false');
+  }
+
+  function updatePillsActive() {
+    document.querySelectorAll('.catalog-pill.js-filter').forEach(el => {
+      el.classList.toggle('catalog-pill--active', (el.dataset.categoria || '') === state.categoria);
     });
+    document.querySelectorAll('.catalog-dropdown__link.js-filter').forEach(el => {
+      el.classList.toggle('catalog-dropdown__link--active',
+        (el.dataset.categoria || '') === state.categoria && (el.dataset.tipo || '') === state.tipo);
+    });
+  }
+
+  function syncClearBtn() {
+    searchClear.classList.toggle('d-none', !searchInput.value.trim());
+  }
+
+  // Trae SOLO el fragmento de resultados y lo intercambia en el contenedor.
+  async function render(scroll) {
+    if (controller) controller.abort();
+    controller = new AbortController();
+    setLoading(true);
+    try {
+      const url = BASE + '?' + buildQuery(['partial', '1']).toString();
+      const res = await fetch(url, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      resultsInner.innerHTML = await res.text();
+      updatePillsActive();
+      if (scroll) {
+        const top = resultsWrap.getBoundingClientRect().top + window.scrollY - 70;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        // Si el AJAX falla, degradamos a una recarga normal (nunca se rompe).
+        window.location = BASE + '?' + buildQuery().toString();
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Muta el estado, sincroniza la URL (History API, sin recargar) y re-renderiza.
+  function apply(patch, opts) {
+    opts = opts || {};
+    Object.assign(state, patch);
+    const qs = buildQuery().toString();
+    history.pushState({ catalog: true }, '', BASE + (qs ? '?' + qs : ''));
+    render(opts.scroll);
+  }
+
+  // ── Búsqueda con debounce (300 ms) ─────────────────────────────
+  searchInput.addEventListener('input', function () {
+    syncClearBtn();
+    clearTimeout(debounceId);
+    debounceId = setTimeout(() => apply({ q: searchInput.value.trim(), page: 1 }), 300);
+  });
+  searchForm.addEventListener('submit', function (e) {
+    e.preventDefault();                       // Enter no recarga la página
+    clearTimeout(debounceId);
+    apply({ q: searchInput.value.trim(), page: 1 });
+  });
+  searchClear.addEventListener('click', function () {
+    searchInput.value = '';
+    syncClearBtn();
+    apply({ q: '', page: 1 });
+    searchInput.focus();
   });
 
-// Cerrar al hacer click fuera
-document.addEventListener('click', function (e) {
-  if (!e.target.closest('.catalog-pills__item--dropdown')) {
+  function closeDropdowns() {
     document.querySelectorAll('.catalog-pills__item--dropdown.is-open')
       .forEach(el => el.classList.remove('is-open'));
   }
-});
+
+  // ── Delegación de clics: filtros, subcategorías, paginación ─────
+  document.addEventListener('click', function (e) {
+    // Paginación (vive dentro del contenedor que se re-renderiza)
+    const pageLink = e.target.closest('#catalogResultsInner .page-link[data-page]');
+    if (pageLink) {
+      e.preventDefault();
+      if (pageLink.closest('.disabled')) return;
+      apply({ page: parseInt(pageLink.dataset.page, 10) || 1 }, { scroll: true });
+      return;
+    }
+
+    // Enlaces de filtro (pills, dropdown, breadcrumb, "ver todas")
+    const f = e.target.closest('.js-filter');
+    if (f) {
+      const dd = f.closest('.catalog-pills__item--dropdown');
+      // En móvil, el primer toque en una categoría con submenú lo despliega.
+      if (dd && f.classList.contains('catalog-pill') && window.innerWidth < 992) {
+        const wasOpen = dd.classList.contains('is-open');
+        closeDropdowns();
+        if (!wasOpen) { e.preventDefault(); dd.classList.add('is-open'); return; }
+      }
+      e.preventDefault();
+      const patch = { categoria: f.dataset.categoria || '', tipo: f.dataset.tipo || '', page: 1 };
+      if (f.dataset.reset) {                  // "Todas" / "Ver todas" limpia también la búsqueda
+        patch.q = '';
+        searchInput.value = '';
+        syncClearBtn();
+      }
+      closeDropdowns();
+      apply(patch, { scroll: true });
+      return;
+    }
+
+    // Click fuera de un dropdown abierto → cerrarlo.
+    if (!e.target.closest('.catalog-pills__item--dropdown')) closeDropdowns();
+  });
+
+  // ── Botones atrás/adelante del navegador ───────────────────────
+  window.addEventListener('popstate', function () {
+    Object.assign(state, readState());
+    searchInput.value = state.q;
+    syncClearBtn();
+    render(false);
+  });
+
+  syncClearBtn();
+})();
 </script>
 
 {% endblock %}

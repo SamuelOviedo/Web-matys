@@ -79,7 +79,29 @@ def prendas(request):
         page_range_display.append(n)
         prev = n
 
+    # Contexto compartido entre la página completa y el fragmento AJAX.
+    resultados_context = {
+        'page_obj':           page_obj,
+        'categoria_activa':   categoria,
+        'tipo_activo':        tipo,
+        'busqueda':           q,
+        'categoria_display':  cat_map.get(categoria, ''),
+        'tipo_display':       tipo_map.get(tipo, tipo),
+        'page_range_display': page_range_display,
+    }
+
+    # Petición AJAX (filtro sin recargar): devolver SOLO el fragmento de
+    # resultados. El front-end reemplaza el contenedor del catálogo y
+    # sincroniza la URL con la History API.
+    is_partial = (
+        request.GET.get('partial') == '1'
+        or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    )
+    if is_partial:
+        return render(request, 'prendas/_resultados.html', resultados_context)
+
     # ── Menú dinámico: ocultar categorías/tipos SIN prendas disponibles ─
+    # (solo para la página completa; el fragmento AJAX no lo necesita)
     # Conjuntos calculados solo desde prendas disponibles, para que una
     # categoría o tipo vacío nunca aparezca en la navegación.
     disponibles      = Prenda.objects.filter(disponible=True)
@@ -110,15 +132,9 @@ def prendas(request):
         })
 
     context = {
-        'title':              "Prendas - Confecciones Maty's",
-        'page_obj':           page_obj,
-        'categoria_activa':   categoria,
-        'tipo_activo':        tipo,
-        'busqueda':           q,
-        'categoria_display':  cat_map.get(categoria, ''),
-        'tipo_display':       tipo_map.get(tipo, tipo),
-        'menu_render':        menu_render,
-        'page_range_display': page_range_display,
+        'title':       "Prendas - Confecciones Maty's",
+        'menu_render': menu_render,
+        **resultados_context,
     }
     return render(request, 'prendas.html', context)
 

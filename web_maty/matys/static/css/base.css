@@ -1517,8 +1517,49 @@ footer::before {
   transition: color 0.2s ease;
 }
 
+.catalog-search__clear {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
 .catalog-search__clear:hover {
   color: var(--bs-primary);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CATÁLOGO ASÍNCRONO — contenedor de resultados + indicador de carga
+══════════════════════════════════════════════════════════════ */
+
+.catalog-results {
+  position: relative;
+  min-height: 320px;
+}
+
+.catalog-spinner {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 120px;
+  pointer-events: none;
+}
+
+.catalog-results.is-loading .catalog-spinner {
+  display: flex;
+}
+
+.catalog-results.is-loading #catalogResultsInner {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-results.is-loading #catalogResultsInner { transition: none; }
 }
 
 /* ══════════════════════════════════════════════════════════════
