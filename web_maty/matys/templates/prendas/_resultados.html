@@ -21,9 +21,38 @@
               <a href="{% url 'prendas' %}" class="text-decoration-none js-filter"
                  data-categoria="" data-tipo="" data-reset="1">Todas</a>
             </li>
+            {% if categoria_display %}
+            <li class="breadcrumb-item">
+              <a href="{% url 'prendas' %}?categoria={{ categoria_activa }}"
+                 class="text-decoration-none js-filter"
+                 data-categoria="{{ categoria_activa }}" data-tipo="">{{ categoria_display }}</a>
+            </li>
+            {% endif %}
+            {% if tipo_activo %}
+            <li class="breadcrumb-item">
+              <a href="{% url 'prendas' %}?categoria={{ categoria_activa }}&tipo={{ tipo_activo }}"
+                 class="text-decoration-none js-filter"
+                 data-categoria="{{ categoria_activa }}" data-tipo="{{ tipo_activo }}">{{ tipo_display }}</a>
+            </li>
+            {% endif %}
             <li class="breadcrumb-item active">“{{ busqueda }}”</li>
           </ol>
         </nav>
+        <p class="text-muted small mb-0 mt-1">
+          {% if categoria_display %}
+            Buscando en <strong>{% if tipo_activo %}{{ tipo_display }}{% else %}{{ categoria_display }}{% endif %}</strong>
+            &nbsp;·&nbsp;
+            <a href="{% url 'prendas' %}?q={{ busqueda|urlencode }}"
+               class="text-decoration-none js-filter" data-categoria="" data-tipo="">Buscar en todo el catálogo</a>
+          {% else %}
+            Buscando en toda la colección
+          {% endif %}
+          &nbsp;·&nbsp;
+          <a href="{% url 'prendas' %}{% if categoria_activa %}?categoria={{ categoria_activa }}{% if tipo_activo %}&tipo={{ tipo_activo }}{% endif %}{% endif %}"
+             class="text-decoration-none js-clear-search">
+            <i class="bi bi-x-circle"></i> Quitar búsqueda
+          </a>
+        </p>
       {% elif tipo_display %}
         <h1 class="display-6 enc fw-bold mb-1">{{ tipo_display }}</h1>
         <nav aria-label="breadcrumb">
@@ -69,7 +98,7 @@
   <div class="row g-4 products-grid" id="productsGrid">
 
     {% for producto in page_obj %}
-    <div class="col-md-6 col-lg-4 product-item"
+    <div class="col-6 col-lg-4 product-item"
          data-nombre="{{ producto.nombre|lower }}"
          data-tipo="{{ producto.tipo }}">
       <div class="card product-card h-100 border-0 shadow-lg">
@@ -113,6 +142,20 @@
       <div class="empty-state text-center py-5">
         <i class="bi bi-search display-1 text-muted d-block mb-3"></i>
         <h4 class="enc fw-bold">Sin resultados</h4>
+        {% if busqueda and categoria_display %}
+        <p class="text-muted">
+          Ninguna prenda coincide con “{{ busqueda }}” en
+          <strong>{% if tipo_activo %}{{ tipo_display }}{% else %}{{ categoria_display }}{% endif %}</strong>.
+        </p>
+        <a href="{% url 'prendas' %}?q={{ busqueda|urlencode }}" class="btn btn-primary mt-2 js-filter"
+           data-categoria="" data-tipo="">
+          <i class="bi bi-search me-1"></i>Buscar en todo el catálogo
+        </a>
+        <a href="{% url 'prendas' %}" class="d-block mt-3 small text-decoration-none js-filter"
+           data-categoria="" data-tipo="" data-reset="1">
+          <i class="bi bi-arrow-left me-1"></i>Ver todas las prendas
+        </a>
+        {% else %}
         {% if busqueda %}
         <p class="text-muted">Ninguna prenda coincide con “{{ busqueda }}”.</p>
         {% else %}
@@ -122,6 +165,7 @@
            data-categoria="" data-tipo="" data-reset="1">
           <i class="bi bi-arrow-left me-1"></i>Ver todas las prendas
         </a>
+        {% endif %}
       </div>
     </div>
     {% endfor %}

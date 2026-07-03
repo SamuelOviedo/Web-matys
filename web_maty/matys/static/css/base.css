@@ -2,6 +2,13 @@
    VARIABLES CSS - TEMA CLARO Y OSCURO
 ======================================== */
 
+:root {
+  /* Altura del header fijo. Valor de reserva; el JS de la página del
+     catálogo lo re-mide (fuentes, safe-area, etc.) para que la barra
+     sticky quede pegada exactamente debajo sin solaparse. */
+  --matys-header-h: 77px;
+}
+
 :root, [data-bs-theme="light"] {
   /* Colores Corporativos Matys */
   --bs-primary: #003366;        /* Azul Marino */
@@ -74,6 +81,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* Los anclajes no deben quedar ocultos bajo el header fijo */
+  scroll-padding-top: calc(var(--matys-header-h, 77px) + 8px);
 }
 
 body {
@@ -136,6 +145,8 @@ body {
   transition: all 0.5s ease;
   padding-right: 1rem;
   padding-left: 1rem;
+  /* Respeta el notch/isla dinámica en iOS (viewport-fit=cover) */
+  padding-top: calc(0.5rem + env(safe-area-inset-top)) !important;
 }
 
 .head-blur.scrolled {
@@ -204,6 +215,21 @@ body {
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
+}
+
+@media (max-width: 991.98px) {
+  /* background-attachment: fixed no funciona en iOS Safari y fuerza
+     repintados caros en Android; en móvil el fondo se desplaza normal. */
+  .hero-section {
+    background-attachment: scroll;
+  }
+
+  /* Hero del catálogo más bajo en móvil: los productos y filtros deben
+     verse sin tener que pasar una pantalla completa de portada. */
+  .hero-catalog {
+    height: min(52vh, 460px);
+    min-height: 300px;
+  }
 }
 
 .overlay {
@@ -1255,24 +1281,41 @@ footer::before {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   BARRA DE CATÁLOGO — ESTILO PILLS
+   BARRA DE CATÁLOGO — sticky bajo el header fijo
+   Desktop (≥992px): pills + dropdown al hover + buscador en línea.
+   Móvil  (<992px): 3 filas apiladas — categorías con scroll-x,
+   subcategorías contextuales (chips) y buscador a todo el ancho.
 ══════════════════════════════════════════════════════════════ */
 
 .catalog-bar {
+  /* El texto del pill activo debe contrastar con --bs-primary en ambos
+     temas (en oscuro primary es dorado ⇒ texto oscuro, no blanco). */
+  --pill-active-fg: #fff;
+
+  position: sticky;
+  top: var(--matys-header-h, 77px); /* pegada justo debajo del header fijo */
+  z-index: 990;                     /* bajo el header (9999), sobre el grid */
   background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 3px solid var(--bs-secondary);
-  z-index: 990;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
   transition: box-shadow 0.3s ease;
 }
 
-.catalog-bar.shadow-active {
-  box-shadow: 0 4px 20px rgba(0, 51, 102, 0.1);
+/* Sombra solo cuando la barra está realmente "pegada" (IntersectionObserver
+   sobre un centinela; sin listeners de scroll). */
+.catalog-bar.is-stuck {
+  box-shadow: 0 6px 24px rgba(0, 51, 102, 0.12);
 }
 
 [data-bs-theme="dark"] .catalog-bar {
+  --pill-active-fg: #1a1a1a;
   background: rgba(26, 26, 26, 0.97);
+}
+[data-bs-theme="dark"] .catalog-bar.is-stuck {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
 }
 
 .catalog-bar__inner {
@@ -1282,7 +1325,12 @@ footer::before {
   padding: 0.5rem 0;
 }
 
-/* ── Lista de pills ─────────────────────────────────────── */
+/* ── Lista de pills (categorías) ─────────────────────────── */
+.catalog-pills {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .catalog-pills__list {
   list-style: none;
   padding: 0;
@@ -1290,16 +1338,10 @@ footer::before {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  /* overflow visible on desktop: el dropdown es position:absolute y debe
-     poder "salirse" de la lista. Si se usa overflow-x:auto, el navegador
-     fuerza overflow-y a auto y recorta el menú desplegable. */
+  /* overflow visible en desktop: el dropdown es position:absolute y debe
+     poder "salirse" de la lista. */
   overflow: visible;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  flex-shrink: 0;
-  flex-grow: 1;
 }
-.catalog-pills__list::-webkit-scrollbar { display: none; }
 
 .catalog-pills__item {
   position: relative;
@@ -1326,9 +1368,10 @@ footer::before {
 }
 
 .catalog-pill:hover,
-.catalog-pills__item--dropdown:hover > .catalog-pill {
+.catalog-pills__item--dropdown:hover > .catalog-pill,
+.catalog-pills__item--dropdown:focus-within > .catalog-pill {
   background: var(--bs-primary);
-  color: #fff;
+  color: var(--pill-active-fg);
   border-color: var(--bs-primary);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 51, 102, 0.2);
@@ -1336,7 +1379,7 @@ footer::before {
 
 .catalog-pill--active {
   background: var(--bs-primary) !important;
-  color: #fff !important;
+  color: var(--pill-active-fg) !important;
   border-color: var(--bs-primary) !important;
   box-shadow: 0 4px 12px rgba(0, 51, 102, 0.25);
 }
@@ -1347,17 +1390,28 @@ footer::before {
 }
 
 .catalog-pills__item--dropdown:hover .catalog-pill__arrow,
-.catalog-pills__item--dropdown.is-open .catalog-pill__arrow {
+.catalog-pills__item--dropdown:focus-within .catalog-pill__arrow {
   transform: rotate(180deg);
 }
 
-/* ── Dropdown ────────────────────────────────────────────── */
+/* Foco visible con teclado en todos los controles de la barra */
+.catalog-pill:focus-visible,
+.catalog-subchip:focus-visible,
+.catalog-dropdown__link:focus-visible,
+.catalog-search__clear:focus-visible {
+  outline: 2px solid var(--bs-secondary);
+  outline-offset: 2px;
+}
+
+/* ── Dropdown (solo desktop; se abre con hover o foco) ───── */
 .catalog-dropdown {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
   min-width: 220px;
   max-width: 260px;
+  max-height: min(60vh, 420px);
+  overflow-y: auto;
   background: #fff;
   border: 1px solid var(--bs-border-color);
   border-radius: 12px;
@@ -1370,13 +1424,19 @@ footer::before {
   z-index: 1000;
 }
 
+/* El último dropdown se alinea a la derecha para no salirse del viewport */
+.catalog-pills__item--dropdown:last-child .catalog-dropdown {
+  left: auto;
+  right: 0;
+}
+
 [data-bs-theme="dark"] .catalog-dropdown {
   background: var(--bs-secondary-bg);
   border-color: var(--bs-border-color);
 }
 
 .catalog-pills__item--dropdown:hover .catalog-dropdown,
-.catalog-pills__item--dropdown.is-open .catalog-dropdown {
+.catalog-pills__item--dropdown:focus-within .catalog-dropdown {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
@@ -1404,14 +1464,12 @@ footer::before {
   font-size: 0.8rem;
 }
 
-/* Separador simple */
 .catalog-dropdown__divider {
   height: 1px;
   background: var(--bs-border-color);
   margin: 0.35rem 0.5rem;
 }
 
-/* Cabecera de grupo (ej: "Vestidos", "Traje") */
 .catalog-dropdown__group-header {
   font-size: 0.7rem;
   font-weight: 700;
@@ -1424,13 +1482,11 @@ footer::before {
   opacity: 0.8;
 }
 
-/* Primer grupo-header no necesita borde superior */
 .catalog-dropdown__group-header:first-of-type {
   border-top: none;
   margin-top: 0;
 }
 
-/* Links de tipos */
 .catalog-dropdown__link {
   display: block;
   padding: 0.44rem 0.85rem;
@@ -1443,7 +1499,6 @@ footer::before {
   margin: 0.05rem 0;
 }
 
-/* Links dentro de un grupo con cabecera (subtipos) → indent visual */
 .catalog-dropdown__link--sub {
   padding-left: 1.3rem;
   font-size: 0.82rem;
@@ -1464,6 +1519,37 @@ footer::before {
   font-weight: 700;
 }
 
+/* ── Subcategorías (chips, SOLO móvil) ───────────────────── */
+.catalog-subbar {
+  display: none; /* en desktop el dropdown cubre esta función */
+  width: 100%;
+}
+
+.catalog-subchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.38rem 0.9rem;
+  min-height: 38px;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--bs-body-color);
+  background: var(--bs-secondary-bg);
+  border: 1.5px solid transparent;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.catalog-subchip--active {
+  background: rgba(var(--bs-primary-rgb), 0.12);
+  border-color: var(--bs-primary);
+  color: var(--bs-primary);
+  font-weight: 700;
+}
+
 /* ── Buscador ────────────────────────────────────────────── */
 .catalog-search {
   display: flex;
@@ -1474,7 +1560,7 @@ footer::before {
   padding: 0.32rem 0.9rem;
   background: transparent;
   flex-shrink: 0;
-  transition: border-color 0.2s ease, width 0.3s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .catalog-search:focus-within {
@@ -1513,15 +1599,12 @@ footer::before {
   color: var(--bs-secondary-color);
   font-size: 0.7rem;
   flex-shrink: 0;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.catalog-search__clear {
   background: transparent;
   border: 0;
-  padding: 0;
+  padding: 0.4rem;
+  margin: -0.4rem;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
 .catalog-search__clear:hover {
@@ -1558,10 +1641,6 @@ footer::before {
   transition: opacity 0.15s ease;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .catalog-results.is-loading #catalogResultsInner { transition: none; }
-}
-
 /* ══════════════════════════════════════════════════════════════
    BADGE DE TIPO (superpuesto en imagen de card)
 ══════════════════════════════════════════════════════════════ */
@@ -1583,7 +1662,7 @@ footer::before {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   RIBBON "POR ENCARGO" (top-left corner of product cards)
+   RIBBONS "POR ENCARGO" / "DISPONIBLE" (esquina de las cards)
 ══════════════════════════════════════════════════════════════ */
 
 .badge-encargo {
@@ -1632,7 +1711,11 @@ footer::before {
   color: var(--bs-primary);
   font-weight: 600;
   padding: 0.45rem 0.85rem;
-  min-width: 42px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   background: transparent;
   transition: all 0.2s ease;
@@ -1651,6 +1734,11 @@ footer::before {
   border-color: var(--bs-primary);
   color: #fff;
   box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.3);
+}
+
+[data-bs-theme="dark"] .pagination-catalog .page-link:hover,
+[data-bs-theme="dark"] .pagination-catalog .page-item.active .page-link {
+  color: #1a1a1a;
 }
 
 .pagination-catalog .page-item.disabled .page-link {
@@ -1681,92 +1769,171 @@ footer::before {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   RESPONSIVE
+   RESPONSIVE — móvil (<992px): filas apiladas con scroll-x
 ══════════════════════════════════════════════════════════════ */
 
-@media (max-width: 991px) {
-  /* Barra compacta en móvil: menos padding, borde más fino y pills más
-     pequeños para no comerse la pantalla al hacer scroll. */
+/* Difuminado en los bordes de las filas con scroll horizontal:
+   indica que hay más contenido sin necesidad de scrollbar. */
+@media (max-width: 991.98px) {
+
   .catalog-bar {
     border-bottom-width: 2px;
   }
 
   .catalog-bar__inner {
-    padding: 0.4rem 0;
-    gap: 0.4rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+    padding: 0.5rem 0 0.6rem;
   }
 
-  /* En mobile el dropdown es estático (acordeón): los pills deben poder
-     envolverse para que el menú abierto crezca hacia abajo sin recortarse. */
+  /* Fila 1: categorías — una sola línea con scroll horizontal */
   .catalog-pills__list {
-    flex-wrap: wrap;
-    overflow: visible;
-    gap: 0.3rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-snap-type: x proximity;
+    gap: 0.4rem;
+    padding: 2px;
+    mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent);
   }
+  .catalog-pills__list::-webkit-scrollbar { display: none; }
 
+  .catalog-pills__item { scroll-snap-align: start; }
+
+  /* Targets táctiles cómodos (≥44px de alto) */
   .catalog-pill {
-    padding: 0.32rem 0.75rem;
-    font-size: 0.8rem;
-    gap: 0.3rem;
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
   }
 
-  /* Acordeón en móvil. CLAVE: cerrado usa display:none (no solo
-     visibility:hidden) — de lo contrario el submenú oculto seguía
-     reservando su altura en el flujo e inflaba la barra a ~370px. */
-  .catalog-dropdown {
-    display: none;
-    position: static;
-    box-shadow: none;
-    border: none;
-    border-left: 3px solid var(--bs-secondary);
-    border-radius: 0;
-    margin: 0.25rem 0 0.25rem 1rem;
-    padding: 0.25rem 0;
-    background: transparent;
-    max-width: 100%;
-    min-width: unset;
-    opacity: 1;
-    visibility: visible;
-    transform: none;
+  /* Sin dropdown en móvil: la flecha sobra y el menú flotante se anula
+     por completo (los subtipos viven en su propia fila de chips). */
+  .catalog-pill__arrow { display: none; }
+  .catalog-dropdown { display: none !important; }
+
+  /* Fila 2: subcategorías de la categoría activa */
+  .catalog-subbar { display: block; }
+
+  .catalog-subbar__group { display: none; }
+
+  .catalog-subbar__group.is-active {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.4rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 2px;
+    mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+    animation: subbar-in 0.25s ease;
   }
+  .catalog-subbar__group.is-active::-webkit-scrollbar { display: none; }
 
-  /* En móvil el hover no debe abrir nada (evita "sticky hover" táctil);
-     solo el toque, que añade .is-open. */
-  .catalog-pills__item--dropdown:hover .catalog-dropdown {
-    display: none;
-  }
+  .catalog-subchip { min-height: 40px; }
 
-  .catalog-pills__item--dropdown.is-open .catalog-dropdown {
-    display: block;
-  }
-
-  .catalog-search__input { width: 110px; }
-  .catalog-search__input:focus { width: 140px; }
-}
-
-/* En móvil el buscador pasa a una fila propia a todo el ancho, debajo de
-   los pills. Se mantiene fino para ocupar el mínimo espacio posible. */
-@media (max-width: 575px) {
-  .catalog-bar__inner {
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
-
-  /* Pills envueltos (NO scroll-x: overflow-x recortaría el acordeón de
-     subtipos verticalmente). Compactos ⇒ caben en una sola fila. */
-  .catalog-pills {
-    width: 100%;
-  }
-
+  /* Fila 3: buscador a todo el ancho.
+     16px en el input: evita el auto-zoom de iOS Safari al enfocar. */
   .catalog-search {
     width: 100%;
-    justify-content: flex-start;
-    padding: 0.28rem 0.8rem;
+    min-height: 44px;
+    padding: 0.3rem 0.9rem;
   }
 
   .catalog-search__input,
   .catalog-search__input:focus {
     width: 100%;
     flex: 1;
+    font-size: 16px;
   }
+}
+
+/* En táctil el hover no debe dejar pills "pintados" tras un toque */
+@media (hover: none) {
+  .catalog-pill:hover:not(.catalog-pill--active) {
+    background: transparent;
+    color: var(--bs-primary);
+    border-color: transparent;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@keyframes subbar-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE — grid de productos y encabezado de resultados
+══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767.98px) {
+  /* Grid 2 columnas app-like: gutters más finos */
+  .products-grid {
+    --bs-gutter-x: 0.75rem;
+    --bs-gutter-y: 1rem;
+  }
+
+  /* Imagen proporcional (3:4) en vez de altura fija de escritorio */
+  .product-card .img-container {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: 3 / 4;
+  }
+
+  .product-card .card-body { padding: 0.75rem; }
+  .product-card .card-title { font-size: 0.95rem; }
+
+  .product-card .card-text {
+    font-size: 0.78rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .product-card .h5 { font-size: 0.95rem; }
+
+  .product-card .btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.3px;
+  }
+
+  .badge-cat { font-size: 0.62rem; padding: 0.3rem 0.7rem; }
+  .badge-tipo-overlay { font-size: 0.58rem; top: 8px; right: 8px; }
+  .badge-encargo, .badge-disponible { font-size: 0.58rem; }
+
+  /* Encabezado de resultados compacto */
+  .catalog-results .display-6 { font-size: 1.45rem; }
+
+  .empty-state { padding: 2rem 1rem; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOVIMIENTO REDUCIDO
+══════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-subbar__group.is-active { animation: none; }
+  .catalog-pill,
+  .catalog-subchip,
+  .catalog-dropdown,
+  .catalog-search,
+  .catalog-bar { transition: none; }
+  .catalog-results.is-loading #catalogResultsInner { transition: none; }
 }

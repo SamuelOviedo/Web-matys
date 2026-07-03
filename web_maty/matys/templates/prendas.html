@@ -4,7 +4,7 @@
 {% block content %}
 
 <!-- ══ Hero ══════════════════════════════════════════════════════ -->
-<section class="hero-section text-white text-center d-flex align-items-center justify-content-center"
+<section class="hero-section hero-catalog text-white text-center d-flex align-items-center justify-content-center"
          style="background: linear-gradient(135deg, rgba(0,51,102,0.85), rgba(255,215,0,0.3)),
                 url('{% static 'images/prendaA.JPG' %}') no-repeat center center/cover;">
   <div class="overlay"></div>
@@ -14,19 +14,23 @@
   </div>
 </section>
 
-<!-- ══ Barra de catálogo (pills) ════════════════════════════════ -->
-<div class="catalog-bar sticky-top">
+<!-- Centinela para detectar cuándo la barra queda "pegada" (sombra) -->
+<div id="catalogBarSentinel" aria-hidden="true"></div>
+
+<!-- ══ Barra de catálogo (sticky bajo el header) ════════════════ -->
+<div class="catalog-bar" id="catalogBar">
   <div class="container">
     <div class="catalog-bar__inner">
 
-      <!-- Pills de categoría -->
-      <nav class="catalog-pills" aria-label="Filtro de catálogo">
+      <!-- Fila 1: pills de categoría (scroll-x en móvil, dropdown en desktop) -->
+      <nav class="catalog-pills" aria-label="Categorías del catálogo">
         <ul class="catalog-pills__list">
 
           <!-- Todas -->
           <li class="catalog-pills__item">
             <a href="{% url 'prendas' %}"
                class="catalog-pill js-filter {% if not categoria_activa %}catalog-pill--active{% endif %}"
+               {% if not categoria_activa %}aria-current="true"{% endif %}
                data-categoria="" data-tipo="">
               <i class="bi bi-grid-3x3-gap-fill"></i>Todas
             </a>
@@ -38,8 +42,9 @@
 
             <a href="{% url 'prendas' %}?categoria={{ cat.key }}"
                class="catalog-pill js-filter
-                      {% if categoria_activa == cat.key %}catalog-pill--active{% endif %}
-                      {% if cat.tiene_subtipos %}catalog-pill--has-arrow{% endif %}"
+                      {% if categoria_activa == cat.key %}catalog-pill--active{% endif %}"
+               {% if categoria_activa == cat.key %}aria-current="true"{% endif %}
+               {% if cat.tiene_subtipos %}aria-haspopup="menu"{% endif %}
                data-categoria="{{ cat.key }}" data-tipo="">
               {% if cat.key == 'femenino' %}
                 <i class="bi bi-flower1"></i>
@@ -50,15 +55,15 @@
               {% endif %}
               {{ cat.label }}
               {% if cat.tiene_subtipos %}
-                <i class="bi bi-chevron-down catalog-pill__arrow"></i>
+                <i class="bi bi-chevron-down catalog-pill__arrow" aria-hidden="true"></i>
               {% endif %}
             </a>
 
-            <!-- Dropdown agrupado -->
+            <!-- Dropdown agrupado (solo desktop; en móvil se anula por CSS
+                 y los subtipos viven en la fila de chips de abajo) -->
             {% if cat.tiene_subtipos %}
             <div class="catalog-dropdown" role="menu">
 
-              <!-- Enlace "Todo X" -->
               <a href="{% url 'prendas' %}?categoria={{ cat.key }}"
                  class="catalog-dropdown__link catalog-dropdown__link--all js-filter
                         {% if categoria_activa == cat.key and not tipo_activo %}catalog-dropdown__link--active{% endif %}"
@@ -67,7 +72,6 @@
                 <i class="bi bi-collection"></i>Todo {{ cat.label }}
               </a>
 
-              <!-- Grupos con posible cabecera -->
               {% for grupo in cat.grupos %}
 
                 {% if grupo.titulo %}
@@ -97,9 +101,40 @@
         </ul>
       </nav>
 
-      <!-- Buscador integrado (filtra vía AJAX; sin JS hace GET normal) -->
+      <!-- Fila 2 (solo móvil): subcategorías de la categoría activa -->
+      <div class="catalog-subbar" id="catalogSubbar">
+        {% for cat in menu_render %}{% if cat.tiene_subtipos %}
+        <div class="catalog-subbar__group {% if categoria_activa == cat.key %}is-active{% endif %}"
+             data-categoria="{{ cat.key }}"
+             role="group" aria-label="Tipos de {{ cat.label }}">
+
+          <a href="{% url 'prendas' %}?categoria={{ cat.key }}"
+             class="catalog-subchip js-filter
+                    {% if categoria_activa == cat.key and not tipo_activo %}catalog-subchip--active{% endif %}"
+             {% if categoria_activa == cat.key and not tipo_activo %}aria-current="true"{% endif %}
+             data-categoria="{{ cat.key }}" data-tipo="">
+            Todo {{ cat.label }}
+          </a>
+
+          {% for grupo in cat.grupos %}{% for tipo_key, tipo_label in grupo.items %}
+          <a href="{% url 'prendas' %}?categoria={{ cat.key }}&tipo={{ tipo_key }}"
+             class="catalog-subchip js-filter
+                    {% if tipo_activo == tipo_key and categoria_activa == cat.key %}catalog-subchip--active{% endif %}"
+             {% if tipo_activo == tipo_key and categoria_activa == cat.key %}aria-current="true"{% endif %}
+             data-categoria="{{ cat.key }}" data-tipo="{{ tipo_key }}">
+            {{ tipo_label }}
+          </a>
+          {% endfor %}{% endfor %}
+
+        </div>
+        {% endif %}{% endfor %}
+      </div>
+
+      <!-- Fila 3: buscador (filtra vía AJAX; sin JS hace GET normal).
+           Busca DENTRO de la categoría/tipo activos (los inputs ocultos
+           conservan ese contexto también sin JavaScript). -->
       <form method="get" action="{% url 'prendas' %}" class="catalog-search" role="search" id="catalogSearchForm">
-        <i class="bi bi-search catalog-search__icon"></i>
+        <i class="bi bi-search catalog-search__icon" aria-hidden="true"></i>
         <input type="search"
                id="searchInput"
                name="q"
@@ -150,13 +185,55 @@
   const searchClear  = document.getElementById('searchClear');
   const resultsWrap  = document.getElementById('catalogResults');
   const resultsInner = document.getElementById('catalogResultsInner');
+  const bar          = document.getElementById('catalogBar');
+  const sentinel     = document.getElementById('catalogBarSentinel');
+  const header       = document.querySelector('header.head-blur');
   if (!resultsInner || !searchInput || !searchForm) return; // sin JS: fallback GET normal
 
   const BASE = searchForm.getAttribute('action') || location.pathname;
+  const mqMobile = window.matchMedia('(max-width: 991.98px)');
   let controller = null;   // aborta peticiones en curso (evita condiciones de carrera)
   let debounceId = null;
 
-  // Estado inicial tomado de la URL → permite compartir enlaces filtrados.
+  /* ── Métricas sticky ─────────────────────────────────────────────
+     El header del sitio es position:fixed; la barra del catálogo es
+     position:sticky con top = altura real del header (variable CSS).
+     Se mide en carga/resize — nunca en scroll. */
+  function setStickyMetrics() {
+    if (!header) return;
+    const collapse = document.getElementById('navbarNav');
+    if (collapse && collapse.classList.contains('show')) return; // menú abierto infla la altura
+    const h = Math.ceil(header.getBoundingClientRect().height);
+    if (h > 0) document.documentElement.style.setProperty('--matys-header-h', h + 'px');
+  }
+
+  /* Sombra de elevación solo cuando la barra está pegada: un centinela
+     sobre la barra sale del viewport (bajo el header) ⇒ is-stuck. */
+  let stuckIO = null;
+  function mountStuckObserver() {
+    if (!('IntersectionObserver' in window) || !bar || !sentinel) return;
+    if (stuckIO) stuckIO.disconnect();
+    const h = header ? Math.ceil(header.getBoundingClientRect().height) : 77;
+    stuckIO = new IntersectionObserver(
+      ([entry]) => bar.classList.toggle('is-stuck', !entry.isIntersecting),
+      { rootMargin: '-' + (h + 1) + 'px 0px 0px 0px' }
+    );
+    stuckIO.observe(sentinel);
+  }
+
+  let resizeId = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeId);
+    resizeId = setTimeout(function () { setStickyMetrics(); mountStuckObserver(); }, 150);
+  }, { passive: true });
+  window.addEventListener('load', function () { setStickyMetrics(); mountStuckObserver(); });
+  setStickyMetrics();
+  mountStuckObserver();
+
+  /* ── Estado ──────────────────────────────────────────────────────
+     Tomado de la URL → los enlaces filtrados se pueden compartir y el
+     estado sobrevive a recargas. La búsqueda actúa DENTRO de la
+     categoría/tipo activos; "Todas" vuelve la búsqueda global. */
   const state = readState();
 
   function readState() {
@@ -184,18 +261,47 @@
     resultsWrap.setAttribute('aria-busy', on ? 'true' : 'false');
   }
 
-  function updatePillsActive() {
-    document.querySelectorAll('.catalog-pill.js-filter').forEach(el => {
-      el.classList.toggle('catalog-pill--active', (el.dataset.categoria || '') === state.categoria);
+  /* Sincroniza pills, dropdown, chips de subcategoría y aria-current
+     con el estado actual. */
+  function syncFilterUI() {
+    document.querySelectorAll('.catalog-pill.js-filter').forEach(function (el) {
+      const on = (el.dataset.categoria || '') === state.categoria;
+      el.classList.toggle('catalog-pill--active', on);
+      if (on) el.setAttribute('aria-current', 'true');
+      else el.removeAttribute('aria-current');
     });
-    document.querySelectorAll('.catalog-dropdown__link.js-filter').forEach(el => {
+
+    document.querySelectorAll('.catalog-dropdown__link.js-filter').forEach(function (el) {
       el.classList.toggle('catalog-dropdown__link--active',
         (el.dataset.categoria || '') === state.categoria && (el.dataset.tipo || '') === state.tipo);
     });
+
+    document.querySelectorAll('.catalog-subbar__group').forEach(function (g) {
+      g.classList.toggle('is-active', g.dataset.categoria === state.categoria);
+    });
+
+    document.querySelectorAll('.catalog-subchip').forEach(function (el) {
+      const on = (el.dataset.categoria || '') === state.categoria && (el.dataset.tipo || '') === state.tipo;
+      el.classList.toggle('catalog-subchip--active', on);
+      if (on) el.setAttribute('aria-current', 'true');
+      else el.removeAttribute('aria-current');
+    });
+
+    // En móvil, centra el chip/pill activo dentro de su fila con scroll
+    if (mqMobile.matches) {
+      const actPill = document.querySelector('.catalog-pill--active');
+      if (actPill) actPill.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+      const actChip = document.querySelector('.catalog-subbar__group.is-active .catalog-subchip--active');
+      if (actChip) actChip.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    }
   }
 
   function syncClearBtn() {
     searchClear.classList.toggle('d-none', !searchInput.value.trim());
+  }
+
+  function stickyOffset() {
+    return (header ? header.offsetHeight : 0) + (bar ? bar.offsetHeight : 0) + 12;
   }
 
   // Trae SOLO el fragmento de resultados y lo intercambia en el contenedor.
@@ -211,10 +317,10 @@
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       resultsInner.innerHTML = await res.text();
-      updatePillsActive();
+      syncFilterUI();
       if (scroll) {
-        const top = resultsWrap.getBoundingClientRect().top + window.scrollY - 70;
-        window.scrollTo({ top, behavior: 'smooth' });
+        const top = resultsWrap.getBoundingClientRect().top + window.scrollY - stickyOffset();
+        window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
       }
     } catch (err) {
       if (err.name !== 'AbortError') {
@@ -239,7 +345,9 @@
   searchInput.addEventListener('input', function () {
     syncClearBtn();
     clearTimeout(debounceId);
-    debounceId = setTimeout(() => apply({ q: searchInput.value.trim(), page: 1 }), 300);
+    debounceId = setTimeout(function () {
+      apply({ q: searchInput.value.trim(), page: 1 });
+    }, 300);
   });
   searchForm.addEventListener('submit', function (e) {
     e.preventDefault();                       // Enter no recarga la página
@@ -253,11 +361,6 @@
     searchInput.focus();
   });
 
-  function closeDropdowns() {
-    document.querySelectorAll('.catalog-pills__item--dropdown.is-open')
-      .forEach(el => el.classList.remove('is-open'));
-  }
-
   // ── Delegación de clics: filtros, subcategorías, paginación ─────
   document.addEventListener('click', function (e) {
     // Paginación (vive dentro del contenedor que se re-renderiza)
@@ -269,16 +372,21 @@
       return;
     }
 
-    // Enlaces de filtro (pills, dropdown, breadcrumb, "ver todas")
+    // "Quitar búsqueda": limpia q conservando categoría/tipo activos
+    const clearQ = e.target.closest('.js-clear-search');
+    if (clearQ) {
+      e.preventDefault();
+      searchInput.value = '';
+      syncClearBtn();
+      apply({ q: '', page: 1 }, { scroll: true });
+      return;
+    }
+
+    // Enlaces de filtro (pills, chips, dropdown, breadcrumb, "ver todas").
+    // En móvil el toque filtra directamente; la fila de subcategorías de
+    // la categoría elegida aparece sola (sin acordeones ni dropdowns).
     const f = e.target.closest('.js-filter');
     if (f) {
-      const dd = f.closest('.catalog-pills__item--dropdown');
-      // En móvil, el primer toque en una categoría con submenú lo despliega.
-      if (dd && f.classList.contains('catalog-pill') && window.innerWidth < 992) {
-        const wasOpen = dd.classList.contains('is-open');
-        closeDropdowns();
-        if (!wasOpen) { e.preventDefault(); dd.classList.add('is-open'); return; }
-      }
       e.preventDefault();
       const patch = { categoria: f.dataset.categoria || '', tipo: f.dataset.tipo || '', page: 1 };
       if (f.dataset.reset) {                  // "Todas" / "Ver todas" limpia también la búsqueda
@@ -286,13 +394,21 @@
         searchInput.value = '';
         syncClearBtn();
       }
-      closeDropdowns();
+      if (document.activeElement && document.activeElement.blur) {
+        document.activeElement.blur();        // cierra el dropdown abierto por foco (desktop)
+      }
       apply(patch, { scroll: true });
       return;
     }
+  });
 
-    // Click fuera de un dropdown abierto → cerrarlo.
-    if (!e.target.closest('.catalog-pills__item--dropdown')) closeDropdowns();
+  // Escape cierra el dropdown de escritorio abierto por teclado (focus-within)
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && document.activeElement
+        && document.activeElement.closest
+        && document.activeElement.closest('.catalog-pills__item--dropdown')) {
+      document.activeElement.blur();
+    }
   });
 
   // ── Botones atrás/adelante del navegador ───────────────────────
