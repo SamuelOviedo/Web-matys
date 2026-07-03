@@ -1710,7 +1710,11 @@ footer::before {
     gap: 0.3rem;
   }
 
+  /* Acordeón en móvil. CLAVE: cerrado usa display:none (no solo
+     visibility:hidden) — de lo contrario el submenú oculto seguía
+     reservando su altura en el flujo e inflaba la barra a ~370px. */
   .catalog-dropdown {
+    display: none;
     position: static;
     box-shadow: none;
     border: none;
@@ -1721,6 +1725,19 @@ footer::before {
     background: transparent;
     max-width: 100%;
     min-width: unset;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  /* En móvil el hover no debe abrir nada (evita "sticky hover" táctil);
+     solo el toque, que añade .is-open. */
+  .catalog-pills__item--dropdown:hover .catalog-dropdown {
+    display: none;
+  }
+
+  .catalog-pills__item--dropdown.is-open .catalog-dropdown {
+    display: block;
   }
 
   .catalog-search__input { width: 110px; }
