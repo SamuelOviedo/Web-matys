@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python manage.py shell -c \"from matys.models import Prenda; [print\\(p.id, p.nombre, p.imagen_principal\\) for p in Prenda.objects.all\\(\\)]\")"
+      "Bash(python manage.py shell -c \"from matys.models import Prenda; [print\\(p.id, p.nombre, p.imagen_principal\\) for p in Prenda.objects.all\\(\\)]\")",
+      "Bash(git add *)",
+      "Bash(git commit -q -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }

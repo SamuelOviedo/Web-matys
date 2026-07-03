@@ -1685,11 +1685,29 @@ footer::before {
 ══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 991px) {
+  /* Barra compacta en móvil: menos padding, borde más fino y pills más
+     pequeños para no comerse la pantalla al hacer scroll. */
+  .catalog-bar {
+    border-bottom-width: 2px;
+  }
+
+  .catalog-bar__inner {
+    padding: 0.4rem 0;
+    gap: 0.4rem;
+  }
+
   /* En mobile el dropdown es estático (acordeón): los pills deben poder
      envolverse para que el menú abierto crezca hacia abajo sin recortarse. */
   .catalog-pills__list {
     flex-wrap: wrap;
     overflow: visible;
+    gap: 0.3rem;
+  }
+
+  .catalog-pill {
+    padding: 0.32rem 0.75rem;
+    font-size: 0.8rem;
+    gap: 0.3rem;
   }
 
   .catalog-dropdown {
@@ -1710,12 +1728,15 @@ footer::before {
 }
 
 /* En móvil el buscador pasa a una fila propia a todo el ancho, debajo de
-   los pills, en lugar de ocultarse (antes no se podía buscar en teléfono). */
+   los pills. Se mantiene fino para ocupar el mínimo espacio posible. */
 @media (max-width: 575px) {
   .catalog-bar__inner {
     flex-wrap: wrap;
+    gap: 0.35rem;
   }
 
+  /* Pills envueltos (NO scroll-x: overflow-x recortaría el acordeón de
+     subtipos verticalmente). Compactos ⇒ caben en una sola fila. */
   .catalog-pills {
     width: 100%;
   }
@@ -1723,6 +1744,7 @@ footer::before {
   .catalog-search {
     width: 100%;
     justify-content: flex-start;
+    padding: 0.28rem 0.8rem;
   }
 
   .catalog-search__input,
