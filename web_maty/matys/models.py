@@ -201,7 +201,7 @@ class AIUsage(models.Model):
     Permite al admin ver el consumo actual de tokens.
     """
     timestamp = models.DateTimeField(auto_now_add=True)
-    model = models.CharField(max_length=100, default='llama-3.1-8b-instant')
+    model = models.CharField(max_length=100, default='mixtral-8x7b-32768')
     prompt_tokens = models.IntegerField(default=0)
     completion_tokens = models.IntegerField(default=0)
     total_tokens = models.IntegerField(default=0)

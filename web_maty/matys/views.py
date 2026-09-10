@@ -647,7 +647,7 @@ def gestion_ai_tono(request):
             return JsonResponse({'error': 'Descripción vacía'}, status=400)
 
         client = Groq(api_key=os.environ.get('GROQ_API_KEY', ''))
-        model_name = 'llama-3.1-8b-instant'
+        model_name = 'mixtral-8x7b-32768'
         completion = client.chat.completions.create(
             model=model_name,
             messages=[
@@ -692,7 +692,7 @@ def gestion_ai_tono(request):
         try:
             from .models import AIUsage
             AIUsage.objects.create(
-                model='llama-3.1-8b-instant',
+                model='mixtral-8x7b-32768',
                 prompt_tokens=0,
                 completion_tokens=0,
                 total_tokens=0,
