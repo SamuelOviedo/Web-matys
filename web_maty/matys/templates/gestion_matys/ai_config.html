@@ -275,20 +275,25 @@ function getCookie(name) {
 
 async function loadAIConfig() {
   try {
+    console.log('[loadAIConfig] GET /gestion-matys/ai/config/ (JSON)');
     const res = await fetch('/gestion-matys/ai/config/');
+    const contentType = res.headers.get('content-type');
+    console.log(`[loadAIConfig] status=${res.status}, content-type=${contentType}`);
+
     if (!res.ok) {
-      console.error('loadAIConfig failed:', res.status, res.statusText);
+      console.error('[loadAIConfig] GET failed:', res.status, res.statusText);
       return;
     }
 
     // Validar que la respuesta sea JSON antes de parsear
-    const contentType = res.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      console.error('loadAIConfig: Respuesta no es JSON:', contentType);
+      const bodyText = await res.text();
+      console.error('[loadAIConfig] Respuesta no es JSON. Body (primeros 300 chars):', bodyText.substring(0, 300));
       return;
     }
 
     const data = await res.json();
+    console.log('[loadAIConfig] JSON parseado OK, modelo=', data.ai_model);
 
     // Actualizar modelo actual
     document.getElementById('currentModel').textContent = data.ai_model || '—';
@@ -330,18 +335,24 @@ async function loadAvailableModels() {
   const saveBtn = document.getElementById('saveBtn');
 
   try {
+    console.log('[loadAvailableModels] GET /gestion-matys/ai/models/');
     const res = await fetch('/gestion-matys/ai/models/');
+    const contentType = res.headers.get('content-type');
+    console.log(`[loadAvailableModels] status=${res.status}, content-type=${contentType}`);
+
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     }
 
-    const contentType = res.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
+      const bodyText = await res.text();
+      console.error('[loadAvailableModels] Non-JSON response:', bodyText.substring(0, 300));
       throw new Error(`Respuesta no es JSON: ${contentType}`);
     }
 
     const data = await res.json();
     const models = data.models || [];
+    console.log(`[loadAvailableModels] ${models.length} modelos cargados`);
 
     if (models.length === 0) {
       showMessage('No se pudieron cargar los modelos disponibles. Verifica la conexión con Groq.', 'error');
@@ -399,8 +410,10 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       // Obtener token CSRF
       const csrftoken = getCookie('csrftoken');
-      console.log('CSRF token:', csrftoken ? 'present' : 'MISSING');
+      const csrfPresent = !!csrftoken;
+      console.log('[POST saveBtn] csrfPresent=', csrfPresent, ', model=', model);
 
+      console.log('[POST saveBtn] Enviando POST /gestion-matys/ai/config/');
       const res = await fetch('/gestion-matys/ai/config/', {
         method: 'POST',
         headers: {
@@ -410,26 +423,28 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({model: model})
       });
 
-      console.log('POST /ai/config/ response:', res.status, res.statusText);
+      const contentType = res.headers.get('content-type');
+      console.log(`[POST saveBtn] response: status=${res.status}, content-type=${contentType}`);
 
       // Validar response antes de parsear JSON
       if (!res.ok) {
         // Intentar leer error JSON si es posible
-        const contentType = res.headers.get('content-type');
         let errorMsg = 'Error al guardar';
 
         if (contentType && contentType.includes('application/json')) {
           try {
             const errData = await res.json();
             errorMsg = errData.error || errorMsg;
+            console.log('[POST saveBtn] Error JSON:', errorMsg);
           } catch (e) {
             // No se pudo parsear error JSON, usar mensaje genérico
             errorMsg = `Error: ${res.status} ${res.statusText}`;
+            console.error('[POST saveBtn] No JSON error response');
           }
         } else {
           // Response no es JSON (e.g., 403 HTML response)
           const bodyText = await res.text();
-          console.error('Non-JSON error response:', bodyText.substring(0, 200));
+          console.error(`[POST saveBtn] Non-JSON error response (${contentType}). Body (primeros 300 chars):`, bodyText.substring(0, 300));
           errorMsg = `Error HTTP ${res.status}: ${res.statusText}. Si ves esto, verifica CSRF token en console.`;
         }
 
@@ -437,22 +452,24 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Validar que la respuesta sea JSON
-      const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         const bodyText = await res.text();
-        console.error('Non-JSON success response:', bodyText.substring(0, 200));
+        console.error(`[POST saveBtn] Non-JSON success response (${contentType}). Body:`, bodyText.substring(0, 300));
         throw new Error(`Respuesta no es JSON válido (${contentType})`);
       }
 
       const data = await res.json();
+      console.log('[POST saveBtn] JSON parseado OK, success=', data.success);
+
       if (data.success) {
+        console.log('[POST saveBtn] Guardado exitoso, modelo=', data.ai_model);
         showMessage('Modelo guardado correctamente', 'success');
         loadAIConfig();
       } else {
         throw new Error(data.error || 'Error desconocido al guardar');
       }
     } catch (e) {
-      console.error('POST error:', e);
+      console.error('[POST saveBtn] Error capturado:', e.message);
       showMessage('Error: ' + e.message, 'error');
     } finally {
       btn.textContent = originalText;

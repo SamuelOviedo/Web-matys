@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 import cloudinary
 import cloudinary.uploader
 from django.shortcuts import render, get_object_or_404, redirect
@@ -12,6 +13,8 @@ from django.core.paginator import Paginator
 from django.db import models
 from .models import Prenda, ImagenPrenda, TipoPrenda, SiteConfig, AIUsage
 from .site_textos import SECCIONES_TEXTOS, DEFAULTS_TEXTOS, VALIDACIONES_TEXTOS, get_textos
+
+logger = logging.getLogger(__name__)
 
 
 def inicio(request):
@@ -635,6 +638,7 @@ def gestion_logout(request):
 
 def gestion_ai_tono(request):
     if not _staff_required(request):
+        logger.warning(f"[ai_tono POST] no autorizado: user={request.user.username}, staff={request.user.is_staff}")
         return JsonResponse({'error': 'No autorizado'}, status=403)
     if request.method != 'POST':
         return JsonResponse({'error': 'Método no permitido'}, status=405)
@@ -643,15 +647,20 @@ def gestion_ai_tono(request):
     from .models import AIUsage
 
     try:
+        logger.info(f"[ai_tono POST] inicio: user={request.user.username}")
+
         data = json.loads(request.body)
         descripcion = data.get('descripcion', '').strip()
         if not descripcion:
+            logger.warning(f"[ai_tono POST] descripción vacía")
             return JsonResponse({'error': 'Descripción vacía'}, status=400)
 
         # Obtener modelo de configuración o usar fallback
         config = SiteConfig.get_solo()
         model_name = config.data.get('ai_model', 'openai/gpt-oss-20b')
+        logger.info(f"[ai_tono POST] modelo={model_name}, desc_len={len(descripcion)}")
 
+        logger.info(f"[ai_tono POST] llamando Groq...")
         client = Groq(api_key=os.environ.get('GROQ_API_KEY', ''))
         completion = client.chat.completions.create(
             model=model_name,
@@ -680,11 +689,7 @@ def gestion_ai_tono(request):
         # Capturar respuesta y consumo
         usage = completion.usage
         raw = completion.choices[0].message.content.strip()
-
-        # Debug: loguear respuesta cruda en desarrollo (no en producción)
-        if os.environ.get('DEBUG', 'False') == 'True':
-            import sys
-            print(f'[DEBUG] Groq raw response ({model_name}): {raw[:500]}...', file=sys.stderr)
+        logger.info(f"[ai_tono POST] Groq OK: status=200, tokens={{prompt:{usage.prompt_tokens},completion:{usage.completion_tokens},total:{usage.total_tokens}}}")
 
         # Intentar parsear JSON de forma robusta
         try:
@@ -694,7 +699,9 @@ def gestion_ai_tono(request):
 
             try:
                 result = json.loads(raw.strip())
+                logger.info(f"[ai_tono POST] JSON parse directo OK")
             except json.JSONDecodeError as e:
+                logger.warning(f"[ai_tono POST] JSON parse directo falló, intentando alternativas...")
                 parse_error = e
                 # Paso 2: Si falló, intentar extraer JSON de markdown code blocks
                 # Formato esperado: ```json\n{...}\n```
@@ -726,9 +733,11 @@ def gestion_ai_tono(request):
 
             # Si todavía no tenemos un resultado, fallar con el error original
             if result is None:
+                logger.error(f"[ai_tono POST] JSON parse falló completamente")
                 raise parse_error if parse_error else json.JSONDecodeError('No JSON found', raw, 0)
 
             # Registrar como exitosa solo si JSON es válido
+            logger.info(f"[ai_tono POST] éxito: modelo={model_name} registrando AIUsage")
             AIUsage.objects.create(
                 model=model_name,
                 prompt_tokens=usage.prompt_tokens,
@@ -741,6 +750,7 @@ def gestion_ai_tono(request):
         except json.JSONDecodeError as je:
             # JSON parsing falló pero Groq respondió
             # Registrar como error con tokens consumidos
+            logger.warning(f"[ai_tono POST] JSON parse error: {type(je).__name__}, registrando error AIUsage")
             AIUsage.objects.create(
                 model=model_name,
                 prompt_tokens=usage.prompt_tokens,
@@ -992,40 +1002,53 @@ def gestion_ai_config(request):
 
     elif request.method == 'POST':
         try:
+            logger.info(f"[ai_config POST] user={request.user.username}, staff={request.user.is_staff}")
+
             data = json.loads(request.body)
             new_model = data.get('model', '').strip()
+            logger.info(f"[ai_config POST] parsed model={new_model}")
 
             if not new_model:
+                logger.warning(f"[ai_config POST] modelo no especificado")
                 return JsonResponse({'error': 'Modelo no especificado'}, status=400)
 
             # Validar que el modelo existe en Groq
             import requests
             groq_api_key = os.environ.get('GROQ_API_KEY', '')
             if not groq_api_key:
+                logger.error(f"[ai_config POST] GROQ_API_KEY no configurada")
                 return JsonResponse({'error': 'GROQ_API_KEY no configurada'}, status=500)
 
+            logger.info(f"[ai_config POST] validando modelo {new_model} en Groq...")
             headers = {'Authorization': f'Bearer {groq_api_key}'}
             response = requests.get('https://api.groq.com/openai/v1/models', headers=headers, timeout=5)
 
             if response.status_code != 200:
+                logger.error(f"[ai_config POST] Groq models list failed: status={response.status_code}")
                 return JsonResponse({'error': 'Error al validar modelo en Groq'}, status=500)
 
             data_models = response.json()
             model_ids = [m['id'] for m in data_models.get('data', [])]
+            logger.info(f"[ai_config POST] Groq models: {len(model_ids)} disponibles")
 
             if new_model not in model_ids:
+                logger.warning(f"[ai_config POST] modelo {new_model} no en lista Groq")
                 return JsonResponse({'error': f'Modelo {new_model} no encontrado en Groq'}, status=400)
 
             # Guardar en SiteConfig
+            logger.info(f"[ai_config POST] guardando {new_model} en SiteConfig...")
             config = SiteConfig.get_solo()
             config.data['ai_model'] = new_model
             config.save()
 
+            logger.info(f"[ai_config POST] éxito: modelo={new_model} guardado")
             return JsonResponse({'success': True, 'ai_model': new_model})
 
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            logger.exception(f"[ai_config POST] JSON decode error")
             return JsonResponse({'error': 'JSON inválido'}, status=400)
         except Exception as e:
+            logger.exception(f"[ai_config POST] excepción: {type(e).__name__}")
             return JsonResponse({'error': f'Error: {str(e)[:100]}'}, status=500)
 
     else:
