@@ -200,6 +200,20 @@
       <div class="kpi-value">{{ sin_imagen }}</div>
     </div>
   </div>
+  <!-- AI Usage widget (discreto) -->
+  <div id="aiUsageWidget" style="display:none;margin-top:16px;padding:12px 16px;border-radius:8px;background:rgba(14,31,77,.04);border:1px solid rgba(14,31,77,.1);">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;">
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+        <i class="bi bi-stars" style="color:var(--navy);font-size:14px;flex-shrink:0;"></i>
+        <span style="color:var(--mute);font-weight:500;">Consumo IA hoy:</span>
+        <span id="aiPercentageText" style="color:var(--navy);font-weight:600;">—%</span>
+      </div>
+      <div style="width:80px;height:6px;background:rgba(14,31,77,.1);border-radius:3px;overflow:hidden;">
+        <div id="aiProgressBar" style="height:100%;background:linear-gradient(90deg,var(--navy),var(--navy-2));width:0%;transition:width 0.3s ease;border-radius:3px;"></div>
+      </div>
+      <span id="aiTokensText" style="color:var(--mute);font-size:11px;white-space:nowrap;">0 / 10k</span>
+    </div>
+  </div>
 </div>
 
 <!-- Primary work surface -->
@@ -775,9 +789,46 @@ function renderCreateStrip() {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   AI USAGE WIDGET
+   ═══════════════════════════════════════════════════════════ */
+async function loadAIUsage() {
+  try {
+    const res = await fetch('/gestion-matys/ai/usage/');
+    if (!res.ok) return;
+    const data = await res.json();
+    const widget = document.getElementById('aiUsageWidget');
+    const pct = data.percentage || 0;
+    const tokens = data.tokens_used || 0;
+    const limit = data.daily_limit || 10000;
+
+    document.getElementById('aiPercentageText').textContent = pct + '%';
+    document.getElementById('aiProgressBar').style.width = pct + '%';
+    document.getElementById('aiTokensText').textContent = tokens.toLocaleString() + ' / ' + limit.toLocaleString();
+
+    // Mostrar widget solo si hay consumo o es notable
+    if (tokens > 0 || pct >= 25) {
+      widget.style.display = 'block';
+    }
+
+    // Cambiar color si está cerca del límite (>80%)
+    if (pct > 80) {
+      document.getElementById('aiProgressBar').style.background = 'linear-gradient(90deg, #FFD60A, #ff9800)';
+      document.getElementById('aiPercentageText').style.color = '#ff9800';
+    } else if (pct > 50) {
+      document.getElementById('aiProgressBar').style.background = 'linear-gradient(90deg, var(--navy), #4a90e2)';
+    }
+  } catch (e) {
+    console.log('AI usage widget load error (non-blocking):', e);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
    DOM READY
    ═══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
+
+  /* Load AI usage widget */
+  loadAIUsage();
 
   /* Edit: open via table row button */
   document.querySelectorAll('.edit-prenda-btn').forEach(btn => {

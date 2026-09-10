@@ -193,3 +193,32 @@ class ImagenPrenda(models.Model):
 
     def __str__(self):
         return f'{self.prenda.nombre} — imagen {self.orden}'
+
+
+class AIUsage(models.Model):
+    """
+    Registro de consumo de API de IA (Groq).
+    Permite al admin ver el consumo actual de tokens.
+    """
+    timestamp = models.DateTimeField(auto_now_add=True)
+    model = models.CharField(max_length=100, default='llama-3.1-8b-instant')
+    prompt_tokens = models.IntegerField(default=0)
+    completion_tokens = models.IntegerField(default=0)
+    total_tokens = models.IntegerField(default=0)
+    status = models.CharField(
+        max_length=20,
+        choices=[('success', 'Éxito'), ('error', 'Error')],
+        default='success'
+    )
+    error_message = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = 'Uso de IA'
+        verbose_name_plural = 'Uso de IA'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['-timestamp']),
+        ]
+
+    def __str__(self):
+        return f'{self.model} @ {self.timestamp.strftime("%Y-%m-%d %H:%M")}'

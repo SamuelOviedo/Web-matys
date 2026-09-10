@@ -291,9 +291,9 @@
     state.currentEl = el;
     state.placement = 'bottom';
 
-    // Render del contenido primero (para medir tamaño del popover)
+    // Render del contenido (para medir tamaño del popover)
     renderTipContent(step);
-    dom.tip.classList.add('tour-visible');
+    // NO añadir tour-visible aún: primero posicionar correctamente
 
     if (el) {
       try { el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' }); } catch (e) {}
@@ -303,6 +303,11 @@
       state.placement = pickPlacement(rect, step.placement);
     }
 
+    // Posicionar ANTES de mostrar (evita salto visual)
+    place(state.currentEl ? state.currentEl.getBoundingClientRect() : null);
+
+    // AHORA mostrar con transición suave
+    dom.tip.classList.add('tour-visible');
     startTracking();
     focusTip();
   }

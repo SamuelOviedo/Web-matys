@@ -9,7 +9,8 @@ from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from django.core.paginator import Paginator
-from .models import Prenda, ImagenPrenda, TipoPrenda, SiteConfig
+from django.db import models
+from .models import Prenda, ImagenPrenda, TipoPrenda, SiteConfig, AIUsage
 from .site_textos import SECCIONES_TEXTOS, DEFAULTS_TEXTOS, VALIDACIONES_TEXTOS, get_textos
 
 
@@ -639,14 +640,16 @@ def gestion_ai_tono(request):
         return JsonResponse({'error': 'Método no permitido'}, status=405)
     try:
         from groq import Groq
+        from .models import AIUsage
         data = json.loads(request.body)
         descripcion = data.get('descripcion', '').strip()
         if not descripcion:
             return JsonResponse({'error': 'Descripción vacía'}, status=400)
 
         client = Groq(api_key=os.environ.get('GROQ_API_KEY', ''))
+        model_name = 'llama-3.1-8b-instant'
         completion = client.chat.completions.create(
-            model='llama-3.1-8b-instant',
+            model=model_name,
             messages=[
                 {
                     'role': 'system',
@@ -668,6 +671,15 @@ def gestion_ai_tono(request):
             temperature=0.75,
             max_tokens=400,
         )
+        # Capturar consumo
+        usage = completion.usage
+        AIUsage.objects.create(
+            model=model_name,
+            prompt_tokens=usage.prompt_tokens,
+            completion_tokens=usage.completion_tokens,
+            total_tokens=usage.total_tokens,
+            status='success'
+        )
         raw = completion.choices[0].message.content.strip()
         if raw.startswith('```'):
             raw = raw.split('```')[1]
@@ -676,7 +688,66 @@ def gestion_ai_tono(request):
         result = json.loads(raw.strip())
         return JsonResponse(result)
     except Exception as e:
+        # Registrar error en consumo
+        try:
+            from .models import AIUsage
+            AIUsage.objects.create(
+                model='llama-3.1-8b-instant',
+                prompt_tokens=0,
+                completion_tokens=0,
+                total_tokens=0,
+                status='error',
+                error_message=str(e)[:500]
+            )
+        except:
+            pass
         return JsonResponse({'error': str(e)}, status=500)
+
+
+def gestion_ai_usage(request):
+    """
+    Endpoint que devuelve el consumo actual de IA (tokens hoy + % de límite).
+    Reutiliza datos existentes de AIUsage sin duplicar cálculos.
+    """
+    if not _staff_required(request):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+
+    from django.utils import timezone
+    from datetime import timedelta
+
+    today = timezone.now().date()
+    today_start = timezone.make_aware(
+        timezone.datetime.combine(today, timezone.datetime.min.time())
+    )
+    today_end = timezone.make_aware(
+        timezone.datetime.combine(today, timezone.datetime.max.time())
+    )
+
+    # Consumo de hoy (solo llamadas exitosas)
+    usage_today = AIUsage.objects.filter(
+        timestamp__gte=today_start,
+        timestamp__lte=today_end,
+        status='success'
+    ).aggregate(
+        total_tokens=models.Sum('total_tokens') or 0,
+        calls=models.Count('id')
+    )
+
+    total_tokens = usage_today.get('total_tokens', 0) or 0
+    calls = usage_today.get('calls', 0) or 0
+
+    # Límite diario (configurables por env var, default 10k para free tier)
+    daily_limit = int(os.environ.get('AI_DAILY_TOKEN_LIMIT', '10000'))
+    percentage = int((total_tokens / daily_limit) * 100) if daily_limit > 0 else 0
+    percentage = min(percentage, 100)  # Max 100%
+
+    return JsonResponse({
+        'tokens_used': total_tokens,
+        'daily_limit': daily_limit,
+        'percentage': percentage,
+        'calls_today': calls,
+        'remaining': max(0, daily_limit - total_tokens),
+    })
 
 
 def detalle_prendas(request, slug):
