@@ -276,12 +276,15 @@ function getCookie(name) {
 async function loadAIConfig() {
   try {
     const res = await fetch('/gestion-matys/ai/config/');
-    if (!res.ok) return;
+    if (!res.ok) {
+      console.error('loadAIConfig failed:', res.status, res.statusText);
+      return;
+    }
 
     // Validar que la respuesta sea JSON antes de parsear
     const contentType = res.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      console.error('Respuesta no es JSON:', contentType);
+      console.error('loadAIConfig: Respuesta no es JSON:', contentType);
       return;
     }
 
@@ -328,7 +331,14 @@ async function loadAvailableModels() {
 
   try {
     const res = await fetch('/gestion-matys/ai/models/');
-    if (!res.ok) throw new Error('Error fetching models');
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error(`Respuesta no es JSON: ${contentType}`);
+    }
 
     const data = await res.json();
     const models = data.models || [];
@@ -389,6 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       // Obtener token CSRF
       const csrftoken = getCookie('csrftoken');
+      console.log('CSRF token:', csrftoken ? 'present' : 'MISSING');
 
       const res = await fetch('/gestion-matys/ai/config/', {
         method: 'POST',
@@ -398,6 +409,8 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         body: JSON.stringify({model: model})
       });
+
+      console.log('POST /ai/config/ response:', res.status, res.statusText);
 
       // Validar response antes de parsear JSON
       if (!res.ok) {
@@ -415,7 +428,9 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         } else {
           // Response no es JSON (e.g., 403 HTML response)
-          errorMsg = `Error HTTP ${res.status}: ${res.statusText}`;
+          const bodyText = await res.text();
+          console.error('Non-JSON error response:', bodyText.substring(0, 200));
+          errorMsg = `Error HTTP ${res.status}: ${res.statusText}. Si ves esto, verifica CSRF token en console.`;
         }
 
         throw new Error(errorMsg);
@@ -424,7 +439,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Validar que la respuesta sea JSON
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Respuesta del servidor no es JSON válido');
+        const bodyText = await res.text();
+        console.error('Non-JSON success response:', bodyText.substring(0, 200));
+        throw new Error(`Respuesta no es JSON válido (${contentType})`);
       }
 
       const data = await res.json();
@@ -435,6 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(data.error || 'Error desconocido al guardar');
       }
     } catch (e) {
+      console.error('POST error:', e);
       showMessage('Error: ' + e.message, 'error');
     } finally {
       btn.textContent = originalText;
