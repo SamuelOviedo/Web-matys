@@ -638,9 +638,11 @@ def gestion_ai_tono(request):
         return JsonResponse({'error': 'No autorizado'}, status=403)
     if request.method != 'POST':
         return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    from groq import Groq
+    from .models import AIUsage
+
     try:
-        from groq import Groq
-        from .models import AIUsage
         data = json.loads(request.body)
         descripcion = data.get('descripcion', '').strip()
         if not descripcion:
@@ -674,27 +676,54 @@ def gestion_ai_tono(request):
             temperature=0.75,
             max_tokens=400,
         )
-        # Capturar consumo
+
+        # Capturar respuesta y consumo
         usage = completion.usage
-        AIUsage.objects.create(
-            model=model_name,
-            prompt_tokens=usage.prompt_tokens,
-            completion_tokens=usage.completion_tokens,
-            total_tokens=usage.total_tokens,
-            status='success'
-        )
         raw = completion.choices[0].message.content.strip()
-        if raw.startswith('```'):
-            raw = raw.split('```')[1]
-            if raw.startswith('json'):
-                raw = raw[4:]
-        result = json.loads(raw.strip())
-        return JsonResponse(result)
-    except Exception as e:
-        # Registrar error en consumo
+
+        # Intentar parsear JSON de forma robusta
         try:
-            from .models import AIUsage
-            # Obtener modelo de configuración o usar fallback
+            # Eliminar markdown code blocks si existen
+            if raw.startswith('```'):
+                raw = raw.split('```')[1]
+                if raw.startswith('json'):
+                    raw = raw[4:]
+                if raw.startswith('\n'):
+                    raw = raw[1:]
+
+            # Intentar parse directo
+            result = json.loads(raw.strip())
+
+            # Registrar como exitosa solo si JSON es válido
+            AIUsage.objects.create(
+                model=model_name,
+                prompt_tokens=usage.prompt_tokens,
+                completion_tokens=usage.completion_tokens,
+                total_tokens=usage.total_tokens,
+                status='success'
+            )
+            return JsonResponse(result)
+
+        except json.JSONDecodeError as je:
+            # JSON parsing falló pero Groq respondió
+            # Registrar como error con tokens consumidos
+            AIUsage.objects.create(
+                model=model_name,
+                prompt_tokens=usage.prompt_tokens,
+                completion_tokens=usage.completion_tokens,
+                total_tokens=usage.total_tokens,
+                status='error',
+                error_message=f'JSON parse error: {str(je)[:200]}'
+            )
+            # Retornar error amigable sin detalles técnicos
+            return JsonResponse({
+                'error': 'El modelo seleccionado no generó una respuesta válida. Intenta con otro modelo o edita manualmente los tonos.'
+            }, status=500)
+
+    except Exception as e:
+        # Error antes de o durante llamada a Groq
+        # Registrar error sin tokens (Groq no respondió)
+        try:
             config = SiteConfig.get_solo()
             model_name_error = config.data.get('ai_model', 'openai/gpt-oss-20b')
             AIUsage.objects.create(
@@ -707,7 +736,15 @@ def gestion_ai_tono(request):
             )
         except:
             pass
-        return JsonResponse({'error': str(e)}, status=500)
+
+        # Retornar error amigable
+        error_msg = 'Error al conectar con el servicio de IA. Intenta más tarde.'
+        if 'api_key' in str(e).lower():
+            error_msg = 'Configuración de IA no disponible.'
+        elif 'timeout' in str(e).lower():
+            error_msg = 'Timeout: el servicio de IA tardó demasiado. Intenta de nuevo.'
+
+        return JsonResponse({'error': error_msg}, status=500)
 
 
 def gestion_ai_usage(request):
@@ -759,7 +796,8 @@ def gestion_ai_usage(request):
 def gestion_ai_models(request):
     """
     Endpoint que retorna lista de modelos disponibles en Groq API.
-    Filtra solo modelos chat/texto, excluye whisper, guard, tts, etc.
+    Filtra solo modelos compatibles con chat/completions (gestion_ai_tono).
+    Usa allowlist de familias conocidas + exclusión explícita de incompatibles.
     """
     if not _staff_required(request):
         return JsonResponse({'error': 'No autorizado'}, status=403)
@@ -780,12 +818,45 @@ def gestion_ai_models(request):
         data = response.json()
         all_models = data.get('data', [])
 
-        # Filtrar modelos: incluir solo chat/texto, excluir whisper, guard, tts, audio, embed
-        excluded_keywords = ['whisper', 'guard', 'moderation', 'tts', 'audio', 'embed']
+        # Allowlist: familias de modelos conocidas y compatibles con chat
+        # Estos son validados manualmente como compatibles con /chat/completions
+        compatible_prefixes = [
+            'mixtral-',      # Mistral Mixtral (8x7b, 8x22b, etc)
+            'llama-3',       # Meta Llama 3 y 3.1 (8b, 70b)
+            'gemma-',        # Google Gemma (2b, 7b)
+            'gpt-oss-',      # OpenAI compatible (gpt-oss-20b)
+        ]
+
+        # Exclusiones explícitas: modelos no compatibles
+        excluded_keywords = [
+            'whisper',       # Transcripción de audio
+            'guard',         # Moderación
+            'moderation',    # Moderación
+            'tts',           # Text-to-speech
+            'audio',         # Audio
+            'embed',         # Embeddings
+            'embedding',     # Embeddings
+            'orpheus',       # Non-chat models (canopylabs)
+        ]
+
+        def is_compatible(model_id):
+            model_lower = model_id.lower()
+
+            # Excluir explícitamente incompatibles
+            if any(kw in model_lower for kw in excluded_keywords):
+                return False
+
+            # Incluir si match con allowlist
+            if any(model_lower.startswith(prefix) for prefix in compatible_prefixes):
+                return True
+
+            # Fallback conservador: excluir si no está en allowlist
+            return False
+
         chat_models = [
             {'id': m['id'], 'name': m.get('id', '')}
             for m in all_models
-            if not any(kw in m['id'].lower() for kw in excluded_keywords)
+            if is_compatible(m['id'])
         ]
 
         return JsonResponse({'models': chat_models})
