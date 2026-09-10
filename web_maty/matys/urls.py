@@ -24,4 +24,6 @@ urlpatterns = [
     path('gestion-matys/categorias/tipos-json/', views.gestion_tipos_json, name='gestion_tipos_json'),
     path('gestion-matys/ai/tono/', views.gestion_ai_tono, name='gestion_ai_tono'),
     path('gestion-matys/ai/usage/', views.gestion_ai_usage, name='gestion_ai_usage'),
+    path('gestion-matys/ai/models/', views.gestion_ai_models, name='gestion_ai_models'),
+    path('gestion-matys/ai/config/', views.gestion_ai_config, name='gestion_ai_config'),
 ]

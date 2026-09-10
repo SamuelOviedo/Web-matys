@@ -1,0 +1,376 @@
+{% extends 'gestion_matys/base_admin.html' %}
+
+{% block title %}Configuración de IA — Panel Matys{% endblock %}
+{% block breadcrumb %}Configuración de IA{% endblock %}
+
+{% block content %}
+<style>
+  .config-card {
+    background: var(--paper);
+    border: 1px solid var(--line-2);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .config-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .model-selector {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .model-selector select {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px 12px;
+    border: 1px solid var(--line-2);
+    border-radius: 6px;
+    background: #fff;
+    font-size: 14px;
+    color: var(--text);
+    font-family: inherit;
+  }
+
+  .model-selector select:focus {
+    outline: none;
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(14, 31, 77, 0.1);
+  }
+
+  .btn-save {
+    padding: 10px 24px;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s ease;
+  }
+
+  .btn-save:hover {
+    background: var(--navy-2);
+  }
+
+  .btn-save:active {
+    transform: scale(0.98);
+  }
+
+  .model-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(14, 31, 77, 0.04);
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--mute);
+  }
+
+  .model-info i {
+    color: var(--navy);
+    font-size: 16px;
+  }
+
+  .error-message {
+    padding: 12px;
+    background: rgba(164, 50, 43, 0.1);
+    border-left: 3px solid #a4322b;
+    border-radius: 4px;
+    color: #a4322b;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .success-message {
+    padding: 12px;
+    background: rgba(46, 125, 50, 0.1);
+    border-left: 3px solid #2e7d32;
+    border-radius: 4px;
+    color: #2e7d32;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--line-2);
+    border-top-color: var(--navy);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* IA Usage Widget */
+  .ai-usage-card {
+    background: rgba(14, 31, 77, 0.04);
+    border: 1px solid rgba(14, 31, 77, 0.1);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .ai-usage-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .ai-usage-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .stat-item {
+    padding: 8px;
+    background: #fff;
+    border-radius: 6px;
+    border: 1px solid var(--line-2);
+    font-size: 12px;
+  }
+
+  .stat-label {
+    color: var(--mute);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    color: var(--navy);
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background: rgba(14, 31, 77, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--navy), var(--navy-2));
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 3px;
+  }
+
+  .progress-bar.critical {
+    background: linear-gradient(90deg, #FFD60A, #ff9800);
+  }
+</style>
+
+<!-- CONFIGURACIÓN DE MODELO IA -->
+<div class="config-card">
+  <div class="config-section-title">Modelo de IA</div>
+
+  <div id="messageContainer"></div>
+
+  <div class="model-info" id="modelInfo" style="display: none;">
+    <i class="bi bi-check-circle"></i>
+    <span>Modelo actual: <strong id="currentModel">—</strong></span>
+  </div>
+
+  <div class="model-selector">
+    <select id="modelSelect" disabled>
+      <option value="">Cargando modelos...</option>
+    </select>
+    <button class="btn-save" id="saveBtn" disabled>Guardar</button>
+  </div>
+
+  <div style="margin-top: 12px; font-size: 12px; color: var(--mute);">
+    <p>Selecciona el modelo de IA que deseas usar para generar tonos de descripción. Los modelos disponibles se cargan desde Groq.</p>
+  </div>
+</div>
+
+<!-- CONSUMO IA -->
+<div class="config-card">
+  <div class="config-section-title">Consumo de IA Hoy</div>
+
+  <div class="ai-usage-card">
+    <div class="ai-usage-header">
+      <i class="bi bi-stars"></i>
+      Tokens utilizados (límite interno: 10000/día)
+    </div>
+
+    <div class="ai-usage-stats">
+      <div class="stat-item">
+        <div class="stat-label">Tokens Usados</div>
+        <div class="stat-value" id="tokensUsed">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Límite Diario</div>
+        <div class="stat-value">10,000</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Porcentaje</div>
+        <div class="stat-value" id="tokensPercentage">0%</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Llamadas Hoy</div>
+        <div class="stat-value" id="callsToday">0</div>
+      </div>
+    </div>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div style="margin-top: 8px; font-size: 11px; color: var(--mute);">
+      Tokens restantes: <strong id="tokensRemaining">10,000</strong>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadAIConfig() {
+  try {
+    const res = await fetch('/gestion-matys/ai/config/');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    // Actualizar modelo actual
+    document.getElementById('currentModel').textContent = data.ai_model || '—';
+    document.getElementById('modelInfo').style.display = 'flex';
+
+    // Actualizar consumo
+    const pct = data.percentage || 0;
+    const tokens = data.tokens_used || 0;
+    const calls = data.calls_today || 0;
+    const remaining = data.remaining || 0;
+
+    document.getElementById('tokensUsed').textContent = tokens.toLocaleString();
+    document.getElementById('tokensPercentage').textContent = pct + '%';
+    document.getElementById('callsToday').textContent = calls;
+    document.getElementById('tokensRemaining').textContent = remaining.toLocaleString();
+
+    // Actualizar barra de progreso
+    const bar = document.getElementById('progressBar');
+    bar.style.width = pct + '%';
+    if (pct > 80) {
+      bar.classList.add('critical');
+    }
+  } catch (e) {
+    console.log('Error loading AI config:', e);
+  }
+}
+
+async function loadAvailableModels() {
+  const select = document.getElementById('modelSelect');
+  const saveBtn = document.getElementById('saveBtn');
+
+  try {
+    const res = await fetch('/gestion-matys/ai/models/');
+    if (!res.ok) throw new Error('Error fetching models');
+
+    const data = await res.json();
+    const models = data.models || [];
+
+    if (models.length === 0) {
+      showMessage('No se pudieron cargar los modelos disponibles. Verifica la conexión con Groq.', 'error');
+      select.disabled = true;
+      saveBtn.disabled = true;
+      return;
+    }
+
+    // Llenar dropdown
+    select.innerHTML = '';
+    models.forEach(model => {
+      const option = document.createElement('option');
+      option.value = model.id;
+      option.textContent = model.id;
+      select.appendChild(option);
+    });
+
+    select.disabled = false;
+    saveBtn.disabled = false;
+  } catch (e) {
+    showMessage('Error al cargar modelos: ' + e.message, 'error');
+    select.disabled = true;
+    saveBtn.disabled = true;
+  }
+}
+
+function showMessage(text, type) {
+  const container = document.getElementById('messageContainer');
+  const className = type === 'error' ? 'error-message' : 'success-message';
+  container.innerHTML = `<div class="${className}">${text}</div>`;
+  setTimeout(() => {
+    container.innerHTML = '';
+  }, 5000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadAIConfig();
+  loadAvailableModels();
+
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    const select = document.getElementById('modelSelect');
+    const model = select.value;
+
+    if (!model) {
+      showMessage('Selecciona un modelo', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('saveBtn');
+    const originalText = btn.textContent;
+    btn.textContent = '';
+    btn.appendChild(document.createElement('span')).className = 'loading';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/gestion-matys/ai/config/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({model: model})
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Error al guardar');
+      }
+
+      showMessage('Modelo guardado correctamente', 'success');
+      loadAIConfig();
+    } catch (e) {
+      showMessage('Error: ' + e.message, 'error');
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  });
+
+  // Recargar consumo cada 30 segundos
+  setInterval(loadAIConfig, 30000);
+});
+</script>
+{% endblock %}

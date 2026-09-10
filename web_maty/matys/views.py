@@ -646,8 +646,11 @@ def gestion_ai_tono(request):
         if not descripcion:
             return JsonResponse({'error': 'Descripción vacía'}, status=400)
 
+        # Obtener modelo de configuración o usar fallback
+        config = SiteConfig.get_solo()
+        model_name = config.data.get('ai_model', 'openai/gpt-oss-20b')
+
         client = Groq(api_key=os.environ.get('GROQ_API_KEY', ''))
-        model_name = 'mixtral-8x7b-32768'
         completion = client.chat.completions.create(
             model=model_name,
             messages=[
@@ -691,8 +694,11 @@ def gestion_ai_tono(request):
         # Registrar error en consumo
         try:
             from .models import AIUsage
+            # Obtener modelo de configuración o usar fallback
+            config = SiteConfig.get_solo()
+            model_name_error = config.data.get('ai_model', 'openai/gpt-oss-20b')
             AIUsage.objects.create(
-                model='mixtral-8x7b-32768',
+                model=model_name_error,
                 prompt_tokens=0,
                 completion_tokens=0,
                 total_tokens=0,
@@ -748,6 +754,144 @@ def gestion_ai_usage(request):
         'calls_today': calls,
         'remaining': max(0, daily_limit - total_tokens),
     })
+
+
+def gestion_ai_models(request):
+    """
+    Endpoint que retorna lista de modelos disponibles en Groq API.
+    Filtra solo modelos chat/texto, excluye whisper, guard, tts, etc.
+    """
+    if not _staff_required(request):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+
+    try:
+        import requests
+        groq_api_key = os.environ.get('GROQ_API_KEY', '')
+        if not groq_api_key:
+            return JsonResponse({'models': [], 'error': 'GROQ_API_KEY no configurada'})
+
+        # Consultar Groq API para listar modelos
+        headers = {'Authorization': f'Bearer {groq_api_key}'}
+        response = requests.get('https://api.groq.com/openai/v1/models', headers=headers, timeout=5)
+
+        if response.status_code != 200:
+            return JsonResponse({'models': [], 'error': 'Error al conectar con Groq'})
+
+        data = response.json()
+        all_models = data.get('data', [])
+
+        # Filtrar modelos: incluir solo chat/texto, excluir whisper, guard, tts, audio, embed
+        excluded_keywords = ['whisper', 'guard', 'moderation', 'tts', 'audio', 'embed']
+        chat_models = [
+            {'id': m['id'], 'name': m.get('id', '')}
+            for m in all_models
+            if not any(kw in m['id'].lower() for kw in excluded_keywords)
+        ]
+
+        return JsonResponse({'models': chat_models})
+
+    except Exception as e:
+        return JsonResponse({'models': [], 'error': f'Error: {str(e)[:100]}'})
+
+
+def gestion_ai_config(request):
+    """
+    Vista/API para configuración de modelo IA.
+    GET (browser): renderiza template
+    GET (fetch): retorna JSON con modelo + consumo
+    POST (fetch): guarda nuevo modelo
+    """
+    if not _staff_required(request):
+        # Si es GET browser, redirige a login
+        if request.method == 'GET' and 'application/json' not in request.headers.get('Accept', ''):
+            return redirect('gestion_login')
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+
+    # GET browser request → render template
+    if request.method == 'GET' and 'application/json' not in request.headers.get('Accept', ''):
+        return render(request, 'gestion_matys/ai_config.html', {
+            'active_nav': 'ia_config'
+        })
+
+    if request.method == 'GET':
+        # Retornar configuración actual + consumo
+        config = SiteConfig.get_solo()
+        ai_model = config.data.get('ai_model', 'openai/gpt-oss-20b')
+
+        # Obtener consumo del día (reutilizar lógica de gestion_ai_usage)
+        from django.utils import timezone
+        today = timezone.now().date()
+        today_start = timezone.make_aware(
+            timezone.datetime.combine(today, timezone.datetime.min.time())
+        )
+        today_end = timezone.make_aware(
+            timezone.datetime.combine(today, timezone.datetime.max.time())
+        )
+
+        usage_today = AIUsage.objects.filter(
+            timestamp__gte=today_start,
+            timestamp__lte=today_end,
+            status='success'
+        ).aggregate(
+            total_tokens=models.Sum('total_tokens') or 0,
+            calls=models.Count('id')
+        )
+
+        total_tokens = usage_today.get('total_tokens', 0) or 0
+        calls = usage_today.get('calls', 0) or 0
+        daily_limit = int(os.environ.get('AI_DAILY_TOKEN_LIMIT', '10000'))
+        percentage = int((total_tokens / daily_limit) * 100) if daily_limit > 0 else 0
+        percentage = min(percentage, 100)
+
+        return JsonResponse({
+            'ai_model': ai_model,
+            'tokens_used': total_tokens,
+            'daily_limit': daily_limit,
+            'percentage': percentage,
+            'calls_today': calls,
+            'remaining': max(0, daily_limit - total_tokens),
+        })
+
+    elif request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            new_model = data.get('model', '').strip()
+
+            if not new_model:
+                return JsonResponse({'error': 'Modelo no especificado'}, status=400)
+
+            # Validar que el modelo existe en Groq
+            import requests
+            groq_api_key = os.environ.get('GROQ_API_KEY', '')
+            if not groq_api_key:
+                return JsonResponse({'error': 'GROQ_API_KEY no configurada'}, status=500)
+
+            headers = {'Authorization': f'Bearer {groq_api_key}'}
+            response = requests.get('https://api.groq.com/openai/v1/models', headers=headers, timeout=5)
+
+            if response.status_code != 200:
+                return JsonResponse({'error': 'Error al validar modelo en Groq'}, status=500)
+
+            data_models = response.json()
+            model_ids = [m['id'] for m in data_models.get('data', [])]
+
+            if new_model not in model_ids:
+                return JsonResponse({'error': f'Modelo {new_model} no encontrado en Groq'}, status=400)
+
+            # Guardar en SiteConfig
+            config = SiteConfig.get_solo()
+            config.data['ai_model'] = new_model
+            config.save()
+
+            return JsonResponse({'success': True, 'ai_model': new_model})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'JSON inválido'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': f'Error: {str(e)[:100]}'}, status=500)
+
+    else:
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 
 def detalle_prendas(request, slug):
