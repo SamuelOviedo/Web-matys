@@ -191,6 +191,12 @@
 
   <div id="messageContainer"></div>
 
+  <!-- Advertencia si modelo está obsoleto -->
+  <div class="error-message" id="modelWarning" style="display: none;">
+    <i class="bi bi-exclamation-triangle"></i>
+    <span id="warningText"></span>
+  </div>
+
   <div class="model-info" id="modelInfo" style="display: none;">
     <i class="bi bi-check-circle"></i>
     <span>Modelo actual: <strong id="currentModel">—</strong></span>
@@ -260,6 +266,15 @@ async function loadAIConfig() {
     // Actualizar modelo actual
     document.getElementById('currentModel').textContent = data.ai_model || '—';
     document.getElementById('modelInfo').style.display = 'flex';
+
+    // Mostrar advertencia si modelo está obsoleto
+    const warningEl = document.getElementById('modelWarning');
+    if (data.model_warning) {
+      warningEl.style.display = 'block';
+      document.getElementById('warningText').textContent = data.model_warning;
+    } else {
+      warningEl.style.display = 'none';
+    }
 
     // Actualizar consumo
     const pct = data.percentage || 0;

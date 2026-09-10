@@ -814,9 +814,28 @@ def gestion_ai_config(request):
         })
 
     if request.method == 'GET':
-        # Retornar configuración actual + consumo
+        # Retornar configuración actual + consumo + validación modelo
         config = SiteConfig.get_solo()
         ai_model = config.data.get('ai_model', 'openai/gpt-oss-20b')
+        model_is_valid = True
+        model_warning = None
+
+        # Verificar si el modelo actual está disponible en Groq
+        try:
+            import requests
+            groq_api_key = os.environ.get('GROQ_API_KEY', '')
+            if groq_api_key:
+                headers = {'Authorization': f'Bearer {groq_api_key}'}
+                response = requests.get('https://api.groq.com/openai/v1/models', headers=headers, timeout=5)
+                if response.status_code == 200:
+                    data_models = response.json()
+                    model_ids = [m['id'] for m in data_models.get('data', [])]
+                    if ai_model not in model_ids:
+                        model_is_valid = False
+                        model_warning = f'Modelo "{ai_model}" ya no está disponible en Groq. Selecciona otro desde la lista.'
+        except Exception as e:
+            # Si no podemos conectar a Groq, asumimos que el modelo es válido
+            pass
 
         # Obtener consumo del día (reutilizar lógica de gestion_ai_usage)
         from django.utils import timezone
@@ -843,14 +862,20 @@ def gestion_ai_config(request):
         percentage = int((total_tokens / daily_limit) * 100) if daily_limit > 0 else 0
         percentage = min(percentage, 100)
 
-        return JsonResponse({
+        response_data = {
             'ai_model': ai_model,
+            'model_is_valid': model_is_valid,
             'tokens_used': total_tokens,
             'daily_limit': daily_limit,
             'percentage': percentage,
             'calls_today': calls,
             'remaining': max(0, daily_limit - total_tokens),
-        })
+        }
+
+        if model_warning:
+            response_data['model_warning'] = model_warning
+
+        return JsonResponse(response_data)
 
     elif request.method == 'POST':
         try:
