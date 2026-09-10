@@ -257,10 +257,34 @@
 
 {% block extra_js %}
 <script>
+// Obtener token CSRF de la cookie de Django
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
 async function loadAIConfig() {
   try {
     const res = await fetch('/gestion-matys/ai/config/');
     if (!res.ok) return;
+
+    // Validar que la respuesta sea JSON antes de parsear
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error('Respuesta no es JSON:', contentType);
+      return;
+    }
+
     const data = await res.json();
 
     // Actualizar modelo actual
@@ -363,19 +387,53 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = true;
 
     try {
+      // Obtener token CSRF
+      const csrftoken = getCookie('csrftoken');
+
       const res = await fetch('/gestion-matys/ai/config/', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken || ''
+        },
         body: JSON.stringify({model: model})
       });
 
+      // Validar response antes de parsear JSON
       if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Error al guardar');
+        // Intentar leer error JSON si es posible
+        const contentType = res.headers.get('content-type');
+        let errorMsg = 'Error al guardar';
+
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            const errData = await res.json();
+            errorMsg = errData.error || errorMsg;
+          } catch (e) {
+            // No se pudo parsear error JSON, usar mensaje genérico
+            errorMsg = `Error: ${res.status} ${res.statusText}`;
+          }
+        } else {
+          // Response no es JSON (e.g., 403 HTML response)
+          errorMsg = `Error HTTP ${res.status}: ${res.statusText}`;
+        }
+
+        throw new Error(errorMsg);
       }
 
-      showMessage('Modelo guardado correctamente', 'success');
-      loadAIConfig();
+      // Validar que la respuesta sea JSON
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Respuesta del servidor no es JSON válido');
+      }
+
+      const data = await res.json();
+      if (data.success) {
+        showMessage('Modelo guardado correctamente', 'success');
+        loadAIConfig();
+      } else {
+        throw new Error(data.error || 'Error desconocido al guardar');
+      }
     } catch (e) {
       showMessage('Error: ' + e.message, 'error');
     } finally {

@@ -681,18 +681,52 @@ def gestion_ai_tono(request):
         usage = completion.usage
         raw = completion.choices[0].message.content.strip()
 
+        # Debug: loguear respuesta cruda en desarrollo (no en producción)
+        if os.environ.get('DEBUG', 'False') == 'True':
+            import sys
+            print(f'[DEBUG] Groq raw response ({model_name}): {raw[:500]}...', file=sys.stderr)
+
         # Intentar parsear JSON de forma robusta
         try:
-            # Eliminar markdown code blocks si existen
-            if raw.startswith('```'):
-                raw = raw.split('```')[1]
-                if raw.startswith('json'):
-                    raw = raw[4:]
-                if raw.startswith('\n'):
-                    raw = raw[1:]
+            # Paso 1: Intentar parse directo
+            result = None
+            parse_error = None
 
-            # Intentar parse directo
-            result = json.loads(raw.strip())
+            try:
+                result = json.loads(raw.strip())
+            except json.JSONDecodeError as e:
+                parse_error = e
+                # Paso 2: Si falló, intentar extraer JSON de markdown code blocks
+                # Formato esperado: ```json\n{...}\n```
+                if '```' in raw:
+                    # Buscar contenido entre triple backticks
+                    parts = raw.split('```')
+                    for part in parts:
+                        if part.strip().startswith('{'):
+                            # Encontramos potencial JSON
+                            try:
+                                result = json.loads(part.strip())
+                                parse_error = None
+                                break
+                            except json.JSONDecodeError:
+                                continue
+
+            # Si aún no tenemos resultado, intentar buscar bloque JSON por { y }
+            if result is None and parse_error is not None:
+                # Buscar primer { y último }
+                start_idx = raw.find('{')
+                end_idx = raw.rfind('}')
+                if start_idx != -1 and end_idx != -1 and start_idx < end_idx:
+                    potential_json = raw[start_idx:end_idx + 1]
+                    try:
+                        result = json.loads(potential_json)
+                        parse_error = None
+                    except json.JSONDecodeError:
+                        pass
+
+            # Si todavía no tenemos un resultado, fallar con el error original
+            if result is None:
+                raise parse_error if parse_error else json.JSONDecodeError('No JSON found', raw, 0)
 
             # Registrar como exitosa solo si JSON es válido
             AIUsage.objects.create(
