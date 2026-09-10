@@ -948,12 +948,12 @@ def gestion_ai_config(request):
     """
     if not _staff_required(request):
         # Si es GET browser, redirige a login
-        if request.method == 'GET' and 'application/json' not in request.headers.get('Accept', ''):
+        if request.method == 'GET' and request.GET.get('format') != 'json':
             return redirect('gestion_login')
         return JsonResponse({'error': 'No autorizado'}, status=403)
 
-    # GET browser request → render template
-    if request.method == 'GET' and 'application/json' not in request.headers.get('Accept', ''):
+    # GET browser request → render template (sin ?format=json)
+    if request.method == 'GET' and request.GET.get('format') != 'json':
         return render(request, 'gestion_matys/ai_config.html', {
             'active_nav': 'ia_config'
         })

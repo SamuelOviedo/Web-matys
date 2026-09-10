@@ -275,8 +275,8 @@ function getCookie(name) {
 
 async function loadAIConfig() {
   try {
-    console.log('[loadAIConfig] GET /gestion-matys/ai/config/ (JSON)');
-    const res = await fetch('/gestion-matys/ai/config/');
+    console.log('[loadAIConfig] GET /gestion-matys/ai/config/?format=json');
+    const res = await fetch('/gestion-matys/ai/config/?format=json');
     const contentType = res.headers.get('content-type');
     console.log(`[loadAIConfig] status=${res.status}, content-type=${contentType}`);
 
