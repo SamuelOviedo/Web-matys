@@ -747,16 +747,14 @@ def gestion_ai_tono(request):
         return JsonResponse({'error': error_msg}, status=500)
 
 
-def gestion_ai_usage(request):
+def _get_ai_consumption_today():
     """
-    Endpoint que devuelve el consumo actual de IA (tokens hoy + % de límite).
-    Reutiliza datos existentes de AIUsage sin duplicar cálculos.
+    Helper: calcula consumo IA del día actual.
+    Suma tokens de TODAS las llamadas que tengan total_tokens > 0 (success y error con respuesta).
+    Diferencia entre llamadas exitosas y fallidas.
+    Reutilizado por gestion_ai_usage y gestion_ai_config.
     """
-    if not _staff_required(request):
-        return JsonResponse({'error': 'No autorizado'}, status=403)
-
     from django.utils import timezone
-    from datetime import timedelta
 
     today = timezone.now().date()
     today_start = timezone.make_aware(
@@ -766,31 +764,51 @@ def gestion_ai_usage(request):
         timezone.datetime.combine(today, timezone.datetime.max.time())
     )
 
-    # Consumo de hoy (solo llamadas exitosas)
-    usage_today = AIUsage.objects.filter(
+    # Todas las llamadas del día
+    all_calls = AIUsage.objects.filter(
         timestamp__gte=today_start,
-        timestamp__lte=today_end,
-        status='success'
+        timestamp__lte=today_end
     ).aggregate(
-        total_tokens=models.Sum('total_tokens') or 0,
-        calls=models.Count('id')
+        # Tokens consumidos: suma REAL de tokens (todas las llamadas)
+        total_tokens=models.Sum('total_tokens', default=0),
+        # Llamadas totales
+        total_calls=models.Count('id'),
+        # Llamadas exitosas
+        success_calls=models.Count('id', filter=models.Q(status='success')),
+        # Llamadas fallidas
+        error_calls=models.Count('id', filter=models.Q(status='error')),
     )
 
-    total_tokens = usage_today.get('total_tokens', 0) or 0
-    calls = usage_today.get('calls', 0) or 0
+    total_tokens = all_calls.get('total_tokens', 0) or 0
+    total_calls = all_calls.get('total_calls', 0) or 0
+    success_calls = all_calls.get('success_calls', 0) or 0
+    error_calls = all_calls.get('error_calls', 0) or 0
 
-    # Límite diario (configurables por env var, default 10k para free tier)
     daily_limit = int(os.environ.get('AI_DAILY_TOKEN_LIMIT', '10000'))
     percentage = int((total_tokens / daily_limit) * 100) if daily_limit > 0 else 0
-    percentage = min(percentage, 100)  # Max 100%
+    percentage = min(percentage, 100)
 
-    return JsonResponse({
+    return {
         'tokens_used': total_tokens,
         'daily_limit': daily_limit,
         'percentage': percentage,
-        'calls_today': calls,
+        'calls_today': total_calls,
+        'success_calls': success_calls,
+        'error_calls': error_calls,
         'remaining': max(0, daily_limit - total_tokens),
-    })
+    }
+
+
+def gestion_ai_usage(request):
+    """
+    Endpoint que devuelve el consumo actual de IA (tokens hoy + % de límite).
+    Reutiliza datos existentes de AIUsage sin duplicar cálculos.
+    """
+    if not _staff_required(request):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+
+    consumption = _get_ai_consumption_today()
+    return JsonResponse(consumption)
 
 
 def gestion_ai_models(request):
@@ -798,6 +816,8 @@ def gestion_ai_models(request):
     Endpoint que retorna lista de modelos disponibles en Groq API.
     Filtra solo modelos compatibles con chat/completions (gestion_ai_tono).
     Usa allowlist de familias conocidas + exclusión explícita de incompatibles.
+    IMPORTANTE: Retorna INTERSECCIÓN de modelos reales de Groq + allowlist.
+    Nunca devuelve un modelo solo porque coincide con allowlist si Groq no lo tiene.
     """
     if not _staff_required(request):
         return JsonResponse({'error': 'No autorizado'}, status=403)
@@ -808,7 +828,7 @@ def gestion_ai_models(request):
         if not groq_api_key:
             return JsonResponse({'models': [], 'error': 'GROQ_API_KEY no configurada'})
 
-        # Consultar Groq API para listar modelos
+        # Consultar Groq API para listar modelos ACTUALMENTE DISPONIBLES
         headers = {'Authorization': f'Bearer {groq_api_key}'}
         response = requests.get('https://api.groq.com/openai/v1/models', headers=headers, timeout=5)
 
@@ -818,25 +838,34 @@ def gestion_ai_models(request):
         data = response.json()
         all_models = data.get('data', [])
 
+        # Obtener lista de IDs ACTUALMENTE DISPONIBLES
+        available_model_ids = {m['id'] for m in all_models}
+
         # Allowlist: familias de modelos conocidas y compatibles con chat
         # Estos son validados manualmente como compatibles con /chat/completions
+        # Nota: Groq usa namespaces (ej: openai/gpt-oss-20b, meta-llama/...)
         compatible_prefixes = [
-            'mixtral-',      # Mistral Mixtral (8x7b, 8x22b, etc)
-            'llama-3',       # Meta Llama 3 y 3.1 (8b, 70b)
-            'gemma-',        # Google Gemma (2b, 7b)
-            'gpt-oss-',      # OpenAI compatible (gpt-oss-20b)
+            'mixtral-',                  # Mistral (si existe sin namespace)
+            'llama-3',                   # Llama 3 (si existe sin namespace)
+            'gemma-',                    # Gemma (si existe sin namespace)
+            'openai/gpt-oss-',           # OpenAI OSS (con namespace openai/)
+            'meta-llama/llama-3',        # Meta Llama 3 (con namespace meta-llama/)
+            'allam-',                    # Allam (Arabic LLM)
+            'qwen/qwen',                 # Qwen (con namespace qwen/)
         ]
 
-        # Exclusiones explícitas: modelos no compatibles
+        # Exclusiones explícitas: modelos no compatibles con chat/completions
         excluded_keywords = [
             'whisper',       # Transcripción de audio
-            'guard',         # Moderación
+            'guard',         # Moderación / safety guards
+            'prompt-guard',  # Groq safety guard
             'moderation',    # Moderación
             'tts',           # Text-to-speech
             'audio',         # Audio
             'embed',         # Embeddings
             'embedding',     # Embeddings
             'orpheus',       # Non-chat models (canopylabs)
+            'safeguard',     # Safety/moderation models
         ]
 
         def is_compatible(model_id):
@@ -853,10 +882,11 @@ def gestion_ai_models(request):
             # Fallback conservador: excluir si no está en allowlist
             return False
 
+        # INTERSECCIÓN: solo modelos que están en Groq Y en allowlist
         chat_models = [
             {'id': m['id'], 'name': m.get('id', '')}
             for m in all_models
-            if is_compatible(m['id'])
+            if is_compatible(m['id']) and m['id'] in available_model_ids
         ]
 
         return JsonResponse({'models': chat_models})
@@ -908,39 +938,17 @@ def gestion_ai_config(request):
             # Si no podemos conectar a Groq, asumimos que el modelo es válido
             pass
 
-        # Obtener consumo del día (reutilizar lógica de gestion_ai_usage)
-        from django.utils import timezone
-        today = timezone.now().date()
-        today_start = timezone.make_aware(
-            timezone.datetime.combine(today, timezone.datetime.min.time())
-        )
-        today_end = timezone.make_aware(
-            timezone.datetime.combine(today, timezone.datetime.max.time())
-        )
-
-        usage_today = AIUsage.objects.filter(
-            timestamp__gte=today_start,
-            timestamp__lte=today_end,
-            status='success'
-        ).aggregate(
-            total_tokens=models.Sum('total_tokens') or 0,
-            calls=models.Count('id')
-        )
-
-        total_tokens = usage_today.get('total_tokens', 0) or 0
-        calls = usage_today.get('calls', 0) or 0
-        daily_limit = int(os.environ.get('AI_DAILY_TOKEN_LIMIT', '10000'))
-        percentage = int((total_tokens / daily_limit) * 100) if daily_limit > 0 else 0
-        percentage = min(percentage, 100)
+        # Obtener consumo del día (usar helper reutilizado)
+        consumption = _get_ai_consumption_today()
 
         response_data = {
             'ai_model': ai_model,
             'model_is_valid': model_is_valid,
-            'tokens_used': total_tokens,
-            'daily_limit': daily_limit,
-            'percentage': percentage,
-            'calls_today': calls,
-            'remaining': max(0, daily_limit - total_tokens),
+            'tokens_used': consumption['tokens_used'],
+            'daily_limit': consumption['daily_limit'],
+            'percentage': consumption['percentage'],
+            'calls_today': consumption['calls_today'],
+            'remaining': consumption['remaining'],
         }
 
         if model_warning:
