@@ -180,8 +180,12 @@
     border-radius: 3px;
   }
 
+  .progress-bar.warning {
+    background: linear-gradient(90deg, #FFD60A, #FFA500);
+  }
+
   .progress-bar.critical {
-    background: linear-gradient(90deg, #FFD60A, #ff9800);
+    background: linear-gradient(90deg, #FF6B6B, #FF4444);
   }
 </style>
 
@@ -247,8 +251,9 @@
       <div class="progress-bar" id="progressBar"></div>
     </div>
 
-    <div style="margin-top: 8px; font-size: 11px; color: var(--mute);">
-      Tokens restantes: <strong id="tokensRemaining">10,000</strong>
+    <div style="margin-top: 8px; font-size: 11px; color: var(--mute); display: flex; justify-content: space-between; align-items: center;">
+      <span>Tokens restantes: <strong id="tokensRemaining">10,000</strong></span>
+      <span id="lastUpdated" style="font-style: italic;">Cargando...</span>
     </div>
   </div>
 </div>
@@ -319,11 +324,19 @@ async function loadAIConfig() {
     document.getElementById('callsToday').textContent = calls;
     document.getElementById('tokensRemaining').textContent = remaining.toLocaleString();
 
-    // Actualizar barra de progreso
+    // Actualizar timestamp
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('lastUpdated').textContent = 'Actualizado ' + timeStr;
+
+    // Actualizar barra de progreso con estados (critical > 80%, warning 50-80%)
     const bar = document.getElementById('progressBar');
     bar.style.width = pct + '%';
+    bar.classList.remove('critical', 'warning');
     if (pct > 80) {
       bar.classList.add('critical');
+    } else if (pct > 50) {
+      bar.classList.add('warning');
     }
   } catch (e) {
     console.log('Error loading AI config:', e);
@@ -361,12 +374,23 @@ async function loadAvailableModels() {
       return;
     }
 
-    // Llenar dropdown
+    // Llenar dropdown con nombres humanizados
+    function humanizeModelId(id) {
+      return id
+        .replace(/meta-llama\/llama/, 'Llama')
+        .replace(/openai\/gpt-oss-/, 'OpenAI GPT OSS ')
+        .replace(/groq\/compound/, 'Groq Compound')
+        .replace(/qwen\/qwen/, 'Qwen ')
+        .replace(/-/g, ' ')
+        .replace(/(\d+b)/g, '$1')  // Mantener tokens (20b, 120b, etc)
+        .trim();
+    }
+
     select.innerHTML = '';
     models.forEach(model => {
       const option = document.createElement('option');
       option.value = model.id;
-      option.textContent = model.id;
+      option.textContent = humanizeModelId(model.id);
       select.appendChild(option);
     });
 
@@ -384,8 +408,13 @@ function showMessage(text, type) {
   const className = type === 'error' ? 'error-message' : 'success-message';
   container.innerHTML = `<div class="${className}">${text}</div>`;
   setTimeout(() => {
-    container.innerHTML = '';
-  }, 5000);
+    container.style.opacity = '0';
+    container.style.transition = 'opacity 0.3s ease';
+    setTimeout(() => {
+      container.innerHTML = '';
+      container.style.opacity = '1';
+    }, 300);
+  }, 7000);  // 7 segundos (aumentado de 5)
 }
 
 document.addEventListener('DOMContentLoaded', () => {

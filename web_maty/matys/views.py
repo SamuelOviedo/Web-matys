@@ -896,6 +896,7 @@ def gestion_ai_models(request):
             'meta-llama/llama-3',        # Meta Llama 3 (con namespace meta-llama/)
             'allam-',                    # Allam (Arabic LLM)
             'qwen/qwen',                 # Qwen (con namespace qwen/)
+            'groq/compound',             # Groq Compound (chat-compatible)
         ]
 
         # Exclusiones explícitas: modelos no compatibles con chat/completions
