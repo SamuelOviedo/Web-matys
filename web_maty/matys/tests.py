@@ -454,3 +454,160 @@ class TextosCmsTests(BaseStaffTestCase):
         resp = self.client.get('/')
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, DEFAULTS_TEXTOS['quienes_titulo'])
+
+
+# ═══════════════════════════════ Consumo IA ═════════════════════════════════
+
+class AIConsumptionConsistencyTests(BaseStaffTestCase):
+    """
+    Tests para garantizar que los endpoints de consumo IA retornan
+    exactamente los mismos datos.
+
+    Problema resuelto: En producción, Vista general mostraba 707 tokens
+    pero Configuración IA mostraba 0 tokens. Ambas vistas debían usar
+    exactamente la misma lógica y retornar los mismos valores.
+
+    Solución: Función centralizada _get_ai_consumption_json() que ambos
+    endpoints usan.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.login()
+
+    def _create_ai_usage_records(self, tokens_list):
+        """Helper para crear registros de prueba en AIUsage."""
+        from .models import AIUsage
+        from django.utils import timezone
+        import datetime
+
+        today = timezone.now().date()
+        base_time = timezone.make_aware(
+            timezone.datetime.combine(today, datetime.time(10, 0, 0))
+        )
+
+        for i, tokens in enumerate(tokens_list):
+            AIUsage.objects.create(
+                timestamp=base_time + timezone.timedelta(minutes=i*10),
+                model='groq/mixtral-8x7b-32768',
+                prompt_tokens=tokens // 2,
+                completion_tokens=tokens - (tokens // 2),
+                total_tokens=tokens,
+                status='success'
+            )
+
+    def test_ambos_endpoints_retornan_mismo_consumo_sin_datos(self):
+        """Sin datos, ambos endpoints retornan 0 tokens."""
+        from .models import AIUsage
+        AIUsage.objects.all().delete()
+
+        resp1 = self.client.get('/gestion-matys/ai/usage/')
+        data1 = resp1.json()
+
+        resp2 = self.client.get('/gestion-matys/ai/config/?format=json')
+        data2 = resp2.json()
+
+        # Campos comunes deben coincidir
+        common_fields = ['tokens_used', 'daily_limit', 'percentage', 'calls_today', 'remaining']
+        for field in common_fields:
+            self.assertEqual(
+                data1.get(field), data2.get(field),
+                f'Campo {field} no coincide: {data1.get(field)} vs {data2.get(field)}'
+            )
+
+    def test_ambos_endpoints_retornan_mismo_consumo_con_707_tokens(self):
+        """Con 707 tokens, ambos endpoints deben devolver exactamente lo mismo."""
+        from .models import AIUsage
+        AIUsage.objects.all().delete()
+
+        # Crear 7 registros de 101 tokens cada uno = 707 tokens
+        self._create_ai_usage_records([141] * 5 + [1, 1])
+
+        resp1 = self.client.get('/gestion-matys/ai/usage/')
+        data1 = resp1.json()
+
+        resp2 = self.client.get('/gestion-matys/ai/config/?format=json')
+        data2 = resp2.json()
+
+        # Status debe ser 200 en ambos
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp2.status_code, 200)
+
+        # Campos comunes deben coincidir exactamente
+        self.assertEqual(data1['tokens_used'], 707)
+        self.assertEqual(data2['tokens_used'], 707)
+        self.assertEqual(data1['tokens_used'], data2['tokens_used'])
+
+        self.assertEqual(data1['daily_limit'], data2['daily_limit'])
+        self.assertEqual(data1['percentage'], data2['percentage'])
+        self.assertEqual(data1['calls_today'], data2['calls_today'])
+        self.assertEqual(data1['remaining'], data2['remaining'])
+
+    def test_cambiar_modelo_no_incrementa_consumo(self):
+        """Cambiar modelo en /ai/config/ no debe afectar el consumo reportado."""
+        from .models import AIUsage
+        AIUsage.objects.all().delete()
+        self._create_ai_usage_records([100, 200])
+
+        resp_before = self.client.get('/gestion-matys/ai/config/?format=json')
+        data_before = resp_before.json()
+        tokens_before = data_before['tokens_used']
+
+        # Cambiar modelo (POST)
+        self.client.post(
+            '/gestion-matys/ai/config/',
+            data=json.dumps({'model': 'groq/mixtral-8x7b-32768'}),
+            content_type='application/json'
+        )
+
+        # Verificar que consumo es igual
+        resp_after = self.client.get('/gestion-matys/ai/config/?format=json')
+        data_after = resp_after.json()
+        tokens_after = data_after['tokens_used']
+
+        self.assertEqual(tokens_before, tokens_after)
+        self.assertEqual(tokens_before, 300)
+
+    def test_datos_otro_dia_no_se_incluyen(self):
+        """Datos de otro día no deben incluirse en consumo de hoy."""
+        from .models import AIUsage
+        from django.utils import timezone
+        import datetime
+
+        AIUsage.objects.all().delete()
+
+        today = timezone.now().date()
+        yesterday = today - timezone.timedelta(days=1)
+
+        # Crear datos para ayer (no deben incluirse)
+        yesterday_start = timezone.make_aware(
+            timezone.datetime.combine(yesterday, datetime.time(10, 0, 0))
+        )
+        AIUsage.objects.create(
+            timestamp=yesterday_start,
+            model='groq/mixtral-8x7b-32768',
+            prompt_tokens=500,
+            completion_tokens=500,
+            total_tokens=1000,
+            status='success'
+        )
+
+        # Crear datos para hoy
+        today_start = timezone.make_aware(
+            timezone.datetime.combine(today, datetime.time(10, 0, 0))
+        )
+        AIUsage.objects.create(
+            timestamp=today_start,
+            model='groq/mixtral-8x7b-32768',
+            prompt_tokens=50,
+            completion_tokens=50,
+            total_tokens=100,
+            status='success'
+        )
+
+        resp = self.client.get('/gestion-matys/ai/usage/')
+        data = resp.json()
+
+        # Debe retornar solo 100 tokens (de hoy), no 1100 (ayer + hoy)
+        self.assertEqual(data['tokens_used'], 100)
+        self.assertEqual(data['calls_today'], 1)

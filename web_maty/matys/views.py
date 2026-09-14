@@ -797,6 +797,8 @@ def _get_ai_consumption_today():
     Suma tokens de TODAS las llamadas que tengan total_tokens > 0 (success y error con respuesta).
     Diferencia entre llamadas exitosas y fallidas.
     Reutilizado por gestion_ai_usage y gestion_ai_config.
+
+    FUENTE ÚNICA DE VERDAD: todos los endpoints deben usar esta función.
     """
     from django.utils import timezone
 
@@ -843,16 +845,68 @@ def _get_ai_consumption_today():
     }
 
 
+def _get_ai_consumption_json(include_calls_breakdown=False):
+    """
+    Retorna consumo IA como JSON Response.
+
+    Args:
+        include_calls_breakdown: si True, incluye success_calls y error_calls
+
+    Retorna: JsonResponse con consumo de IA.
+
+    IMPORTANTE: función centralizada para garantizar consistencia entre endpoints.
+    Ambos /gestion-matys/ai/usage/ y /gestion-matys/ai/config/?format=json
+    usan esta función para retornar datos de consumo.
+    """
+    consumption = _get_ai_consumption_today()
+
+    # Datos comunes a ambos endpoints
+    response_data = {
+        'tokens_used': consumption['tokens_used'],
+        'daily_limit': consumption['daily_limit'],
+        'percentage': consumption['percentage'],
+        'calls_today': consumption['calls_today'],
+        'remaining': consumption['remaining'],
+    }
+
+    # Detalles de llamadas (solo para /ai/usage/)
+    if include_calls_breakdown:
+        response_data['success_calls'] = consumption['success_calls']
+        response_data['error_calls'] = consumption['error_calls']
+
+    logger.info(
+        f'[AI consumption] tokens_used={consumption["tokens_used"]}, '
+        f'calls={consumption["calls_today"]}, percentage={consumption["percentage"]}%'
+    )
+
+    return response_data
+
+
 def gestion_ai_usage(request):
     """
     Endpoint que devuelve el consumo actual de IA (tokens hoy + % de límite).
     Reutiliza datos existentes de AIUsage sin duplicar cálculos.
+
+    GET: retorna JSON con consumo de IA
     """
     if not _staff_required(request):
         return JsonResponse({'error': 'No autorizado'}, status=403)
 
-    consumption = _get_ai_consumption_today()
-    return JsonResponse(consumption)
+    try:
+        consumption_data = _get_ai_consumption_json(include_calls_breakdown=True)
+        return JsonResponse(consumption_data)
+    except Exception as e:
+        logger.error(f'[gestion_ai_usage] Error: {str(e)}')
+        # Retornar datos por defecto en caso de error
+        return JsonResponse({
+            'tokens_used': 0,
+            'daily_limit': 10000,
+            'percentage': 0,
+            'calls_today': 0,
+            'success_calls': 0,
+            'error_calls': 0,
+            'remaining': 10000,
+        })
 
 
 def gestion_ai_models(request):
@@ -961,45 +1015,60 @@ def gestion_ai_config(request):
 
     if request.method == 'GET':
         # Retornar configuración actual + consumo + validación modelo
-        config = SiteConfig.get_solo()
-        ai_model = config.data.get('ai_model', 'openai/gpt-oss-20b')
-        model_is_valid = True
-        model_warning = None
-
-        # Verificar si el modelo actual está disponible en Groq
         try:
-            import requests
-            groq_api_key = os.environ.get('GROQ_API_KEY', '')
-            if groq_api_key:
-                headers = {'Authorization': f'Bearer {groq_api_key}'}
-                response = requests.get('https://api.groq.com/openai/v1/models', headers=headers, timeout=5)
-                if response.status_code == 200:
-                    data_models = response.json()
-                    model_ids = [m['id'] for m in data_models.get('data', [])]
-                    if ai_model not in model_ids:
-                        model_is_valid = False
-                        model_warning = f'Modelo "{ai_model}" ya no está disponible en Groq. Selecciona otro desde la lista.'
+            config = SiteConfig.get_solo()
+            ai_model = config.data.get('ai_model', 'openai/gpt-oss-20b')
+            model_is_valid = True
+            model_warning = None
+
+            # Verificar si el modelo actual está disponible en Groq
+            # IMPORTANTE: esto es una validación SEPARADA y no debe afectar el retorno de consumo
+            try:
+                import requests
+                groq_api_key = os.environ.get('GROQ_API_KEY', '')
+                if groq_api_key:
+                    headers = {'Authorization': f'Bearer {groq_api_key}'}
+                    response = requests.get('https://api.groq.com/openai/v1/models', headers=headers, timeout=5)
+                    if response.status_code == 200:
+                        data_models = response.json()
+                        model_ids = [m['id'] for m in data_models.get('data', [])]
+                        if ai_model not in model_ids:
+                            model_is_valid = False
+                            model_warning = f'Modelo "{ai_model}" ya no está disponible en Groq. Selecciona otro desde la lista.'
+            except Exception as e:
+                # Si no podemos conectar a Groq, asumimos que el modelo es válido
+                # y continuamos retornando el consumo normalmente
+                logger.warning(f'[gestion_ai_config] Error validando modelo en Groq: {str(e)}')
+                pass
+
+            # Obtener consumo del día (función centralizada)
+            consumption_data = _get_ai_consumption_json(include_calls_breakdown=False)
+
+            response_data = {
+                'ai_model': ai_model,
+                'model_is_valid': model_is_valid,
+            }
+            # Agregar consumo
+            response_data.update(consumption_data)
+
+            if model_warning:
+                response_data['model_warning'] = model_warning
+
+            return JsonResponse(response_data)
+
         except Exception as e:
-            # Si no podemos conectar a Groq, asumimos que el modelo es válido
-            pass
-
-        # Obtener consumo del día (usar helper reutilizado)
-        consumption = _get_ai_consumption_today()
-
-        response_data = {
-            'ai_model': ai_model,
-            'model_is_valid': model_is_valid,
-            'tokens_used': consumption['tokens_used'],
-            'daily_limit': consumption['daily_limit'],
-            'percentage': consumption['percentage'],
-            'calls_today': consumption['calls_today'],
-            'remaining': consumption['remaining'],
-        }
-
-        if model_warning:
-            response_data['model_warning'] = model_warning
-
-        return JsonResponse(response_data)
+            logger.error(f'[gestion_ai_config GET] Error: {str(e)}')
+            # Retornar error con datos por defecto de consumo
+            return JsonResponse({
+                'error': 'Error al cargar configuración',
+                'ai_model': 'openai/gpt-oss-20b',
+                'model_is_valid': True,
+                'tokens_used': 0,
+                'daily_limit': 10000,
+                'percentage': 0,
+                'calls_today': 0,
+                'remaining': 10000,
+            }, status=200)  # 200 para que el frontend no falle
 
     elif request.method == 'POST':
         try:

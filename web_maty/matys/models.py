@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from cloudinary.models import CloudinaryField
 
 
@@ -200,7 +201,9 @@ class AIUsage(models.Model):
     Registro de consumo de API de IA (Groq).
     Permite al admin ver el consumo actual de tokens.
     """
-    timestamp = models.DateTimeField(auto_now_add=True)
+    # Cambio: de auto_now_add=True a default=timezone.now
+    # Razón: auto_now_add ignora valores manuales en tests
+    timestamp = models.DateTimeField(default=timezone.now)
     model = models.CharField(max_length=100, default='openai/gpt-oss-20b')
     prompt_tokens = models.IntegerField(default=0)
     completion_tokens = models.IntegerField(default=0)
