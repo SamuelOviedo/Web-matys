@@ -8,8 +8,8 @@ services:
   - type: web
     name: web-matys
     runtime: python
-    buildCommand: "./build.sh"
-    startCommand: "cd web_maty && python create_admin.py && gunicorn web_maty.wsgi:application"
+    buildCommand: "cd web_maty && bash ../build.sh"
+    startCommand: "cd web_maty && python create_admin.py && gunicorn web_maty.wsgi:application --bind 0.0.0.0:$PORT"
     plan: free
     envVars:
       - key: SECRET_KEY
@@ -22,3 +22,9 @@ services:
           property: connectionString
       - key: PYTHON_VERSION
         value: "3.13.0"
+      - key: GROQ_API_KEY
+        sync: false
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: AI_DAILY_TOKEN_LIMIT
+        value: "10000"
