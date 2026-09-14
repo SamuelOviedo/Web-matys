@@ -661,7 +661,7 @@ def gestion_ai_tono(request):
         logger.info(f"[ai_tono POST] modelo={model_name}, desc_len={len(descripcion)}")
 
         logger.info(f"[ai_tono POST] llamando Groq...")
-        client = Groq(api_key=os.environ.get('GROQ_API_KEY', ''))
+        client = Groq(api_key=os.environ.get('GROQ_API_KEY', ''), timeout=10.0)
         completion = client.chat.completions.create(
             model=model_name,
             messages=[

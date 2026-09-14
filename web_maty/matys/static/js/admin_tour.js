@@ -295,13 +295,13 @@
     renderTipContent(step);
     // Forzar reflow para que el navegador calcule las dimensiones reales del nuevo contenido
     // Esto evita que offsetWidth/offsetHeight devuelvan valores en caché o estimados
-    void dom.tip.offsetHeight;
+    void dom.tip.getBoundingClientRect();
     // NO añadir tour-visible aún: primero posicionar correctamente
 
     if (el) {
       try { el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' }); } catch (e) {}
-      // esperar breve para que el scroll asiente y medir
-      await new Promise(function (r) { setTimeout(r, 260); });
+      // esperar para que el scroll asiente y medir; 400ms cubre dispositivos lentos
+      await new Promise(function (r) { setTimeout(r, 400); });
       var rect = el.getBoundingClientRect();
       state.placement = pickPlacement(rect, step.placement);
     }
