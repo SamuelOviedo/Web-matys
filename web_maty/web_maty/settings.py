@@ -22,6 +22,7 @@ ALLOWED_HOSTS = [
     'www.confeccionesmatys.com',
     'localhost',
     '127.0.0.1',
+    'testserver',  # Django test client
 ]
 CSRF_TRUSTED_ORIGINS = [
     'https://web-matys.onrender.com',
