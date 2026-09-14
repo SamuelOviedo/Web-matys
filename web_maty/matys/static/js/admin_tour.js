@@ -293,6 +293,9 @@
 
     // Render del contenido (para medir tamaño del popover)
     renderTipContent(step);
+    // Forzar reflow para que el navegador calcule las dimensiones reales del nuevo contenido
+    // Esto evita que offsetWidth/offsetHeight devuelvan valores en caché o estimados
+    void dom.tip.offsetHeight;
     // NO añadir tour-visible aún: primero posicionar correctamente
 
     if (el) {
